@@ -1,0 +1,297 @@
+{
+  "domain": "hospitality",
+  "description": "Maps each of the 7 interview sections to their target vertex types, edge patterns, extraction goals, and ID conventions. The LLM extractor reads this at session start to scope its output per turn.",
+  "sections": [
+
+    {
+      "section_id": "A",
+      "section_type": "introduction",
+      "title": "Introduction",
+      "order": 1,
+      "purpose": "Establish session identity, business context, and expert background. Create the root KnowledgeSession vertex and link the expert Person vertex. Capture what makes this business distinctively successful.",
+      "capture_goals": [
+        "Expert's role and type of hospitality business (hotel, boutique, resort, F&B, etc.)",
+        "Years of operation and scale",
+        "Expert's self-assessment of what makes their business successful",
+        "Preferences for pacing, depth, or example types in the session"
+      ],
+      "primary_vertex_labels": [
+        "Person",
+        "KnowledgeSession",
+        "SessionSection",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "hasSession",  "out": "Person",           "in": "KnowledgeSession"  },
+        { "edge": "hasSection",  "out": "KnowledgeSession", "in": "SessionSection"    },
+        { "edge": "hasEpisode",  "out": "SessionSection",   "in": "TranscriptEpisode" }
+      ],
+      "id_seeds": {
+        "KnowledgeSession": "session:hospitality:{YYYY-MM-DD}",
+        "SessionSection":   "section:{session_id}:1",
+        "Person":           "person:{expert_name_slug}"
+      },
+      "extractor_instruction": "Emit the KnowledgeSession vertex first with domain='hospitality'. Then emit the Person vertex and link with hasSession. Capture businessType and yearsOperating in the KnowledgeSession properties if stated. Do not emit any experience or operations knowledge vertices in this section."
+    },
+
+    {
+      "section_id": "B",
+      "section_type": "guest_experience_principles",
+      "title": "Guest Experience Principles",
+      "order": 2,
+      "purpose": "Extract the expert's core, foundational beliefs about excellent hospitality — what guests love, what they remember, what subtle signals reveal satisfaction, what standards are non-negotiable, and how different guest types perceive value.",
+      "capture_goals": [
+        "What guests love most about the service (specific, not generic)",
+        "Small details with the biggest effect on satisfaction",
+        "Subtle signals that a guest is or is not having a good experience",
+        "What matters most to repeat guests vs. first-time guests",
+        "Service standards the expert never compromises on",
+        "Expert's working definition of excellent hospitality",
+        "What guests remember most after they leave"
+      ],
+      "primary_vertex_labels": [
+        "GuestExperiencePrinciple",
+        "ServiceStandard",
+        "GuestSignal",
+        "GuestPersona",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "discusses",          "out": "TranscriptEpisode",       "in": "GuestExperiencePrinciple" },
+        { "edge": "appliesToPersona",   "out": "GuestExperiencePrinciple","in": "GuestPersona"             },
+        { "edge": "standardEnforces",   "out": "ServiceStandard",         "in": "GuestExperiencePrinciple" },
+        { "edge": "signalIndicates",    "out": "GuestSignal",             "in": "GuestPersona"             },
+        { "edge": "principleSupportedBy","out": "GuestExperiencePrinciple","in": "ProvenanceEvidence"      }
+      ],
+      "id_seeds": {
+        "GuestExperiencePrinciple": "principle:{name_slug}",
+        "ServiceStandard":          "standard:{name_slug}",
+        "GuestSignal":              "signal:{name_slug}",
+        "GuestPersona":             "persona:{name_slug}"
+      },
+      "extractor_instruction": "Each distinct hospitality belief or standard the expert articulates becomes one GuestExperiencePrinciple vertex. If the expert mentions a standard they never compromise on, set nonNegotiable=true on the ServiceStandard vertex and link it to the principle with standardEnforces. Any described guest type (repeat guest, first-timer, high-value guest) becomes a GuestPersona. Any cue or behaviour the expert uses to read a guest becomes a GuestSignal. Attach ProvenanceEvidence to every GuestExperiencePrinciple via principleSupportedBy."
+    },
+
+    {
+      "section_id": "C",
+      "section_type": "arrival_checkin_timing",
+      "title": "Arrival, Check-In, and Timing",
+      "order": 3,
+      "purpose": "Extract the expert's operational knowledge and refined rules around guest arrival and departure — check-in/out times, early arrival handling, late departure policy, the sweet spot balance between guest convenience and operational readiness, and timing rules perfected through experience.",
+      "capture_goals": [
+        "How the expert decides the standard check-in time for their property",
+        "Early check-in policy: granted by default, case-by-case, or never",
+        "Factors that decide whether early check-in is granted",
+        "Best balance between guest convenience and room readiness",
+        "Sweet-spot check-in time that works for guests and operations",
+        "How early-arriving guests are handled when rooms are not ready",
+        "What happens when checkout is delayed — fine, fee, waiver, or case-by-case",
+        "Timing rules the expert has perfected over years of operation"
+      ],
+      "primary_vertex_labels": [
+        "CheckInPolicy",
+        "CheckOutPolicy",
+        "TimingRule",
+        "GuestPersona",
+        "GuestSignal",
+        "DecisionRule",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "governs",              "out": "CheckInPolicy",   "in": "TimingRule"        },
+        { "edge": "governsCheckOut",      "out": "CheckOutPolicy",  "in": "TimingRule"        },
+        { "edge": "signalTriggers",       "out": "GuestSignal",     "in": "DecisionRule"      },
+        { "edge": "discussesRule",        "out": "TranscriptEpisode","in": "DecisionRule"     },
+        { "edge": "supportedBy",          "out": "DecisionRule",    "in": "ProvenanceEvidence"},
+        { "edge": "heuristicSupportedBy", "out": "TimingRule",      "in": "ProvenanceEvidence"}
+      ],
+      "id_seeds": {
+        "CheckInPolicy":  "policy:checkin:{session_id}",
+        "CheckOutPolicy": "policy:checkout:{session_id}",
+        "TimingRule":     "timing:{rule_type_slug}:{sequence}",
+        "DecisionRule":   "rule:{if_condition_slug}"
+      },
+      "extractor_instruction": "Emit one CheckInPolicy vertex and one CheckOutPolicy vertex per session (upsert if they already exist). For every if-then rule about arrival or departure timing (e.g. 'if guest arrives before noon and room is ready, I always allow early check-in'), emit one TimingRule vertex with ruleText set. If the timing rule has a clearly stated condition and action, also emit a DecisionRule vertex for the reasoning logic and link CheckInPolicy → TimingRule → relates to DecisionRule. Mark refinedThroughExperience=true if the expert says they learned this over time. Attach ProvenanceEvidence to every TimingRule via heuristicSupportedBy."
+    },
+
+    {
+      "section_id": "D",
+      "section_type": "service_recovery_flexibility",
+      "title": "Service Recovery and Flexibility",
+      "order": 4,
+      "purpose": "Extract the expert's playbook for when things go wrong — the most common failures, how recovery is handled, when policy flexibility is appropriate, what exceptions have paid off in loyalty, how to decide between apology/compensation/explanation, and the mistakes newer operators make.",
+      "capture_goals": [
+        "How the expert recovers the guest experience when something goes wrong",
+        "Most common service failures and their standard recovery approach",
+        "Situations that call for flexibility over strict policy",
+        "Criteria for making exceptions for a guest",
+        "Types of exceptions that have paid off in long-term loyalty",
+        "Decision logic: when to apologize, compensate, or explain",
+        "Service recovery mistakes that newer hospitality operators often make"
+      ],
+      "primary_vertex_labels": [
+        "ServiceFailure",
+        "RecoveryAction",
+        "ExceptionRule",
+        "DecisionRule",
+        "GuestPersona",
+        "Outcome",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "discussesFailure",  "out": "TranscriptEpisode",  "in": "ServiceFailure"     },
+        { "edge": "discussesRule",     "out": "TranscriptEpisode",  "in": "DecisionRule"       },
+        { "edge": "resolvedBy",        "out": "ServiceFailure",     "in": "RecoveryAction"     },
+        { "edge": "recoveryLeadsTo",   "out": "RecoveryAction",     "in": "Outcome"            },
+        { "edge": "exceptionAppliesTo","out": "ExceptionRule",      "in": "DecisionRule"       },
+        { "edge": "exceptionMadeFor",  "out": "ExceptionRule",      "in": "GuestPersona"       },
+        { "edge": "leadsTo",           "out": "DecisionRule",       "in": "Outcome"            },
+        { "edge": "supportedBy",       "out": "DecisionRule",       "in": "ProvenanceEvidence" }
+      ],
+      "id_seeds": {
+        "ServiceFailure":  "failure:{name_slug}",
+        "RecoveryAction":  "recovery:{name_slug}",
+        "ExceptionRule":   "exception:{trigger_condition_slug}:{sequence}",
+        "Outcome":         "outcome:recovery:{sequence}"
+      },
+      "extractor_instruction": "Every type of service problem the expert mentions becomes a ServiceFailure vertex (set frequency if stated). Each recovery response becomes a RecoveryAction vertex and link with resolvedBy. If recovery created loyalty, set leadsToLoyalty=true on the RecoveryAction and emit an Outcome vertex with loyaltyAchieved=true linked via recoveryLeadsTo. Exception decisions become ExceptionRule vertices — link to the GuestPersona they were made for with exceptionMadeFor. If the exception paid off, set paidOff=true. Attach ProvenanceEvidence to every DecisionRule via supportedBy."
+    },
+
+    {
+      "section_id": "E",
+      "section_type": "operating_heuristics_decision_rules",
+      "title": "Operating Heuristics and Decision Rules",
+      "order": 5,
+      "purpose": "Extract the expert's if-then operational rules, intuitive judgments, guest-value recognition patterns, distinguishing habits of seasoned operators, and personal rules for balancing guest happiness, staff load, and profitability.",
+      "capture_goals": [
+        "If-then rules that guide daily hospitality decisions",
+        "How the expert judges whether a guest is likely to return",
+        "Cues that identify a high-value guest early",
+        "Habits that distinguish seasoned operators from average ones",
+        "Patterns the expert has learned to trust over the years",
+        "Decisions best handled by intuition rather than rigid process",
+        "Personal rules balancing guest happiness, staff workload, and profitability",
+        "Timing, pricing, or exception rules refined through experience"
+      ],
+      "primary_vertex_labels": [
+        "OperatingHeuristic",
+        "DecisionRule",
+        "GuestSignal",
+        "GuestPersona",
+        "Outcome",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "discussesHeuristic", "out": "TranscriptEpisode",    "in": "OperatingHeuristic" },
+        { "edge": "discussesRule",      "out": "TranscriptEpisode",    "in": "DecisionRule"       },
+        { "edge": "heuristicExplains",  "out": "OperatingHeuristic",   "in": "DecisionRule"       },
+        { "edge": "signalTriggers",     "out": "GuestSignal",          "in": "DecisionRule"       },
+        { "edge": "signalIndicates",    "out": "GuestSignal",          "in": "GuestPersona"       },
+        { "edge": "leadsTo",            "out": "DecisionRule",         "in": "Outcome"            },
+        { "edge": "heuristicSupportedBy","out": "OperatingHeuristic",  "in": "ProvenanceEvidence" },
+        { "edge": "supportedBy",        "out": "DecisionRule",         "in": "ProvenanceEvidence" }
+      ],
+      "id_seeds": {
+        "OperatingHeuristic": "heuristic:{name_slug}",
+        "DecisionRule":       "rule:{if_condition_slug}",
+        "GuestSignal":        "signal:{name_slug}",
+        "Outcome":            "outcome:heuristic:{sequence}"
+      },
+      "extractor_instruction": "Every pattern or gut-feel rule the expert describes ('I can tell within 5 minutes if a guest will return') becomes an OperatingHeuristic vertex with the heuristic text set verbatim. If the heuristic has a clear if-then structure, also emit a DecisionRule and link with heuristicExplains. Any observable guest behaviour used to read the guest becomes a GuestSignal. If a signal identifies guest type, link with signalIndicates to the relevant GuestPersona. If a decision leads to an explicit outcome (e.g. revenue impact, guest retained), emit an Outcome and link via leadsTo. Reuse existing GuestSignal and GuestPersona IDs from Section B — do not duplicate. Attach ProvenanceEvidence to every OperatingHeuristic via heuristicSupportedBy and to every DecisionRule via supportedBy."
+    },
+
+    {
+      "section_id": "F",
+      "section_type": "customer_psychology_loyalty",
+      "title": "Customer Psychology and Loyalty",
+      "order": 6,
+      "purpose": "Extract the expert's understanding of what emotionally drives loyalty, how repeat and first-time guests differ, what small gestures create outsized goodwill, what turns guests into advocates, what destroys trust quickly, and how different guest types define hospitality.",
+      "capture_goals": [
+        "What makes customers feel genuinely cared for",
+        "Emotional moments that shape loyalty most strongly",
+        "How repeat guests differ from first-time guests in what they value",
+        "Small gestures that create outsized goodwill",
+        "Experiences that turn guests into advocates",
+        "What causes guests to lose trust quickly",
+        "What hospitality means to different customer types"
+      ],
+      "primary_vertex_labels": [
+        "LoyaltyDriver",
+        "EmotionalMoment",
+        "GuestPersona",
+        "GuestExperiencePrinciple",
+        "Outcome",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "discusses",          "out": "TranscriptEpisode",   "in": "GuestExperiencePrinciple" },
+        { "edge": "shapesLoyalty",      "out": "EmotionalMoment",     "in": "LoyaltyDriver"            },
+        { "edge": "drivenBy",           "out": "LoyaltyDriver",       "in": "GuestPersona"             },
+        { "edge": "loyaltyLeadsTo",     "out": "LoyaltyDriver",       "in": "Outcome"                  },
+        { "edge": "appliesToPersona",   "out": "GuestExperiencePrinciple","in": "GuestPersona"          },
+        { "edge": "principleSupportedBy","out": "GuestExperiencePrinciple","in": "ProvenanceEvidence"   },
+        { "edge": "supportedBy",        "out": "LoyaltyDriver",       "in": "ProvenanceEvidence"       }
+      ],
+      "id_seeds": {
+        "LoyaltyDriver":   "loyalty:{name_slug}",
+        "EmotionalMoment": "moment:{name_slug}:{sequence}",
+        "Outcome":         "outcome:loyalty:{sequence}"
+      },
+      "extractor_instruction": "Every emotional driver of repeat behaviour or advocacy becomes a LoyaltyDriver vertex (set turnsAdvocate=true if the expert says it creates advocates; set destroysTrust=true if it is a trust-destruction factor). Every specific moment or gesture the expert describes ('when I remember their name on second visit') becomes an EmotionalMoment vertex and link to its LoyaltyDriver via shapesLoyalty. If the expert distinguishes how different guest types respond, link the LoyaltyDriver to the GuestPersona with drivenBy. Reuse existing GuestPersona IDs from Sections B and E — do not duplicate. If the expert connects a loyalty action to a business result (repeat bookings, word of mouth), emit an Outcome and link via loyaltyLeadsTo. Attach ProvenanceEvidence to every LoyaltyDriver via supportedBy."
+    },
+
+    {
+      "section_id": "G",
+      "section_type": "context_business_system_factors",
+      "title": "Context, Business Model, and System Factors",
+      "order": 7,
+      "purpose": "Extract how real-world constraints modify the expert's decisions — seasonality, location, customer mix, staffing, training, operational bottlenecks, consistency mechanisms, and system-level improvements the expert would make.",
+      "capture_goals": [
+        "How location, seasonality, or customer mix changes the hospitality approach",
+        "How staffing, training, and coordination affect service quality",
+        "Operational bottlenecks that matter most for service delivery",
+        "How the expert maintains consistency across shifts or teams",
+        "Business decisions that most influence guest experience",
+        "System-level changes that would improve hospitality industry-wide",
+        "What a smarter hospitality system would learn from this expert's experience"
+      ],
+      "primary_vertex_labels": [
+        "ContextualConstraint",
+        "DecisionRule",
+        "CheckInPolicy",
+        "CheckOutPolicy",
+        "ServiceStandard",
+        "Outcome",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_patterns": [
+        { "edge": "modulatedBy",           "out": "ContextualConstraint", "in": "DecisionRule"     },
+        { "edge": "constraintAffectsPolicy","out": "ContextualConstraint","in": "CheckInPolicy"    },
+        { "edge": "leadsTo",               "out": "DecisionRule",         "in": "Outcome"          },
+        { "edge": "supportedBy",           "out": "DecisionRule",         "in": "ProvenanceEvidence"}
+      ],
+      "id_seeds": {
+        "ContextualConstraint": "constraint:{context_slug}:{sequence}",
+        "Outcome":              "outcome:context:{sequence}"
+      },
+      "extractor_instruction": "For each context-dependent modification (e.g. 'in peak season I never allow early check-in', 'in low staffing periods I simplify our turndown service'), emit one ContextualConstraint vertex with the relevant fields set (seasonality, location, staffingFactor, customerMix, operationalBottleneck). Link to the affected DecisionRule via modulatedBy, or to CheckInPolicy/CheckOutPolicy via constraintAffectsPolicy. Reuse existing DecisionRule, CheckInPolicy, and CheckOutPolicy vertex IDs from prior sections — this section enriches existing nodes, not creates new operational concepts. If the expert describes a system-level insight, emit an Outcome vertex with outcomeType='system_insight' and link via leadsTo."
+    }
+
+  ],
+
+  "global_extractor_rules": {
+    "vertex_reuse": "Always check the known vertex ID cache before emitting a new vertex. GuestPersona, GuestSignal, ServiceStandard, CheckInPolicy, and CheckOutPolicy are especially prone to duplication across sections. If the same entity was extracted in a prior section, add new edges to the existing vertex ID — never emit a duplicate.",
+    "provenance_required": "Every extracted knowledge vertex (not session/transcript infrastructure) must have at least one outgoing supportedBy, principleSupportedBy, or heuristicSupportedBy edge to a ProvenanceEvidence node in the same delta.",
+    "one_delta_per_turn": "Emit one delta per expert conversational turn. Do not batch multiple turns.",
+    "id_format": "All IDs are lowercase, hyphen-separated slugs with colon-separated namespaces. No spaces, no special characters other than hyphens and colons.",
+    "policy_vertices_are_singleton": "CheckInPolicy and CheckOutPolicy are session singletons. Emit them once in Section C and upsert (add properties/edges) in later sections. Never emit a second CheckInPolicy or CheckOutPolicy vertex.",
+    "session_root_first": "KnowledgeSession must be written to the graph before any other vertex in Section A. The extractor must not emit downstream vertices if the session root write fails."
+  }
+}

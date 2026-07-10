@@ -1,0 +1,212 @@
+{
+  "domain": "hospitality",
+  "version": "1.0",
+  "description": "Runtime ingestion configuration for the hospitality knowledge graph. Controls the LLM extractor model, tool-use settings, Gremlin writer behaviour, chunking strategy, delta budget, retry policy, vertex ID cache, and singleton upsert rules. Mirrors the chatgraph medical domain runtime conventions adapted for tacit expert-interview sessions rather than patient symptom capture.",
+
+  "schema": {
+    "path": "src/main/json/hospitality.json",
+    "id_convention": "lowercase, hyphen-separated, colon-namespaced slugs",
+    "build_command": "chatgraph-build-schema hospitality",
+    "source_of_truth": "hospitality.json is the runtime source of truth. Never hand-edit it — modify schema_build.py and regenerate."
+  },
+
+  "domain_registration": {
+    "registry_name": "hospitality",
+    "description": "Expert interview capturing tacit hospitality knowledge — guest experience principles, arrival/departure policies, service recovery playbooks, operating heuristics, loyalty drivers, and contextual constraints.",
+    "opening_line": "Let's start with a quick introduction. Tell me about your property and how long you've been running it.",
+    "agent_system_prompt_module": "chatgraph.domains.hospitality.agent_prompt",
+    "extractor_prompt_module": "chatgraph.domains.hospitality.extractor_prompt"
+  },
+
+  "extractor": {
+    "description": "LLM extractor settings. The extractor receives one expert turn at a time and emits a property-graph delta (vertices + edges) validated against hospitality.json before writing.",
+
+    "model": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-haiku-20241022",
+      "rationale": "Haiku provides the latency and cost profile needed for real-time turn-by-turn extraction. The hospitality schema is relationally simpler than the medical schema (28 edges vs 158), so a smaller model is sufficient. Upgrade to Sonnet if confidence='inferred' provenance synthesis accuracy is insufficient in testing.",
+      "temperature": 0.0,
+      "max_tokens": 2048
+    },
+
+    "tool_use": {
+      "mode": "required",
+      "tool_name": "emit_delta",
+      "description": "The extractor must always call emit_delta — even for utterances that produce no graph changes (emit an empty delta). This ensures the session transcript is always complete.",
+      "empty_delta_behaviour": "emit empty vertices:[] edges:[] with session_state flags still populated"
+    },
+
+    "retry_policy": {
+      "max_correction_attempts": 3,
+      "retry_trigger": "validation_failure",
+      "failure_action_on_budget_exceeded": "drop_delta_and_log",
+      "log_level": "WARNING",
+      "retry_note": "Hospitality sessions produce more 'inferred' provenance than medical sessions. Validation failures on PV007 (inferred confidence missing multi-episode reference) are expected in early sessions — treat them as warnings, not hard failures, until the extractor prompt is tuned."
+    },
+
+    "context_window": {
+      "prior_turns_included": 4,
+      "rationale": "Hospitality experts frequently use anaphora across multiple turns ('...same as what I said about check-in', 'that guest I mentioned'). Four prior turns is the minimum to resolve cross-turn references reliably. Increase to 6 if anaphora resolution errors appear in testing.",
+      "known_vertex_cache": {
+        "included": true,
+        "cache_contents": [
+          "KnowledgeSession ID and properties",
+          "Person ID and name",
+          "All GuestPersona IDs and slugs emitted so far",
+          "All GuestSignal IDs and slugs emitted so far",
+          "CheckInPolicy ID (singleton) and current properties",
+          "CheckOutPolicy ID (singleton) and current properties",
+          "All ServiceStandard IDs emitted so far",
+          "Current section_id and section_title from section_map"
+        ],
+        "rationale": "GuestPersona, GuestSignal, CheckInPolicy, and CheckOutPolicy must be reused across sections, not duplicated. The cache is the mechanism that enforces reuse. If the extractor does not receive these IDs it will mint duplicates."
+      }
+    }
+  },
+
+  "chunking": {
+    "strategy": "turn_boundary",
+    "description": "One delta per expert conversational turn. A 'turn' is defined as a single uninterrupted expert utterance between two interviewer prompts.",
+    "rationale": "Hospitality experts pack multiple knowledge types into a single answer (e.g. a single turn might describe a timing rule, embed a guest persona, and state an exception). Turn-boundary chunking keeps the full semantic context intact. Sub-sentence chunking would lose the anecdotal context that is often the only justification for a rule.",
+    "max_tokens_per_turn": 600,
+    "overflow_behaviour": "split_at_sentence_boundary",
+    "overflow_note": "If an expert turn exceeds 600 tokens (rare — this is a conversational interview, not a lecture), split at the nearest sentence boundary. Each fragment gets its own TranscriptEpisode vertex and its own delta. Cross-fragment provenance must reference the episode ID of the fragment that contains the justifying sentence.",
+    "min_tokens_per_turn": 5,
+    "skip_turns_below_min": true,
+    "skip_turn_labels": ["acknowledgement", "filler", "clarification_request"],
+    "skip_turn_examples": ["Yes.", "Mm-hmm.", "Can you repeat that?", "Exactly.", "Sure."]
+  },
+
+  "gremlin_writer": {
+    "description": "TinkerPop Gremlin writer settings. Controls how validated deltas are persisted.",
+    "upsert_mode": true,
+    "upsert_rationale": "Vertices are upserted by ID — if a vertex with the same ID already exists, its properties are merged (new properties added, existing properties updated if the new value is non-null). This is essential for singleton vertices (CheckInPolicy, CheckOutPolicy) and reused vertices (GuestPersona, GuestSignal) that gain new properties and edges across sections.",
+    "edge_upsert_key": ["out_vertex_id", "edge_label", "in_vertex_id"],
+    "edge_upsert_rationale": "Edges are upserted by (out, label, in) triple. Adding the same logical edge twice from two different deltas is idempotent.",
+
+    "write_order": [
+      "KnowledgeSession",
+      "Person",
+      "SessionSection",
+      "TranscriptEpisode",
+      "ProvenanceEvidence",
+      "GuestPersona",
+      "GuestSignal",
+      "ServiceStandard",
+      "CheckInPolicy",
+      "CheckOutPolicy",
+      "GuestExperiencePrinciple",
+      "TimingRule",
+      "DecisionRule",
+      "OperatingHeuristic",
+      "ServiceFailure",
+      "RecoveryAction",
+      "ExceptionRule",
+      "LoyaltyDriver",
+      "EmotionalMoment",
+      "ContextualConstraint",
+      "Outcome",
+      "edges"
+    ],
+    "write_order_rationale": "Infrastructure vertices (session, section, episode) are written first so that ProvenanceEvidence.sourceEpisode foreign keys resolve. Singleton vertices (CheckInPolicy, CheckOutPolicy) are written before DecisionRule/TimingRule so that constraint edges have valid targets. Edges are always written last.",
+
+    "singleton_upsert_rules": {
+      "description": "CheckInPolicy and CheckOutPolicy are created once in Section C and upserted in every subsequent section that modifies them. The writer must never create a second instance.",
+      "singletons": [
+        {
+          "vertex_label": "CheckInPolicy",
+          "id_pattern": "policy:checkin:{session_id}",
+          "created_in_section": "C",
+          "upserted_in_sections": ["G"],
+          "upsert_action": "merge_properties_and_add_edges"
+        },
+        {
+          "vertex_label": "CheckOutPolicy",
+          "id_pattern": "policy:checkout:{session_id}",
+          "created_in_section": "C",
+          "upserted_in_sections": ["G"],
+          "upsert_action": "merge_properties_and_add_edges"
+        }
+      ],
+      "enforcement": "Before writing a vertex with label CheckInPolicy or CheckOutPolicy, the writer checks the vertex ID cache. If a vertex with that label already exists for the session, it upserts (merges) rather than creates."
+    },
+
+    "connection": {
+      "server": "${GREMLIN_HOST}",
+      "port": "${GREMLIN_PORT}",
+      "transport": "websocket",
+      "auth_mode": "env_vars",
+      "env_vars": {
+        "host": "GREMLIN_HOST",
+        "port": "GREMLIN_PORT",
+        "username": "GREMLIN_USERNAME",
+        "password": "GREMLIN_PASSWORD"
+      }
+    },
+
+    "transaction_mode": "per_delta",
+    "rollback_on_partial_failure": true,
+    "rollback_note": "If any vertex or edge write within a delta fails, the entire delta is rolled back and the failure is logged. This prevents partial deltas that would leave dangling provenance edges or orphan knowledge vertices."
+  },
+
+  "session_lifecycle": {
+    "session_init": {
+      "action": "emit_KnowledgeSession_and_Person",
+      "description": "At session start, write the KnowledgeSession vertex (domain='hospitality', date, session_id) and the Person vertex (expert), linked via hasSession. These must succeed before any other write — session_root_first rule.",
+      "blocking": true,
+      "failure_action": "abort_session"
+    },
+    "section_transitions": {
+      "action": "emit_SessionSection",
+      "description": "At each section transition (A→B, B→C, ...), emit a new SessionSection vertex linked to the KnowledgeSession via hasSection. Update the extractor's active section_id in the context window.",
+      "blocking": false
+    },
+    "session_close": {
+      "action": "finalize_and_validate",
+      "description": "At session end, run the validation rules (from validation_rules.json) over the full session graph. Log any vertices flagged as missing provenance edges. Emit a session_closed property on the KnowledgeSession vertex.",
+      "flag_orphan_provenance": true,
+      "flag_missing_required_sections": ["A", "B", "C"]
+    }
+  },
+
+  "id_conventions": {
+    "description": "All vertex IDs are lowercase, hyphen-separated, colon-namespaced slugs. The slug is derived from the vertex label, key properties, and session context.",
+    "rules": [
+      "No spaces — replace with hyphens",
+      "No special characters except hyphens (-) and colons (:)",
+      "Max 80 characters — truncate slug portion if needed",
+      "Session-scoped IDs include session_id to prevent cross-session collisions",
+      "Reusable concept IDs (GuestPersona, GuestSignal) are session-scoped to prevent false merges across different expert sessions"
+    ],
+    "examples": {
+      "KnowledgeSession":         "session:hospitality:2026-06-18",
+      "Person":                   "person:jane-smith",
+      "SessionSection":           "section:session:hospitality:2026-06-18:3",
+      "TranscriptEpisode":        "ep:session:hospitality:2026-06-18:7",
+      "ProvenanceEvidence":       "prov:ep:session:hospitality:2026-06-18:7:01",
+      "GuestPersona":             "persona:repeat-guest",
+      "GuestSignal":              "signal:unpacking-slowly",
+      "CheckInPolicy":            "policy:checkin:session:hospitality:2026-06-18",
+      "CheckOutPolicy":           "policy:checkout:session:hospitality:2026-06-18",
+      "GuestExperiencePrinciple": "principle:first-impressions-are-permanent",
+      "ServiceStandard":          "standard:welcome-drink-non-negotiable",
+      "TimingRule":               "timing:early-checkin-room-ready:1",
+      "DecisionRule":             "rule:if-guest-arrives-before-noon-and-room-ready",
+      "OperatingHeuristic":       "heuristic:can-tell-repeat-guest-in-five-minutes",
+      "ServiceFailure":           "failure:room-not-ready-on-arrival",
+      "RecoveryAction":           "recovery:immediate-apology-plus-upgrade",
+      "ExceptionRule":            "exception:early-checkin-for-loyalty-guest:1",
+      "LoyaltyDriver":            "loyalty:remembering-guest-name-on-return",
+      "EmotionalMoment":          "moment:name-recalled-at-checkin:1",
+      "ContextualConstraint":     "constraint:peak-season-no-early-checkin:1",
+      "Outcome":                  "outcome:recovery:1"
+    }
+  },
+
+  "hospitality_specific_notes": {
+    "tacit_knowledge_extraction": "Hospitality knowledge is predominantly tacit. The extractor will encounter far more story-embedded rules, counterfactual rules, and comparative wisdom than direct rule statements. See provenance_spec.json tacit_knowledge_guidance section for pattern handling.",
+    "anecdote_handling": "When an expert tells a story as evidence for a rule, extract the rule as the primary vertex (e.g. DecisionRule or OperatingHeuristic) and use the story as the traceText for the ProvenanceEvidence — do NOT try to model the story itself as graph structure.",
+    "no_clinical_red_flags": "Unlike the medical domain, hospitality has no red-flag vertex types. The section_map Section D (ServiceFailure) handles critical service issues.",
+    "policy_singleton_enforcement": "The extractor prompt must be loaded with the CheckInPolicy and CheckOutPolicy IDs from the vertex cache at the start of every Section G turn. Failure to do so is the primary cause of duplicate policy vertices."
+  }
+}

@@ -1,0 +1,41 @@
+# Gremlin Server config for chatgraph.
+#
+# Starts an empty TinkerGraph with string-typed vertex / edge / property ids
+# (vertexIdManager=ANY). Listens on ws://localhost:8182/gremlin with GraphSON 3
+# and GraphBinary serializers (compatible with gremlinpython >= 3.6 and
+# with gdotv).
+#
+# The paths below are relative to the Gremlin Server working directory
+# (the install root, which the launch script derives from its own location),
+# matching the convention used by the stock tinkergraph configs shipped with
+# TinkerPop. Copy this file plus chatgraph-tinkergraph.properties and
+# chatgraph-init.groovy into $GREMLIN_SERVER_HOME/conf/ before launching the
+# server. See docs/gremlin-setup.md.
+
+host: localhost
+port: 8182
+evaluationTimeout: 30000
+graphs: {
+  graph: conf/chatgraph-tinkergraph.properties}
+scriptEngines: {
+  gremlin-groovy: {
+    plugins: { org.apache.tinkerpop.gremlin.server.jsr223.GremlinServerGremlinPlugin: {},
+               org.apache.tinkerpop.gremlin.tinkergraph.jsr223.TinkerGraphGremlinPlugin: {},
+               org.apache.tinkerpop.gremlin.groovy.jsr223.GroovyCompilerGremlinPlugin: {enableThreadInterrupt: true},
+               org.apache.tinkerpop.gremlin.jsr223.ImportGremlinPlugin: {classImports: [java.lang.Math], methodImports: [java.lang.Math#*]},
+               org.apache.tinkerpop.gremlin.jsr223.ScriptFileGremlinPlugin: {files: [conf/chatgraph-init.groovy]}}}}
+serializers:
+  - { className: org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV3, config: { ioRegistries: [org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerIoRegistryV3] }}
+  - { className: org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1 }
+  - { className: org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1, config: { serializeResultToString: true }}
+metrics: {
+  slf4jReporter: {enabled: true, interval: 180000}}
+strictTransactionManagement: false
+idleConnectionTimeout: 0
+keepAliveInterval: 0
+maxInitialLineLength: 4096
+maxHeaderSize: 8192
+maxChunkSize: 8192
+maxContentLength: 10485760
+maxAccumulationBufferComponents: 1024
+resultIterationBatchSize: 64

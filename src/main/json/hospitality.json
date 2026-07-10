@@ -1,0 +1,588 @@
+{
+  "vertices": [
+    {
+      "@key": "Person",
+      "@value": {
+        "label": "Person",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ExpertRole",
+      "@value": {
+        "label": "ExpertRole",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "title",       "value": { "string": {} }, "required": true  },
+          { "key": "description", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "HospitalityBusiness",
+      "@value": {
+        "label": "HospitalityBusiness",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",          "value": { "string": {} }, "required": true  },
+          { "key": "businessType",  "value": { "string": {} }, "required": false },
+          { "key": "scale",         "value": { "string": {} }, "required": false },
+          { "key": "description",   "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "OperatingTenure",
+      "@value": {
+        "label": "OperatingTenure",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "duration",    "value": { "string": {} }, "required": true  },
+          { "key": "description", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "KnowledgeSession",
+      "@value": {
+        "label": "KnowledgeSession",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "domain",               "value": { "string": {} }, "required": true  },
+          { "key": "expertName",           "value": { "string": {} }, "required": false },
+          { "key": "expertRole",           "value": { "string": {} }, "required": false },
+          { "key": "date",                 "value": { "string": {} }, "required": false },
+          { "key": "objective",            "value": { "string": {} }, "required": false },
+          { "key": "confidentialityLevel", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "SessionSection",
+      "@value": {
+        "label": "SessionSection",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "sectionType", "value": { "string": {} },               "required": true  },
+          { "key": "title",       "value": { "string": {} },               "required": false },
+          { "key": "order",       "value": { "integer": { "int32": {} } }, "required": true  },
+          { "key": "purpose",     "value": { "string": {} },               "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "TranscriptEpisode",
+      "@value": {
+        "label": "TranscriptEpisode",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "verbatimText", "value": { "string": {} }, "required": true  },
+          { "key": "speaker",      "value": { "string": {} }, "required": false },
+          { "key": "startTime",    "value": { "string": {} }, "required": false },
+          { "key": "endTime",      "value": { "string": {} }, "required": false },
+          { "key": "confidence",   "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ProvenanceEvidence",
+      "@value": {
+        "label": "ProvenanceEvidence",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "traceText",     "value": { "string": {} }, "required": true  },
+          { "key": "sourceEpisode", "value": { "string": {} }, "required": true  },
+          { "key": "speaker",       "value": { "string": {} }, "required": true  },
+          { "key": "timestamp",     "value": { "string": {} }, "required": false },
+          { "key": "confidence",    "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "GuestExperiencePrinciple",
+      "@value": {
+        "label": "GuestExperiencePrinciple",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",            "value": { "string": {} }, "required": true  },
+          { "key": "description",     "value": { "string": {} }, "required": false },
+          { "key": "type",            "value": { "string": {} }, "required": false },
+          { "key": "neverCompromise", "value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ServiceStandard",
+      "@value": {
+        "label": "ServiceStandard",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",             "value": { "string": {} }, "required": true  },
+          { "key": "standardText",     "value": { "string": {} }, "required": false },
+          { "key": "nonNegotiable",    "value": { "boolean": {} }, "required": false },
+          { "key": "appliesToSegment", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "GuestSignal",
+      "@value": {
+        "label": "GuestSignal",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",             "value": { "string": {} }, "required": true  },
+          { "key": "signalType",       "value": { "string": {} }, "required": false },
+          { "key": "interpretation",   "value": { "string": {} }, "required": false },
+          { "key": "highValueIndicator","value": { "boolean": {} }, "required": false },
+          { "key": "returnLikelihood", "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "GuestPersona",
+      "@value": {
+        "label": "GuestPersona",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",           "value": { "string": {} }, "required": true  },
+          { "key": "description",    "value": { "string": {} }, "required": false },
+          { "key": "primaryNeed",    "value": { "string": {} }, "required": false },
+          { "key": "valueDriver",    "value": { "string": {} }, "required": false },
+          { "key": "repeatGuest",    "value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "CheckInPolicy",
+      "@value": {
+        "label": "CheckInPolicy",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "standardTime",    "value": { "string": {} }, "required": false },
+          { "key": "earlyCheckIn",    "value": { "boolean": {} }, "required": false },
+          { "key": "earlyCheckInFee", "value": { "boolean": {} }, "required": false },
+          { "key": "sweetSpotTime",   "value": { "string": {} }, "required": false },
+          { "key": "earlyArrivalHandling", "value": { "string": {} }, "required": false },
+          { "key": "rationale",       "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "CheckOutPolicy",
+      "@value": {
+        "label": "CheckOutPolicy",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "standardTime",      "value": { "string": {} }, "required": false },
+          { "key": "lateCheckOut",      "value": { "boolean": {} }, "required": false },
+          { "key": "lateCheckOutFee",   "value": { "boolean": {} }, "required": false },
+          { "key": "lateHandlingApproach", "value": { "string": {} }, "required": false },
+          { "key": "rationale",         "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "TimingRule",
+      "@value": {
+        "label": "TimingRule",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "ruleText",       "value": { "string": {} }, "required": true  },
+          { "key": "ruleType",       "value": { "string": {} }, "required": false },
+          { "key": "ifCondition",    "value": { "string": {} }, "required": false },
+          { "key": "thenAction",     "value": { "string": {} }, "required": false },
+          { "key": "exception",      "value": { "string": {} }, "required": false },
+          { "key": "refinedThroughExperience", "value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ServiceFailure",
+      "@value": {
+        "label": "ServiceFailure",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",        "value": { "string": {} }, "required": true  },
+          { "key": "frequency",   "value": { "string": {} }, "required": false },
+          { "key": "description", "value": { "string": {} }, "required": false },
+          { "key": "severity",    "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "RecoveryAction",
+      "@value": {
+        "label": "RecoveryAction",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",               "value": { "string": {} }, "required": true  },
+          { "key": "actionType",         "value": { "string": {} }, "required": false },
+          { "key": "description",        "value": { "string": {} }, "required": false },
+          { "key": "leadsToLoyalty",     "value": { "boolean": {} }, "required": false },
+          { "key": "commonMistake",      "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ExceptionRule",
+      "@value": {
+        "label": "ExceptionRule",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "ruleText",          "value": { "string": {} }, "required": true  },
+          { "key": "triggerCondition",  "value": { "string": {} }, "required": false },
+          { "key": "paidOff",           "value": { "boolean": {} }, "required": false },
+          { "key": "guestSegment",      "value": { "string": {} }, "required": false },
+          { "key": "frequency",         "value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "DecisionRule",
+      "@value": {
+        "label": "DecisionRule",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "ruleText",     "value": { "string": {} }, "required": true  },
+          { "key": "ifCondition",  "value": { "string": {} }, "required": false },
+          { "key": "thenAction",   "value": { "string": {} }, "required": false },
+          { "key": "exception",    "value": { "string": {} }, "required": false },
+          { "key": "priority",     "value": { "string": {} }, "required": false },
+          { "key": "intuitionBased","value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "OperatingHeuristic",
+      "@value": {
+        "label": "OperatingHeuristic",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",        "value": { "string": {} }, "required": true  },
+          { "key": "heuristic",   "value": { "string": {} }, "required": false },
+          { "key": "whenUsed",    "value": { "string": {} }, "required": false },
+          { "key": "learnedThrough","value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "LoyaltyDriver",
+      "@value": {
+        "label": "LoyaltyDriver",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",            "value": { "string": {} }, "required": true  },
+          { "key": "description",     "value": { "string": {} }, "required": false },
+          { "key": "driverType",      "value": { "string": {} }, "required": false },
+          { "key": "turnsAdvocate",   "value": { "boolean": {} }, "required": false },
+          { "key": "destroysTrust",   "value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "EmotionalMoment",
+      "@value": {
+        "label": "EmotionalMoment",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "name",          "value": { "string": {} }, "required": true  },
+          { "key": "description",   "value": { "string": {} }, "required": false },
+          { "key": "momentType",    "value": { "string": {} }, "required": false },
+          { "key": "gestureScale",  "value": { "string": {} }, "required": false },
+          { "key": "outsizedImpact","value": { "boolean": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "ContextualConstraint",
+      "@value": {
+        "label": "ContextualConstraint",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "constraintType",    "value": { "string": {} }, "required": false },
+          { "key": "seasonality",       "value": { "string": {} }, "required": false },
+          { "key": "location",          "value": { "string": {} }, "required": false },
+          { "key": "staffingFactor",    "value": { "string": {} }, "required": false },
+          { "key": "customerMix",       "value": { "string": {} }, "required": false },
+          { "key": "operationalBottleneck","value": { "string": {} }, "required": false }
+        ]
+      }
+    },
+    {
+      "@key": "Outcome",
+      "@value": {
+        "label": "Outcome",
+        "id": { "string": {} },
+        "properties": [
+          { "key": "outcomeType",     "value": { "string": {} }, "required": false },
+          { "key": "description",     "value": { "string": {} }, "required": false },
+          { "key": "guestRetained",   "value": { "boolean": {} }, "required": false },
+          { "key": "loyaltyAchieved", "value": { "boolean": {} }, "required": false },
+          { "key": "revenueImpact",   "value": { "string": {} }, "required": false }
+        ]
+      }
+    }
+  ],
+
+  "edges": [
+    {
+      "@key": "hasSession",
+      "@value": {
+        "label": "hasSession",
+        "outV": "Person",
+        "inV": "KnowledgeSession"
+      }
+    },
+    {
+      "@key": "hasRole",
+      "@value": {
+        "label": "hasRole",
+        "outV": "Person",
+        "inV": "ExpertRole"
+      }
+    },
+    {
+      "@key": "operatesBusiness",
+      "@value": {
+        "label": "operatesBusiness",
+        "outV": "Person",
+        "inV": "HospitalityBusiness"
+      }
+    },
+    {
+      "@key": "hasOperatingTenure",
+      "@value": {
+        "label": "hasOperatingTenure",
+        "outV": "HospitalityBusiness",
+        "inV": "OperatingTenure"
+      }
+    },
+    {
+      "@key": "hasSection",
+      "@value": {
+        "label": "hasSection",
+        "outV": "KnowledgeSession",
+        "inV": "SessionSection"
+      }
+    },
+    {
+      "@key": "hasEpisode",
+      "@value": {
+        "label": "hasEpisode",
+        "outV": "SessionSection",
+        "inV": "TranscriptEpisode"
+      }
+    },
+    {
+      "@key": "discusses",
+      "@value": {
+        "label": "discusses",
+        "outV": "TranscriptEpisode",
+        "inV": "GuestExperiencePrinciple"
+      }
+    },
+    {
+      "@key": "discussesRule",
+      "@value": {
+        "label": "discussesRule",
+        "outV": "TranscriptEpisode",
+        "inV": "DecisionRule"
+      }
+    },
+    {
+      "@key": "discussesHeuristic",
+      "@value": {
+        "label": "discussesHeuristic",
+        "outV": "TranscriptEpisode",
+        "inV": "OperatingHeuristic"
+      }
+    },
+    {
+      "@key": "discussesFailure",
+      "@value": {
+        "label": "discussesFailure",
+        "outV": "TranscriptEpisode",
+        "inV": "ServiceFailure"
+      }
+    },
+    {
+      "@key": "experienceDesignedFor",
+      "@value": {
+        "label": "experienceDesignedFor",
+        "outV": "GuestExperiencePrinciple",
+        "inV": "GuestPersona"
+      }
+    },
+    {
+      "@key": "businessDifferentiatedBy",
+      "@value": {
+        "label": "businessDifferentiatedBy",
+        "outV": "HospitalityBusiness",
+        "inV": "GuestExperiencePrinciple"
+      }
+    },
+    {
+      "@key": "standardDeliveredTo",
+      "@value": {
+        "label": "standardDeliveredTo",
+        "outV": "ServiceStandard",
+        "inV": "GuestPersona"
+      }
+    },
+    {
+      "@key": "standardEnforces",
+      "@value": {
+        "label": "standardEnforces",
+        "outV": "ServiceStandard",
+        "inV": "GuestExperiencePrinciple"
+      }
+    },
+    {
+      "@key": "signalTriggers",
+      "@value": {
+        "label": "signalTriggers",
+        "outV": "GuestSignal",
+        "inV": "DecisionRule"
+      }
+    },
+    {
+      "@key": "signalIndicates",
+      "@value": {
+        "label": "signalIndicates",
+        "outV": "GuestSignal",
+        "inV": "GuestPersona"
+      }
+    },
+    {
+      "@key": "governs",
+      "@value": {
+        "label": "governs",
+        "outV": "CheckInPolicy",
+        "inV": "TimingRule"
+      }
+    },
+    {
+      "@key": "governsCheckOut",
+      "@value": {
+        "label": "governsCheckOut",
+        "outV": "CheckOutPolicy",
+        "inV": "TimingRule"
+      }
+    },
+    {
+      "@key": "resolvedBy",
+      "@value": {
+        "label": "resolvedBy",
+        "outV": "ServiceFailure",
+        "inV": "RecoveryAction"
+      }
+    },
+    {
+      "@key": "exceptionAppliesTo",
+      "@value": {
+        "label": "exceptionAppliesTo",
+        "outV": "ExceptionRule",
+        "inV": "DecisionRule"
+      }
+    },
+    {
+      "@key": "exceptionMadeFor",
+      "@value": {
+        "label": "exceptionMadeFor",
+        "outV": "ExceptionRule",
+        "inV": "GuestPersona"
+      }
+    },
+    {
+      "@key": "heuristicExplains",
+      "@value": {
+        "label": "heuristicExplains",
+        "outV": "OperatingHeuristic",
+        "inV": "DecisionRule"
+      }
+    },
+    {
+      "@key": "leadsTo",
+      "@value": {
+        "label": "leadsTo",
+        "outV": "DecisionRule",
+        "inV": "Outcome"
+      }
+    },
+    {
+      "@key": "recoveryLeadsTo",
+      "@value": {
+        "label": "recoveryLeadsTo",
+        "outV": "RecoveryAction",
+        "inV": "Outcome"
+      }
+    },
+    {
+      "@key": "shapesLoyalty",
+      "@value": {
+        "label": "shapesLoyalty",
+        "outV": "EmotionalMoment",
+        "inV": "LoyaltyDriver"
+      }
+    },
+    {
+      "@key": "drivenBy",
+      "@value": {
+        "label": "drivenBy",
+        "outV": "LoyaltyDriver",
+        "inV": "GuestPersona"
+      }
+    },
+    {
+      "@key": "loyaltyLeadsTo",
+      "@value": {
+        "label": "loyaltyLeadsTo",
+        "outV": "LoyaltyDriver",
+        "inV": "Outcome"
+      }
+    },
+    {
+      "@key": "modulatedBy",
+      "@value": {
+        "label": "modulatedBy",
+        "outV": "ContextualConstraint",
+        "inV": "DecisionRule"
+      }
+    },
+    {
+      "@key": "constraintAffectsPolicy",
+      "@value": {
+        "label": "constraintAffectsPolicy",
+        "outV": "ContextualConstraint",
+        "inV": "CheckInPolicy"
+      }
+    },
+    {
+      "@key": "supportedBy",
+      "@value": {
+        "label": "supportedBy",
+        "outV": "DecisionRule",
+        "inV": "ProvenanceEvidence"
+      }
+    },
+    {
+      "@key": "principleSupportedBy",
+      "@value": {
+        "label": "principleSupportedBy",
+        "outV": "GuestExperiencePrinciple",
+        "inV": "ProvenanceEvidence"
+      }
+    },
+    {
+      "@key": "heuristicSupportedBy",
+      "@value": {
+        "label": "heuristicSupportedBy",
+        "outV": "OperatingHeuristic",
+        "inV": "ProvenanceEvidence"
+      }
+    }
+  ]
+}

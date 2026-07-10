@@ -1,0 +1,3549 @@
+{
+  "vertices": [
+    {
+      "@key": "Person",
+      "@value": {
+        "label": "Person",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Headache",
+      "@value": {
+        "label": "Headache",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "chronicity",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "currentTrend",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "HeadacheClassification",
+      "@value": {
+        "label": "HeadacheClassification",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "primarySecondary",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "family",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "subtype",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Prodrome",
+      "@value": {
+        "label": "Prodrome",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "typicalHoursBeforePain",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Aura",
+      "@value": {
+        "label": "Aura",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "openEye",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "closedEye",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "monocular",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "typicalMinutes",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "overlapsWithPain",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Postdrome",
+      "@value": {
+        "label": "Postdrome",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "typicalHoursAfterPain",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "PainCharacter",
+      "@value": {
+        "label": "PainCharacter",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "worseWithRoutineActivity",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "worseAtNight",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "worseOnWaking",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "wakesFromSleep",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "worseBendingForward",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "positional",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "progressivelyWorseWithinEpisode",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "VisualAura",
+      "@value": {
+        "label": "VisualAura",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "pattern",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "colors",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "scintillating",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "photopsia",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "scotoma",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "fortification",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "positiveNegative",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Nausea",
+      "@value": {
+        "label": "Nausea",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Vomiting",
+      "@value": {
+        "label": "Vomiting",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "LightSensitivity",
+      "@value": {
+        "label": "LightSensitivity",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "SoundSensitivity",
+      "@value": {
+        "label": "SoundSensitivity",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "SmellSensitivity",
+      "@value": {
+        "label": "SmellSensitivity",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Dizziness",
+      "@value": {
+        "label": "Dizziness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Vertigo",
+      "@value": {
+        "label": "Vertigo",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "NeckStiffness",
+      "@value": {
+        "label": "NeckStiffness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "NeckPain",
+      "@value": {
+        "label": "NeckPain",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "ScalpTenderness",
+      "@value": {
+        "label": "ScalpTenderness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "JawTenderness",
+      "@value": {
+        "label": "JawTenderness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "ConjunctivalInjection",
+      "@value": {
+        "label": "ConjunctivalInjection",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Lacrimation",
+      "@value": {
+        "label": "Lacrimation",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "NasalCongestion",
+      "@value": {
+        "label": "NasalCongestion",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Rhinorrhea",
+      "@value": {
+        "label": "Rhinorrhea",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "EyelidEdema",
+      "@value": {
+        "label": "EyelidEdema",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "FacialSweating",
+      "@value": {
+        "label": "FacialSweating",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Ptosis",
+      "@value": {
+        "label": "Ptosis",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Miosis",
+      "@value": {
+        "label": "Miosis",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Restlessness",
+      "@value": {
+        "label": "Restlessness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "EarFullness",
+      "@value": {
+        "label": "EarFullness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "SensoryAura",
+      "@value": {
+        "label": "SensoryAura",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "SpeechAura",
+      "@value": {
+        "label": "SpeechAura",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "MotorAura",
+      "@value": {
+        "label": "MotorAura",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "BrainstemAura",
+      "@value": {
+        "label": "BrainstemAura",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "RetinalAura",
+      "@value": {
+        "label": "RetinalAura",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Fatigue",
+      "@value": {
+        "label": "Fatigue",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "MoodChange",
+      "@value": {
+        "label": "MoodChange",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "CognitiveSlowness",
+      "@value": {
+        "label": "CognitiveSlowness",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "FoodCraving",
+      "@value": {
+        "label": "FoodCraving",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Yawning",
+      "@value": {
+        "label": "Yawning",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "FluidRetention",
+      "@value": {
+        "label": "FluidRetention",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "UrinaryFrequency",
+      "@value": {
+        "label": "UrinaryFrequency",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "ThunderclapOnset",
+      "@value": {
+        "label": "ThunderclapOnset",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "WorseWithValsalva",
+      "@value": {
+        "label": "WorseWithValsalva",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "PositionalHeadache",
+      "@value": {
+        "label": "PositionalHeadache",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "ProgressivelyWorse",
+      "@value": {
+        "label": "ProgressivelyWorse",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "WakesFromSleep",
+      "@value": {
+        "label": "WakesFromSleep",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "NewAfterFifty",
+      "@value": {
+        "label": "NewAfterFifty",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Fever",
+      "@value": {
+        "label": "Fever",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "WeightLoss",
+      "@value": {
+        "label": "WeightLoss",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "FocalNeurologicalDeficit",
+      "@value": {
+        "label": "FocalNeurologicalDeficit",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "VisionChange",
+      "@value": {
+        "label": "VisionChange",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "Confusion",
+      "@value": {
+        "label": "Confusion",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "HeadacheTriggers",
+      "@value": {
+        "label": "HeadacheTriggers",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "IngestedTrigger",
+      "@value": {
+        "label": "IngestedTrigger",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "SensoryTrigger",
+      "@value": {
+        "label": "SensoryTrigger",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "PhysiologicalTrigger",
+      "@value": {
+        "label": "PhysiologicalTrigger",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "EnvironmentalTrigger",
+      "@value": {
+        "label": "EnvironmentalTrigger",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "HormonalTrigger",
+      "@value": {
+        "label": "HormonalTrigger",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "AlleviatingFactors",
+      "@value": {
+        "label": "AlleviatingFactors",
+        "id": {
+          "string": {}
+        },
+        "properties": []
+      }
+    },
+    {
+      "@key": "BehavioralRelief",
+      "@value": {
+        "label": "BehavioralRelief",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "PhysicalRelief",
+      "@value": {
+        "label": "PhysicalRelief",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "PharmacologicalRelief",
+      "@value": {
+        "label": "PharmacologicalRelief",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "EnvironmentalRelief",
+      "@value": {
+        "label": "EnvironmentalRelief",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "BodyLocation",
+      "@value": {
+        "label": "BodyLocation",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "variable",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "pattern",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Quality",
+      "@value": {
+        "label": "Quality",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Severity",
+      "@value": {
+        "label": "Severity",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "scale",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "scaleMax",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "minScale",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "maxScale",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Laterality",
+      "@value": {
+        "label": "Laterality",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "alternatesSides",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "symmetry",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Frequency",
+      "@value": {
+        "label": "Frequency",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "count",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "per",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "certainty",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Duration",
+      "@value": {
+        "label": "Duration",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "count",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "unit",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "untreated",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "minCount",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "maxCount",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Age",
+      "@value": {
+        "label": "Age",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "age",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "FunctionalImpact",
+      "@value": {
+        "label": "FunctionalImpact",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "missedDaysPerMonth",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "disabilityLevel",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "bedRequired",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "hospitalizationRequired",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "erVisitsPerYear",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "affectsWork",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "triggerAvoidanceBurden",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "FamilyHistory",
+      "@value": {
+        "label": "FamilyHistory",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "relation",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "condition",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Comorbidity",
+      "@value": {
+        "label": "Comorbidity",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "condition",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Diagnosis",
+      "@value": {
+        "label": "Diagnosis",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "value",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "diagnosedBy",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "year",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "MenstrualRelationship",
+      "@value": {
+        "label": "MenstrualRelationship",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "menstrualAssociated",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "perimenstrual",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "pregnancyChange",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "contraceptiveChange",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Comment",
+      "@value": {
+        "label": "Comment",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "kind",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "Concept",
+      "@value": {
+        "label": "Concept",
+        "id": {
+          "string": {}
+        },
+        "properties": [
+          {
+            "key": "label",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "@key": "reports",
+      "@value": {
+        "label": "reports",
+        "id": {
+          "string": {}
+        },
+        "out": "Person",
+        "in": "Headache",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFamilyHistory",
+      "@value": {
+        "label": "hasFamilyHistory",
+        "id": {
+          "string": {}
+        },
+        "out": "Person",
+        "in": "FamilyHistory",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasComorbidity",
+      "@value": {
+        "label": "hasComorbidity",
+        "id": {
+          "string": {}
+        },
+        "out": "Person",
+        "in": "Comorbidity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasDiagnosis",
+      "@value": {
+        "label": "hasDiagnosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Person",
+        "in": "Diagnosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasMenstrualRelationship",
+      "@value": {
+        "label": "hasMenstrualRelationship",
+        "id": {
+          "string": {}
+        },
+        "out": "Person",
+        "in": "MenstrualRelationship",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasProdrome",
+      "@value": {
+        "label": "hasProdrome",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Prodrome",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasAura",
+      "@value": {
+        "label": "hasAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Aura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasPostdrome",
+      "@value": {
+        "label": "hasPostdrome",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Postdrome",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasPainCharacter",
+      "@value": {
+        "label": "hasPainCharacter",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "PainCharacter",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasNausea",
+      "@value": {
+        "label": "hasNausea",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Nausea",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasVomiting",
+      "@value": {
+        "label": "hasVomiting",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Vomiting",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasLightSensitivity",
+      "@value": {
+        "label": "hasLightSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "LightSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasSoundSensitivity",
+      "@value": {
+        "label": "hasSoundSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "SoundSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasSmellSensitivity",
+      "@value": {
+        "label": "hasSmellSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "SmellSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasDizziness",
+      "@value": {
+        "label": "hasDizziness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Dizziness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasVertigo",
+      "@value": {
+        "label": "hasVertigo",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Vertigo",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasNeckStiffness",
+      "@value": {
+        "label": "hasNeckStiffness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "NeckStiffness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasNeckPain",
+      "@value": {
+        "label": "hasNeckPain",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "NeckPain",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasScalpTenderness",
+      "@value": {
+        "label": "hasScalpTenderness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "ScalpTenderness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasJawTenderness",
+      "@value": {
+        "label": "hasJawTenderness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "JawTenderness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasConjunctivalInjection",
+      "@value": {
+        "label": "hasConjunctivalInjection",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "ConjunctivalInjection",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasLacrimation",
+      "@value": {
+        "label": "hasLacrimation",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Lacrimation",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasNasalCongestion",
+      "@value": {
+        "label": "hasNasalCongestion",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "NasalCongestion",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRhinorrhea",
+      "@value": {
+        "label": "hasRhinorrhea",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Rhinorrhea",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasEyelidEdema",
+      "@value": {
+        "label": "hasEyelidEdema",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "EyelidEdema",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFacialSweating",
+      "@value": {
+        "label": "hasFacialSweating",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "FacialSweating",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasPtosis",
+      "@value": {
+        "label": "hasPtosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Ptosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasMiosis",
+      "@value": {
+        "label": "hasMiosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Miosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRestlessness",
+      "@value": {
+        "label": "hasRestlessness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Restlessness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasEarFullness",
+      "@value": {
+        "label": "hasEarFullness",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "EarFullness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasVisualAura",
+      "@value": {
+        "label": "hasVisualAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "VisualAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasSensoryAura",
+      "@value": {
+        "label": "hasSensoryAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "SensoryAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasSpeechAura",
+      "@value": {
+        "label": "hasSpeechAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "SpeechAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasMotorAura",
+      "@value": {
+        "label": "hasMotorAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "MotorAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasBrainstemAura",
+      "@value": {
+        "label": "hasBrainstemAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "BrainstemAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRetinalAura",
+      "@value": {
+        "label": "hasRetinalAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Aura",
+        "in": "RetinalAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFatigue",
+      "@value": {
+        "label": "hasFatigue",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "Fatigue",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasMoodChange",
+      "@value": {
+        "label": "hasMoodChange",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "MoodChange",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasCognitiveSlowness",
+      "@value": {
+        "label": "hasCognitiveSlowness",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "CognitiveSlowness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFoodCraving",
+      "@value": {
+        "label": "hasFoodCraving",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "FoodCraving",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasYawning",
+      "@value": {
+        "label": "hasYawning",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "Yawning",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFluidRetention",
+      "@value": {
+        "label": "hasFluidRetention",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "FluidRetention",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasUrinaryFrequency",
+      "@value": {
+        "label": "hasUrinaryFrequency",
+        "id": {
+          "string": {}
+        },
+        "out": "Prodrome",
+        "in": "UrinaryFrequency",
+        "properties": []
+      }
+    },
+    {
+      "@key": "postdromalFatigue",
+      "@value": {
+        "label": "postdromalFatigue",
+        "id": {
+          "string": {}
+        },
+        "out": "Postdrome",
+        "in": "Fatigue",
+        "properties": []
+      }
+    },
+    {
+      "@key": "postdromalMoodChange",
+      "@value": {
+        "label": "postdromalMoodChange",
+        "id": {
+          "string": {}
+        },
+        "out": "Postdrome",
+        "in": "MoodChange",
+        "properties": []
+      }
+    },
+    {
+      "@key": "postdromalCognitiveSlowness",
+      "@value": {
+        "label": "postdromalCognitiveSlowness",
+        "id": {
+          "string": {}
+        },
+        "out": "Postdrome",
+        "in": "CognitiveSlowness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "postdromalScalpTenderness",
+      "@value": {
+        "label": "postdromalScalpTenderness",
+        "id": {
+          "string": {}
+        },
+        "out": "Postdrome",
+        "in": "ScalpTenderness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagThunderclapOnset",
+      "@value": {
+        "label": "hasRedFlagThunderclapOnset",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "ThunderclapOnset",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagWorseWithValsalva",
+      "@value": {
+        "label": "hasRedFlagWorseWithValsalva",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "WorseWithValsalva",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagPositional",
+      "@value": {
+        "label": "hasRedFlagPositional",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "PositionalHeadache",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagProgressivelyWorse",
+      "@value": {
+        "label": "hasRedFlagProgressivelyWorse",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "ProgressivelyWorse",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagWakesFromSleep",
+      "@value": {
+        "label": "hasRedFlagWakesFromSleep",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "WakesFromSleep",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagNewAfterFifty",
+      "@value": {
+        "label": "hasRedFlagNewAfterFifty",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "NewAfterFifty",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagFever",
+      "@value": {
+        "label": "hasRedFlagFever",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Fever",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagWeightLoss",
+      "@value": {
+        "label": "hasRedFlagWeightLoss",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "WeightLoss",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagFocalDeficit",
+      "@value": {
+        "label": "hasRedFlagFocalDeficit",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "FocalNeurologicalDeficit",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagVisionChange",
+      "@value": {
+        "label": "hasRedFlagVisionChange",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "VisionChange",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasRedFlagConfusion",
+      "@value": {
+        "label": "hasRedFlagConfusion",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Confusion",
+        "properties": []
+      }
+    },
+    {
+      "@key": "triggers",
+      "@value": {
+        "label": "triggers",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "HeadacheTriggers",
+        "properties": [
+          {
+            "key": "latency",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "reliability",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "magnitude",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "aggravatedBy",
+      "@value": {
+        "label": "aggravatedBy",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "HeadacheTriggers",
+        "properties": [
+          {
+            "key": "requiresExistingHeadache",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "magnitude",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "ingested",
+      "@value": {
+        "label": "ingested",
+        "id": {
+          "string": {}
+        },
+        "out": "HeadacheTriggers",
+        "in": "IngestedTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "sensory",
+      "@value": {
+        "label": "sensory",
+        "id": {
+          "string": {}
+        },
+        "out": "HeadacheTriggers",
+        "in": "SensoryTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "physiological",
+      "@value": {
+        "label": "physiological",
+        "id": {
+          "string": {}
+        },
+        "out": "HeadacheTriggers",
+        "in": "PhysiologicalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "environmental",
+      "@value": {
+        "label": "environmental",
+        "id": {
+          "string": {}
+        },
+        "out": "HeadacheTriggers",
+        "in": "EnvironmentalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hormonal",
+      "@value": {
+        "label": "hormonal",
+        "id": {
+          "string": {}
+        },
+        "out": "HeadacheTriggers",
+        "in": "HormonalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "relievedBy",
+      "@value": {
+        "label": "relievedBy",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "AlleviatingFactors",
+        "properties": [
+          {
+            "key": "magnitude",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "behavioralRelief",
+      "@value": {
+        "label": "behavioralRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "AlleviatingFactors",
+        "in": "BehavioralRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "physicalRelief",
+      "@value": {
+        "label": "physicalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "AlleviatingFactors",
+        "in": "PhysicalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "pharmacologicalRelief",
+      "@value": {
+        "label": "pharmacologicalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "AlleviatingFactors",
+        "in": "PharmacologicalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "environmentalRelief",
+      "@value": {
+        "label": "environmentalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "AlleviatingFactors",
+        "in": "EnvironmentalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "locatedAt",
+      "@value": {
+        "label": "locatedAt",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "BodyLocation",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasQuality",
+      "@value": {
+        "label": "hasQuality",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Quality",
+        "properties": [
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "hasSeverity",
+      "@value": {
+        "label": "hasSeverity",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Severity",
+        "properties": [
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "hasLaterality",
+      "@value": {
+        "label": "hasLaterality",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Laterality",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasFrequency",
+      "@value": {
+        "label": "hasFrequency",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Frequency",
+        "properties": [
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "hasDuration",
+      "@value": {
+        "label": "hasDuration",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Duration",
+        "properties": [
+          {
+            "key": "context",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "hasOnset",
+      "@value": {
+        "label": "hasOnset",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Age",
+        "properties": []
+      }
+    },
+    {
+      "@key": "emergedAt",
+      "@value": {
+        "label": "emergedAt",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Age",
+        "properties": []
+      }
+    },
+    {
+      "@key": "classifiedAs",
+      "@value": {
+        "label": "classifiedAs",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "HeadacheClassification",
+        "properties": []
+      }
+    },
+    {
+      "@key": "hasImpact",
+      "@value": {
+        "label": "hasImpact",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "FunctionalImpact",
+        "properties": []
+      }
+    },
+    {
+      "@key": "escalatesTo",
+      "@value": {
+        "label": "escalatesTo",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Headache",
+        "properties": [
+          {
+            "key": "via",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "frequency",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "evolvedFrom",
+      "@value": {
+        "label": "evolvedFrom",
+        "id": {
+          "string": {}
+        },
+        "out": "Headache",
+        "in": "Headache",
+        "properties": [
+          {
+            "key": "atAge",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": false
+          },
+          {
+            "key": "note",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "@key": "mentions",
+      "@value": {
+        "label": "mentions",
+        "id": {
+          "string": {}
+        },
+        "out": "Comment",
+        "in": "Concept",
+        "properties": []
+      }
+    },
+    {
+      "@key": "about",
+      "@value": {
+        "label": "about",
+        "id": {
+          "string": {}
+        },
+        "out": "Comment",
+        "in": "Concept",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptHeadache",
+      "@value": {
+        "label": "conceptHeadache",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Headache",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptHeadacheClassification",
+      "@value": {
+        "label": "conceptHeadacheClassification",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "HeadacheClassification",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptProdrome",
+      "@value": {
+        "label": "conceptProdrome",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Prodrome",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptAura",
+      "@value": {
+        "label": "conceptAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Aura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPostdrome",
+      "@value": {
+        "label": "conceptPostdrome",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Postdrome",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptNausea",
+      "@value": {
+        "label": "conceptNausea",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Nausea",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptVomiting",
+      "@value": {
+        "label": "conceptVomiting",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Vomiting",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptLightSensitivity",
+      "@value": {
+        "label": "conceptLightSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "LightSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSoundSensitivity",
+      "@value": {
+        "label": "conceptSoundSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "SoundSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSmellSensitivity",
+      "@value": {
+        "label": "conceptSmellSensitivity",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "SmellSensitivity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptDizziness",
+      "@value": {
+        "label": "conceptDizziness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Dizziness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptVertigo",
+      "@value": {
+        "label": "conceptVertigo",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Vertigo",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptNeckStiffness",
+      "@value": {
+        "label": "conceptNeckStiffness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "NeckStiffness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptNeckPain",
+      "@value": {
+        "label": "conceptNeckPain",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "NeckPain",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptScalpTenderness",
+      "@value": {
+        "label": "conceptScalpTenderness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "ScalpTenderness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptJawTenderness",
+      "@value": {
+        "label": "conceptJawTenderness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "JawTenderness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptConjunctivalInjection",
+      "@value": {
+        "label": "conceptConjunctivalInjection",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "ConjunctivalInjection",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptLacrimation",
+      "@value": {
+        "label": "conceptLacrimation",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Lacrimation",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptNasalCongestion",
+      "@value": {
+        "label": "conceptNasalCongestion",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "NasalCongestion",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptRhinorrhea",
+      "@value": {
+        "label": "conceptRhinorrhea",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Rhinorrhea",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptEyelidEdema",
+      "@value": {
+        "label": "conceptEyelidEdema",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "EyelidEdema",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFacialSweating",
+      "@value": {
+        "label": "conceptFacialSweating",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FacialSweating",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPtosis",
+      "@value": {
+        "label": "conceptPtosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Ptosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptMiosis",
+      "@value": {
+        "label": "conceptMiosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Miosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptRestlessness",
+      "@value": {
+        "label": "conceptRestlessness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Restlessness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptEarFullness",
+      "@value": {
+        "label": "conceptEarFullness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "EarFullness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptVisualAura",
+      "@value": {
+        "label": "conceptVisualAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "VisualAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSensoryAura",
+      "@value": {
+        "label": "conceptSensoryAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "SensoryAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSpeechAura",
+      "@value": {
+        "label": "conceptSpeechAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "SpeechAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptMotorAura",
+      "@value": {
+        "label": "conceptMotorAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "MotorAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptBrainstemAura",
+      "@value": {
+        "label": "conceptBrainstemAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "BrainstemAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptRetinalAura",
+      "@value": {
+        "label": "conceptRetinalAura",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "RetinalAura",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFatigue",
+      "@value": {
+        "label": "conceptFatigue",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Fatigue",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptMoodChange",
+      "@value": {
+        "label": "conceptMoodChange",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "MoodChange",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptCognitiveSlowness",
+      "@value": {
+        "label": "conceptCognitiveSlowness",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "CognitiveSlowness",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFoodCraving",
+      "@value": {
+        "label": "conceptFoodCraving",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FoodCraving",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptYawning",
+      "@value": {
+        "label": "conceptYawning",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Yawning",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFluidRetention",
+      "@value": {
+        "label": "conceptFluidRetention",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FluidRetention",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptUrinaryFrequency",
+      "@value": {
+        "label": "conceptUrinaryFrequency",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "UrinaryFrequency",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptThunderclapOnset",
+      "@value": {
+        "label": "conceptThunderclapOnset",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "ThunderclapOnset",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptWorseWithValsalva",
+      "@value": {
+        "label": "conceptWorseWithValsalva",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "WorseWithValsalva",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPositionalHeadache",
+      "@value": {
+        "label": "conceptPositionalHeadache",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "PositionalHeadache",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptProgressivelyWorse",
+      "@value": {
+        "label": "conceptProgressivelyWorse",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "ProgressivelyWorse",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptWakesFromSleep",
+      "@value": {
+        "label": "conceptWakesFromSleep",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "WakesFromSleep",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptNewAfterFifty",
+      "@value": {
+        "label": "conceptNewAfterFifty",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "NewAfterFifty",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFever",
+      "@value": {
+        "label": "conceptFever",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Fever",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptWeightLoss",
+      "@value": {
+        "label": "conceptWeightLoss",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "WeightLoss",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFocalNeurologicalDeficit",
+      "@value": {
+        "label": "conceptFocalNeurologicalDeficit",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FocalNeurologicalDeficit",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptVisionChange",
+      "@value": {
+        "label": "conceptVisionChange",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "VisionChange",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptConfusion",
+      "@value": {
+        "label": "conceptConfusion",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Confusion",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptHeadacheTriggers",
+      "@value": {
+        "label": "conceptHeadacheTriggers",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "HeadacheTriggers",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptIngestedTrigger",
+      "@value": {
+        "label": "conceptIngestedTrigger",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "IngestedTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSensoryTrigger",
+      "@value": {
+        "label": "conceptSensoryTrigger",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "SensoryTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPhysiologicalTrigger",
+      "@value": {
+        "label": "conceptPhysiologicalTrigger",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "PhysiologicalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptEnvironmentalTrigger",
+      "@value": {
+        "label": "conceptEnvironmentalTrigger",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "EnvironmentalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptHormonalTrigger",
+      "@value": {
+        "label": "conceptHormonalTrigger",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "HormonalTrigger",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptAlleviatingFactors",
+      "@value": {
+        "label": "conceptAlleviatingFactors",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "AlleviatingFactors",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptBehavioralRelief",
+      "@value": {
+        "label": "conceptBehavioralRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "BehavioralRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPhysicalRelief",
+      "@value": {
+        "label": "conceptPhysicalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "PhysicalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPharmacologicalRelief",
+      "@value": {
+        "label": "conceptPharmacologicalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "PharmacologicalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptEnvironmentalRelief",
+      "@value": {
+        "label": "conceptEnvironmentalRelief",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "EnvironmentalRelief",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptPainCharacter",
+      "@value": {
+        "label": "conceptPainCharacter",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "PainCharacter",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptBodyLocation",
+      "@value": {
+        "label": "conceptBodyLocation",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "BodyLocation",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptQuality",
+      "@value": {
+        "label": "conceptQuality",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Quality",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptSeverity",
+      "@value": {
+        "label": "conceptSeverity",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Severity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptLaterality",
+      "@value": {
+        "label": "conceptLaterality",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Laterality",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFrequency",
+      "@value": {
+        "label": "conceptFrequency",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Frequency",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptDuration",
+      "@value": {
+        "label": "conceptDuration",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Duration",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptAge",
+      "@value": {
+        "label": "conceptAge",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Age",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFunctionalImpact",
+      "@value": {
+        "label": "conceptFunctionalImpact",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FunctionalImpact",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptFamilyHistory",
+      "@value": {
+        "label": "conceptFamilyHistory",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "FamilyHistory",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptComorbidity",
+      "@value": {
+        "label": "conceptComorbidity",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Comorbidity",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptDiagnosis",
+      "@value": {
+        "label": "conceptDiagnosis",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "Diagnosis",
+        "properties": []
+      }
+    },
+    {
+      "@key": "conceptMenstrualRelationship",
+      "@value": {
+        "label": "conceptMenstrualRelationship",
+        "id": {
+          "string": {}
+        },
+        "out": "Concept",
+        "in": "MenstrualRelationship",
+        "properties": []
+      }
+    }
+  ]
+}

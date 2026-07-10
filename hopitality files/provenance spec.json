@@ -1,0 +1,226 @@
+{
+  "domain": "hospitality",
+  "version": "1.0",
+  "description": "Defines the ProvenanceEvidence vertex schema, attachment rules, confidence semantics, edge-type mapping, and traceability conventions for the hospitality knowledge graph. Hospitality knowledge is predominantly tacit and experiential — provenance is the only mechanism that distinguishes a refined personal rule from a generic business platitude. Every extracted knowledge node must trace back to a specific transcript utterance.",
+
+  "provenance_vertex": {
+    "label": "ProvenanceEvidence",
+    "id_convention": "prov:{episode_id}:{sequence}",
+    "id_example": "prov:ep:session:hospitality:2026-06-18:5:01",
+    "fields": [
+      {
+        "field": "traceText",
+        "type": "string",
+        "required": true,
+        "description": "The verbatim quote or faithful paraphrase from the transcript that directly justifies the extracted node or edge. For hospitality knowledge, this is often a conversational, anecdotal statement — preserve the expert's natural phrasing. Do not sanitize, generalize, or convert to formal language. The traceText must be specific enough that a human reviewer can locate it in the raw transcript.",
+        "bad_example": "The expert described their check-in approach.",
+        "good_example": "If a guest arrives before noon and I can see the room is physically ready — even if housekeeping hasn't formally signed it off — I let them in. I've never had a complaint from doing that.",
+        "hospitality_note": "Hospitality experts often embed their rules inside stories and anecdotes. Accept paraphrased story summaries as valid traceText as long as the specific rule or principle is captured, not just the topic."
+      },
+      {
+        "field": "sourceEpisode",
+        "type": "string",
+        "required": true,
+        "description": "The ID of the TranscriptEpisode vertex this evidence was extracted from. Must match an existing TranscriptEpisode ID in the graph.",
+        "id_format": "ep:{session_id}:{sequence}"
+      },
+      {
+        "field": "speaker",
+        "type": "string",
+        "required": true,
+        "description": "Who made the statement. Use one of the allowed values only.",
+        "allowed_values": ["expert", "interviewer", "system"]
+      },
+      {
+        "field": "timestamp",
+        "type": "string",
+        "required": false,
+        "description": "ISO-8601 datetime or relative session offset (e.g. '00:14:32'). Include when available."
+      },
+      {
+        "field": "confidence",
+        "type": "string",
+        "required": false,
+        "description": "The LLM extractor's confidence that the extracted node faithfully represents the expert's stated intent. In hospitality sessions, 'inferred' will appear frequently because experts often embed rules inside stories rather than stating them directly.",
+        "allowed_values": ["high", "medium", "low", "inferred"],
+        "confidence_definitions": {
+          "high": "The expert stated this principle or rule directly and unambiguously. The traceText is a near-verbatim quote. Example: 'We never skip the welcome drink. That is non-negotiable.'",
+          "medium": "The expert clearly implied the rule or principle but phrased it conversationally rather than as a formal statement. The traceText is a faithful paraphrase. Example: An anecdote where the expert always did X, from which the rule 'always do X' is extracted.",
+          "low": "The expert gestured toward this idea without elaborating. The extraction involves moderate interpretation. Flag these for human review.",
+          "inferred": "The node was synthesized across multiple utterances or derived from a pattern in several stories. No single quote fully supports it. The traceText summarizes the synthesis rationale and names the contributing episodes."
+        }
+      }
+    ]
+  },
+
+  "attachment_rules": {
+    "rule": "EVERY extracted knowledge vertex must have at least one outgoing provenance edge to a ProvenanceEvidence vertex in the same delta as the extraction. The edge label varies by vertex type — use the table below.",
+    "failure_action": "warn_and_continue",
+    "failure_description": "If a knowledge vertex is emitted without a provenance edge, the validator emits a WARNING and writes the vertex anyway. The session is flagged for post-hoc provenance repair. The delta is NOT rejected.",
+
+    "edge_label_by_vertex": {
+      "GuestExperiencePrinciple": "principleSupportedBy",
+      "ServiceStandard":          "supportedBy",
+      "GuestSignal":              "supportedBy",
+      "GuestPersona":             "supportedBy",
+      "CheckInPolicy":            "supportedBy",
+      "CheckOutPolicy":           "supportedBy",
+      "TimingRule":               "heuristicSupportedBy",
+      "ServiceFailure":           "supportedBy",
+      "RecoveryAction":           "supportedBy",
+      "ExceptionRule":            "supportedBy",
+      "DecisionRule":             "supportedBy",
+      "OperatingHeuristic":       "heuristicSupportedBy",
+      "LoyaltyDriver":            "supportedBy",
+      "EmotionalMoment":          "supportedBy",
+      "ContextualConstraint":     "supportedBy",
+      "Outcome":                  "supportedBy"
+    },
+
+    "exempt_vertex_labels": [
+      "Person",
+      "KnowledgeSession",
+      "SessionSection",
+      "TranscriptEpisode",
+      "ProvenanceEvidence"
+    ],
+
+    "edge_label_rationale": {
+      "principleSupportedBy": "Used exclusively for GuestExperiencePrinciple — the foundational belief layer. Kept separate to allow downstream queries like 'show me all principles with high-confidence provenance' without conflating with operational rules.",
+      "heuristicSupportedBy": "Used for OperatingHeuristic and TimingRule — tacit, experience-refined knowledge that is distinct from explicit decision rules. Keeping a separate edge allows the query layer to distinguish 'textbook' rules from 'lived-experience' heuristics.",
+      "supportedBy": "Default provenance edge for all remaining knowledge vertex types — operational rules, recovery actions, loyalty drivers, signals, personas, constraints, and outcomes."
+    }
+  },
+
+  "reuse_rules": {
+    "description": "A single ProvenanceEvidence node may support multiple knowledge vertices extracted from the same utterance.",
+    "rule": "If two or more vertices are extracted from the same TranscriptEpisode in the same delta, emit ONE ProvenanceEvidence vertex and attach all knowledge vertices to it. Do not emit duplicate ProvenanceEvidence nodes for the same source episode within a single delta.",
+    "exception": "If two vertices from the same episode have meaningfully different justifications (different sub-sentences or different sub-stories within the same turn), emit separate ProvenanceEvidence nodes with distinct sequence numbers.",
+    "hospitality_note": "Hospitality experts often cover multiple topics in a single answer — e.g. in one turn they describe early check-in, mention a guest persona, and state a rule. In that case one ProvenanceEvidence node is sufficient IF the traceText captures the full relevant passage. Only split if the justifications are genuinely distinct."
+  },
+
+  "singleton_vertex_provenance": {
+    "description": "CheckInPolicy and CheckOutPolicy are session singletons — emitted once in Section C and upserted in later sections. Special provenance rules apply.",
+    "rule": "When a new property is added to CheckInPolicy or CheckOutPolicy in a later section (e.g. Section G adds a seasonality-driven constraint), a NEW ProvenanceEvidence node must be emitted for that delta. The new ProvenanceEvidence traces the specific utterance that justified the new property or edge addition.",
+    "principle": "Provenance always traces the delta (the specific change), not the vertex creation event. The same vertex may accumulate multiple ProvenanceEvidence nodes across the session — one per delta that modified it.",
+    "applies_also_to": ["ServiceStandard", "GuestPersona", "GuestSignal"],
+    "note": "GuestPersona, GuestSignal, and ServiceStandard are also frequently reused across sections. Each time a new property or edge is added to an existing vertex, a new ProvenanceEvidence node should be emitted for that delta."
+  },
+
+  "cross_section_provenance": {
+    "description": "When a vertex created in an earlier section gains new edges in a later section (e.g. a GuestPersona from Section B gains a drivenBy edge in Section F), a NEW ProvenanceEvidence node must be emitted for the enriching delta.",
+    "rule": "The ProvenanceEvidence node always traces the specific delta in which the edge was added, not the delta in which the vertex was first created.",
+    "example": "GuestPersona 'repeat-guest' created in Section B with principleSupportedBy → prov:ep:...:3:01. In Section F, a drivenBy edge is added from LoyaltyDriver to 'repeat-guest'. A new ProvenanceEvidence prov:ep:...:18:01 must be emitted, tracing the Section F utterance that justified the drivenBy edge."
+  },
+
+  "inferred_provenance": {
+    "description": "Hospitality expertise is heavily pattern-based — experts often state the same rule across multiple anecdotes without ever saying it once explicitly. These synthesized nodes require inferred provenance.",
+    "rule": "Set confidence='inferred'. In traceText, write a brief synthesis statement that: (1) names the contributing episode IDs, (2) describes the common pattern across those episodes. Example: 'Synthesized from ep:session:hospitality:2026-06-18:4, :7, :12 — expert consistently described letting room-ready guests check in early regardless of official time, implying an informal early check-in rule.'",
+    "sourceEpisode": "Set to the episode ID of the most recent contributing utterance.",
+    "frequency_threshold": "Use inferred confidence only when the synthesized rule appears across 2 or more separate utterances. A single vague statement should be confidence='low', not 'inferred'."
+  },
+
+  "tacit_knowledge_guidance": {
+    "description": "Hospitality knowledge differs from clinical knowledge in that much of it is embedded in stories, examples, and counterfactuals rather than direct rule statements. The LLM extractor must handle these patterns.",
+    "patterns": [
+      {
+        "pattern": "Story-embedded rule",
+        "example": "'I had a guest once who arrived at 8am. I let them in early. They've been coming back for 7 years.'",
+        "extraction": "Emit an ExceptionRule (earlyCheckIn exception) and an Outcome (guestRetained=true, loyaltyAchieved=true). Set confidence='medium' — the rule is implied by the story outcome.",
+        "traceText_guidance": "Paraphrase: 'Expert allowed early check-in for a guest arriving at 8am; that guest has returned for 7 years, implying the exception created lasting loyalty.'"
+      },
+      {
+        "pattern": "Counterfactual rule",
+        "example": "'If I hadn't apologized immediately, she would have left a terrible review.'",
+        "extraction": "Emit a RecoveryAction (apology) and a DecisionRule (if service failure then apologize immediately). Set confidence='high' — the counterfactual implies a strong belief.",
+        "traceText_guidance": "Quote directly: 'If I hadn't apologized immediately, she would have left a terrible review.'"
+      },
+      {
+        "pattern": "Negation rule",
+        "example": "'I never argue with a guest about checkout time. Never. Even if they're wrong.'",
+        "extraction": "Emit a DecisionRule with ruleText='Never argue with a guest about checkout time, regardless of fault.' Set confidence='high'.",
+        "traceText_guidance": "Quote directly — the emphatic repetition of 'never' is itself high-confidence signal."
+      },
+      {
+        "pattern": "Comparative wisdom",
+        "example": "'New operators always try to enforce the policy. Experienced ones know when to bend it.'",
+        "extraction": "Emit an OperatingHeuristic with heuristic='Policy flexibility is a mark of experienced operators; new operators over-enforce.' Set confidence='medium'.",
+        "traceText_guidance": "Paraphrase: 'Expert contrasted new operators (policy enforcement) with experienced ones (knowing when to bend policy), identifying flexibility as an experience-based heuristic.'"
+      }
+    ]
+  },
+
+  "id_convention": {
+    "pattern": "prov:{episode_id}:{sequence}",
+    "sequence": "Zero-padded 2-digit integer starting at 01, incrementing per ProvenanceEvidence node emitted within the same episode.",
+    "examples": [
+      "prov:ep:session:hospitality:2026-06-18:3:01",
+      "prov:ep:session:hospitality:2026-06-18:3:02",
+      "prov:ep:session:hospitality:2026-06-18:11:01"
+    ]
+  },
+
+  "validation": {
+    "validator": "hydra_graph_schema",
+    "checks": [
+      {
+        "check_id": "PV001",
+        "name": "traceText_not_empty",
+        "description": "ProvenanceEvidence.traceText must not be an empty string or whitespace-only string.",
+        "action_on_failure": "reject_delta_and_retry"
+      },
+      {
+        "check_id": "PV002",
+        "name": "sourceEpisode_exists",
+        "description": "ProvenanceEvidence.sourceEpisode must match an existing TranscriptEpisode ID in the vertex cache.",
+        "action_on_failure": "warn_and_continue"
+      },
+      {
+        "check_id": "PV003",
+        "name": "speaker_allowed_value",
+        "description": "ProvenanceEvidence.speaker must be one of: expert, interviewer, system.",
+        "action_on_failure": "reject_delta_and_retry"
+      },
+      {
+        "check_id": "PV004",
+        "name": "confidence_allowed_value",
+        "description": "If confidence is present, it must be one of: high, medium, low, inferred.",
+        "action_on_failure": "reject_delta_and_retry"
+      },
+      {
+        "check_id": "PV005",
+        "name": "no_duplicate_prov_same_delta",
+        "description": "Within a single delta, two ProvenanceEvidence nodes must not share the same sourceEpisode and traceText combination.",
+        "action_on_failure": "warn_and_continue"
+      },
+      {
+        "check_id": "PV006",
+        "name": "traceText_not_generic_hospitality",
+        "description": "ProvenanceEvidence.traceText must not be a generic hospitality placeholder. Strings matching the banned patterns below are rejected.",
+        "banned_patterns": [
+          "the expert described their approach",
+          "the owner mentioned",
+          "hospitality knowledge",
+          "extracted from interview",
+          "see transcript",
+          "n/a",
+          "not available",
+          "unknown",
+          "the expert talked about",
+          "general hospitality principle"
+        ],
+        "match_type": "case_insensitive_starts_with_or_equals",
+        "action_on_failure": "reject_delta_and_retry",
+        "error_message": "ProvenanceEvidence.traceText '{trace_text}' is too generic for hospitality domain. Provide a specific quote, paraphrase, or synthesis statement that captures the expert's actual rule, principle, or heuristic."
+      },
+      {
+        "check_id": "PV007",
+        "name": "inferred_confidence_requires_multi_episode_reference",
+        "description": "If confidence='inferred', the traceText must reference at least two episode IDs in the format 'ep:...'.",
+        "check": "if confidence == 'inferred' then traceText contains at least 2 occurrences of 'ep:'",
+        "action_on_failure": "warn_and_continue",
+        "error_message": "ProvenanceEvidence has confidence='inferred' but traceText does not reference multiple source episodes. Either cite the contributing episodes or downgrade confidence to 'low'."
+      }
+    ]
+  }
+}

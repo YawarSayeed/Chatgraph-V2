@@ -1,0 +1,419 @@
+{
+  "domain": "hospitality",
+  "version": "1.0",
+  "description": "Validation rules for the hospitality knowledge graph. Rules are evaluated at two checkpoints: (1) per-delta — checked immediately after each LLM extractor turn before Gremlin write, and (2) session-close — checked after the final section is complete. Rules are assigned a severity (hard, soft, advisory) and a scope (delta, session). Hard failures on delta scope trigger retry or drop; soft failures warn and continue; advisory failures appear in the post-session report only.",
+
+  "checkpoint_definitions": {
+    "delta": "Evaluated after every extractor turn, before the Gremlin writer executes. A hard failure at this checkpoint causes the delta to be rejected and the extractor to retry (up to max_correction_attempts). A soft failure logs a warning and writes anyway.",
+    "session_close": "Evaluated once, after the expert session ends and all deltas have been written. Results are written to the session audit log. No retries — these are diagnostic checks on the complete graph."
+  },
+
+  "severity_definitions": {
+    "hard": "Delta is rejected. Extractor must correct and re-emit. If correction budget is exceeded, delta is dropped and logged.",
+    "soft": "Delta is written. A WARNING is logged. The session is flagged for post-hoc review.",
+    "advisory": "No blocking action. Finding is recorded in the session audit report only. Used for semantic completeness checks that would be over-aggressive as hard rules in a live session."
+  },
+
+  "rules": [
+
+    {
+      "rule_id": "HR001",
+      "name": "required_properties_present",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every vertex in the delta that has required properties (as declared in schema-hospitality.json) must include those properties with non-null, non-empty-string values.",
+      "required_properties_by_label": {
+        "GuestExperiencePrinciple": ["principleText"],
+        "ServiceStandard":          ["standardText"],
+        "GuestSignal":              ["signalText"],
+        "GuestPersona":             ["personaType"],
+        "CheckInPolicy":            [],
+        "CheckOutPolicy":           [],
+        "TimingRule":               ["ruleText"],
+        "ServiceFailure":           ["failureType"],
+        "RecoveryAction":           ["actionText"],
+        "ExceptionRule":            ["triggerCondition"],
+        "DecisionRule":             ["ruleText"],
+        "OperatingHeuristic":       ["heuristicText"],
+        "LoyaltyDriver":            ["driverText"],
+        "EmotionalMoment":          ["momentText"],
+        "ContextualConstraint":     ["constraintType"],
+        "Outcome":                  ["outcomeType"],
+        "ProvenanceEvidence":       ["traceText", "sourceEpisode", "speaker"],
+        "KnowledgeSession":         ["domain"],
+        "Person":                   [],
+        "TranscriptEpisode":        ["order"]
+      },
+      "error_message": "Vertex '{vertex_id}' (label: '{label}') is missing required property '{property}'. Add the property before re-emitting.",
+      "check": "for each vertex v in delta: for each required_prop in required_properties_by_label[v.label]: assert v.properties[required_prop] is not null and not ''"
+    },
+
+    {
+      "rule_id": "HR002",
+      "name": "no_unknown_vertex_labels",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every vertex label in the delta must be one of the labels declared in schema-hospitality.json. Invented labels are never permitted.",
+      "allowed_vertex_labels": [
+        "Person", "KnowledgeSession", "SessionSection", "TranscriptEpisode", "ProvenanceEvidence",
+        "GuestPersona", "GuestSignal", "GuestExperiencePrinciple", "ServiceStandard",
+        "CheckInPolicy", "CheckOutPolicy", "TimingRule", "DecisionRule", "OperatingHeuristic",
+        "ServiceFailure", "RecoveryAction", "ExceptionRule", "LoyaltyDriver", "EmotionalMoment",
+        "ContextualConstraint", "Outcome"
+      ],
+      "error_message": "Unknown vertex label '{label}' in delta. Only labels declared in schema-hospitality.json are permitted. If the schema has no home for this concept, use the Comment escape hatch pattern defined in the extractor prompt.",
+      "check": "for each vertex v in delta: assert v.label in allowed_vertex_labels"
+    },
+
+    {
+      "rule_id": "HR003",
+      "name": "no_unknown_edge_labels",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every edge label in the delta must be one of the edge labels declared in schema-hospitality.json.",
+      "allowed_edge_labels": [
+        "hasSession", "hasSection", "hasEpisode",
+        "discusses", "discussesRule", "discussesFailure", "discussesHeuristic",
+        "appliesToPersona", "standardEnforces",
+        "signalIndicates", "signalTriggers",
+        "principleSupportedBy", "heuristicSupportedBy", "supportedBy",
+        "governs", "governsCheckOut",
+        "resolvedBy", "recoveryLeadsTo",
+        "exceptionAppliesTo", "exceptionMadeFor",
+        "leadsTo", "loyaltyLeadsTo",
+        "modulatedBy", "constraintAffectsPolicy",
+        "shapesLoyalty", "drivenBy",
+        "heuristicExplains"
+      ],
+      "error_message": "Unknown edge label '{label}' in delta. Only edge labels declared in schema-hospitality.json are permitted. Never invent an edge label.",
+      "check": "for each edge e in delta: assert e.label in allowed_edge_labels"
+    },
+
+    {
+      "rule_id": "HR004",
+      "name": "edge_endpoint_types_match_schema",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every edge in the delta must connect vertex labels that match the (out, in) declaration in schema-hospitality.json. An edge used with wrong endpoint types is rejected.",
+      "edge_endpoint_map": {
+        "hasSession":              { "out": "Person",                 "in": "KnowledgeSession"         },
+        "hasSection":              { "out": "KnowledgeSession",       "in": "SessionSection"           },
+        "hasEpisode":              { "out": "SessionSection",         "in": "TranscriptEpisode"        },
+        "discusses":               { "out": "TranscriptEpisode",      "in": "GuestExperiencePrinciple" },
+        "discussesRule":           { "out": "TranscriptEpisode",      "in": "DecisionRule"             },
+        "discussesFailure":        { "out": "TranscriptEpisode",      "in": "ServiceFailure"           },
+        "discussesHeuristic":      { "out": "TranscriptEpisode",      "in": "OperatingHeuristic"       },
+        "appliesToPersona":        { "out": "GuestExperiencePrinciple","in": "GuestPersona"            },
+        "standardEnforces":        { "out": "ServiceStandard",        "in": "GuestExperiencePrinciple" },
+        "signalIndicates":         { "out": "GuestSignal",            "in": "GuestPersona"             },
+        "signalTriggers":          { "out": "GuestSignal",            "in": "DecisionRule"             },
+        "principleSupportedBy":    { "out": "GuestExperiencePrinciple","in": "ProvenanceEvidence"      },
+        "heuristicSupportedBy":    { "out_any_of": ["OperatingHeuristic", "TimingRule"], "in": "ProvenanceEvidence" },
+        "supportedBy":             {
+          "out_any_of": [
+            "ServiceStandard", "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
+            "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
+            "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+          ],
+          "in": "ProvenanceEvidence"
+        },
+        "governs":                 { "out": "CheckInPolicy",          "in": "TimingRule"               },
+        "governsCheckOut":         { "out": "CheckOutPolicy",         "in": "TimingRule"               },
+        "resolvedBy":              { "out": "ServiceFailure",         "in": "RecoveryAction"           },
+        "recoveryLeadsTo":         { "out": "RecoveryAction",         "in": "Outcome"                  },
+        "exceptionAppliesTo":      { "out": "ExceptionRule",          "in": "DecisionRule"             },
+        "exceptionMadeFor":        { "out": "ExceptionRule",          "in": "GuestPersona"             },
+        "leadsTo":                 { "out": "DecisionRule",           "in": "Outcome"                  },
+        "loyaltyLeadsTo":          { "out": "LoyaltyDriver",          "in": "Outcome"                  },
+        "modulatedBy":             { "out": "ContextualConstraint",   "in": "DecisionRule"             },
+        "constraintAffectsPolicy": {
+          "out": "ContextualConstraint",
+          "in_any_of": ["CheckInPolicy", "CheckOutPolicy"]
+        },
+        "shapesLoyalty":           { "out": "EmotionalMoment",        "in": "LoyaltyDriver"            },
+        "drivenBy":                { "out": "LoyaltyDriver",          "in": "GuestPersona"             },
+        "heuristicExplains":       { "out": "OperatingHeuristic",     "in": "DecisionRule"             }
+      },
+      "error_message": "Edge '{edge_label}' connects '{out_label}' → '{in_label}' but schema declares '{expected_out}' → '{expected_in}'. Fix the edge direction or vertex labels.",
+      "check": "for each edge e in delta: assert (e.out_label, e.in_label) matches edge_endpoint_map[e.label]"
+    },
+
+    {
+      "rule_id": "HR005",
+      "name": "no_dangling_edges",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every edge endpoint in the delta must resolve to either (a) a vertex emitted in the same delta, or (b) an existing vertex ID in the Gremlin graph (confirmed via the vertex ID cache). An edge to an ID that neither exists in the cache nor is emitted in this delta is a dangling reference.",
+      "error_message": "Edge '{edge_label}' references vertex ID '{vertex_id}' which does not exist in the graph and is not emitted in this delta. Either emit the vertex in the same delta or use an existing vertex ID from the cache.",
+      "check": "for each edge e in delta: assert e.out_id in (delta_vertex_ids UNION known_vertex_cache) AND e.in_id in (delta_vertex_ids UNION known_vertex_cache)"
+    },
+
+    {
+      "rule_id": "HR006",
+      "name": "provenance_attached_to_knowledge_vertices",
+      "scope": "delta",
+      "severity": "soft",
+      "description": "Every knowledge vertex emitted in this delta must have at least one outgoing provenance edge (supportedBy, principleSupportedBy, or heuristicSupportedBy) pointing to a ProvenanceEvidence vertex in this delta or already in the graph. Infrastructure vertices (Person, KnowledgeSession, SessionSection, TranscriptEpisode, ProvenanceEvidence itself) are exempt.",
+      "knowledge_vertex_labels": [
+        "GuestExperiencePrinciple", "ServiceStandard", "GuestSignal", "GuestPersona",
+        "CheckInPolicy", "CheckOutPolicy", "TimingRule", "ServiceFailure", "RecoveryAction",
+        "ExceptionRule", "DecisionRule", "OperatingHeuristic", "LoyaltyDriver",
+        "EmotionalMoment", "ContextualConstraint", "Outcome"
+      ],
+      "provenance_edge_labels": ["supportedBy", "principleSupportedBy", "heuristicSupportedBy"],
+      "error_message": "WARNING: Knowledge vertex '{vertex_id}' (label: '{label}') was emitted without a provenance edge. Delta written. Session flagged for post-hoc provenance repair.",
+      "check": "for each vertex v in delta where v.label in knowledge_vertex_labels: assert exists edge e in (delta_edges UNION graph_edges) where e.out_id == v.id AND e.label in provenance_edge_labels"
+    },
+
+    {
+      "rule_id": "HR007",
+      "name": "correct_provenance_edge_type_by_vertex",
+      "scope": "delta",
+      "severity": "soft",
+      "description": "Each knowledge vertex type must use the correct provenance edge type as specified in provenance_spec.json. Using supportedBy instead of principleSupportedBy on a GuestExperiencePrinciple is a soft failure — the provenance exists but is mistyped, degrading downstream query precision.",
+      "provenance_edge_by_label": {
+        "GuestExperiencePrinciple": "principleSupportedBy",
+        "OperatingHeuristic":       "heuristicSupportedBy",
+        "TimingRule":               "heuristicSupportedBy",
+        "ServiceStandard":          "supportedBy",
+        "GuestSignal":              "supportedBy",
+        "GuestPersona":             "supportedBy",
+        "CheckInPolicy":            "supportedBy",
+        "CheckOutPolicy":           "supportedBy",
+        "ServiceFailure":           "supportedBy",
+        "RecoveryAction":           "supportedBy",
+        "ExceptionRule":            "supportedBy",
+        "DecisionRule":             "supportedBy",
+        "LoyaltyDriver":            "supportedBy",
+        "EmotionalMoment":          "supportedBy",
+        "ContextualConstraint":     "supportedBy",
+        "Outcome":                  "supportedBy"
+      },
+      "error_message": "WARNING: Vertex '{vertex_id}' (label: '{label}') uses provenance edge '{actual_edge}' but should use '{expected_edge}'. Delta written. This degrades query precision — repair post-session.",
+      "check": "for each vertex v in delta where v.label in provenance_edge_by_label: for each provenance_edge e attached to v: assert e.label == provenance_edge_by_label[v.label]"
+    },
+
+    {
+      "rule_id": "HR008",
+      "name": "session_root_exists",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "Every delta must be associated with an active KnowledgeSession. If the vertex ID cache contains no KnowledgeSession ID for this session, the delta is rejected. The session root must be written first via the session_init step in ingestion_config.json.",
+      "error_message": "No KnowledgeSession vertex found in the vertex ID cache. The session root must be initialised before any knowledge extraction delta. Check that ingestion_config.session_lifecycle.session_init completed successfully.",
+      "check": "assert vertex_id_cache contains exactly one KnowledgeSession vertex for domain='hospitality' with the current session_id"
+    },
+
+    {
+      "rule_id": "HR009",
+      "name": "singleton_policy_vertices_not_duplicated",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "CheckInPolicy and CheckOutPolicy are session singletons. A delta must never emit a new CheckInPolicy or CheckOutPolicy vertex if one already exists in the vertex ID cache for this session. If the delta needs to update a policy vertex, it must use the upsert path (reference the existing ID), not emit a new vertex.",
+      "singleton_labels": ["CheckInPolicy", "CheckOutPolicy"],
+      "error_message": "Delta attempts to emit a new '{label}' vertex (id: '{new_id}') but a '{label}' singleton (id: '{existing_id}') already exists for this session. Use the existing ID '{existing_id}' to add properties or edges — do not create a second instance.",
+      "check": "for each vertex v in delta where v.label in singleton_labels: assert v.id NOT in vertex_id_cache OR (v.id in vertex_id_cache AND upsert_mode=true)"
+    },
+
+    {
+      "rule_id": "HR010",
+      "name": "provenance_speaker_allowed_value",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "ProvenanceEvidence.speaker must be one of the allowed values: 'expert', 'interviewer', 'system'. No other values are permitted.",
+      "allowed_values": ["expert", "interviewer", "system"],
+      "error_message": "ProvenanceEvidence '{vertex_id}' has speaker='{value}' which is not in allowed values: expert, interviewer, system.",
+      "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence': assert v.properties.speaker in ['expert', 'interviewer', 'system']"
+    },
+
+    {
+      "rule_id": "HR011",
+      "name": "provenance_confidence_allowed_value",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "If ProvenanceEvidence.confidence is present, it must be one of: 'high', 'medium', 'low', 'inferred'.",
+      "allowed_values": ["high", "medium", "low", "inferred"],
+      "error_message": "ProvenanceEvidence '{vertex_id}' has confidence='{value}' which is not in allowed values: high, medium, low, inferred.",
+      "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence' AND v.properties.confidence is not null: assert v.properties.confidence in ['high', 'medium', 'low', 'inferred']"
+    },
+
+    {
+      "rule_id": "HR012",
+      "name": "provenance_tracetext_not_generic",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "ProvenanceEvidence.traceText must not be a generic hospitality placeholder. The text must capture a specific expert statement, paraphrase, or synthesis — not a generic topic description. Banned phrase patterns are case-insensitive.",
+      "banned_patterns": [
+        "the expert described their approach",
+        "the owner mentioned",
+        "hospitality knowledge",
+        "extracted from interview",
+        "see transcript",
+        "n/a",
+        "not available",
+        "unknown",
+        "the expert talked about",
+        "general hospitality principle"
+      ],
+      "match_type": "case_insensitive_starts_with_or_equals",
+      "error_message": "ProvenanceEvidence '{vertex_id}' traceText is too generic: '{traceText}'. Provide the expert's actual statement, a faithful paraphrase, or a multi-episode synthesis citation.",
+      "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence': assert v.properties.traceText does not match any banned_pattern"
+    },
+
+    {
+      "rule_id": "HR013",
+      "name": "inferred_confidence_cites_multiple_episodes",
+      "scope": "delta",
+      "severity": "soft",
+      "description": "If ProvenanceEvidence.confidence is 'inferred', the traceText must reference at least two episode IDs in the format 'ep:'. Synthesized nodes should not be created from a single utterance.",
+      "error_message": "WARNING: ProvenanceEvidence '{vertex_id}' has confidence='inferred' but traceText references fewer than 2 episode IDs. Either cite 2+ contributing episodes or downgrade confidence to 'low'.",
+      "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence' AND v.properties.confidence == 'inferred': assert count of 'ep:' occurrences in v.properties.traceText >= 2"
+    },
+
+    {
+      "rule_id": "HR014",
+      "name": "decision_rule_has_rule_text",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "DecisionRule.ruleText must be a non-empty, non-generic string. It must express a specific if-then condition relevant to hospitality operations. This is the primary content field of the most important knowledge vertex type in the schema.",
+      "banned_patterns": [
+        "if condition then action",
+        "see transcript",
+        "n/a",
+        "unknown",
+        "rule about hospitality",
+        "decision rule"
+      ],
+      "error_message": "DecisionRule '{vertex_id}' has ruleText='{value}' which is too generic or a placeholder. ruleText must express a specific hospitality decision rule (e.g. 'If guest arrives before noon and room is physically ready, allow early check-in regardless of official policy').",
+      "check": "for each vertex v in delta where v.label == 'DecisionRule': assert v.properties.ruleText is not null AND v.properties.ruleText not in banned_patterns AND len(v.properties.ruleText) > 20"
+    },
+
+    {
+      "rule_id": "HR015",
+      "name": "operating_heuristic_has_heuristic_text",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "OperatingHeuristic.heuristicText must be a non-empty string expressing a specific pattern or intuitive rule the expert has refined through experience. It is the primary value payload of the OperatingHeuristic vertex.",
+      "error_message": "OperatingHeuristic '{vertex_id}' has heuristicText='{value}' which is empty or a placeholder. Provide the expert's specific heuristic verbatim or as a faithful paraphrase.",
+      "check": "for each vertex v in delta where v.label == 'OperatingHeuristic': assert v.properties.heuristicText is not null AND len(v.properties.heuristicText) > 10"
+    },
+
+    {
+      "rule_id": "HR016",
+      "name": "session_required_sections_covered",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "At session close, the graph must contain SessionSection vertices for sections A (introduction), B (guest experience principles), and C (arrival/check-in/timing). These three sections are foundational — without them the graph lacks the session root (A), the principles layer (B), and the policy singleton layer (C). Missing any of these is a significant knowledge gap.",
+      "required_section_ids": ["A", "B", "C"],
+      "error_message": "WARNING: Session '{session_id}' completed without section '{section_id}' ({section_title}). The hospitality knowledge graph for this session is missing foundational knowledge. Consider scheduling a follow-up session to cover this section.",
+      "check": "for each section_id in required_section_ids: assert exists SessionSection vertex in graph where section_id property == section_id AND linked to current KnowledgeSession"
+    },
+
+    {
+      "rule_id": "HR017",
+      "name": "no_duplicate_guest_persona",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "GuestPersona vertices with identical personaType values within the same session indicate the extractor minted a duplicate instead of reusing an existing ID. Duplicates degrade query quality — persona-linked loyalty drivers and decision rules will not consolidate correctly.",
+      "error_message": "WARNING: Session '{session_id}' contains {count} GuestPersona vertices with personaType='{personaType}'. Only one should exist per persona type per session. Review and merge duplicates.",
+      "check": "assert no two GuestPersona vertices in the session share the same personaType property value"
+    },
+
+    {
+      "rule_id": "HR018",
+      "name": "no_duplicate_guest_signal",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "GuestSignal vertices with identical signalText values within the same session indicate the extractor minted a duplicate instead of reusing an existing ID from the vertex cache.",
+      "error_message": "WARNING: Session '{session_id}' contains {count} GuestSignal vertices with signalText='{signalText}'. Only one should exist per unique signal per session. Review and merge duplicates.",
+      "check": "assert no two GuestSignal vertices in the session share the same signalText property value (case-insensitive)"
+    },
+
+    {
+      "rule_id": "HR019",
+      "name": "singleton_checkin_policy_created_exactly_once",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "Exactly one CheckInPolicy vertex should exist per session. Zero indicates Section C was skipped or the policy was never extracted. More than one indicates a singleton violation (HR009 should have caught it at delta level — this is the session-close double-check).",
+      "error_message_zero": "WARNING: Session '{session_id}' contains no CheckInPolicy vertex. Section C may have been skipped or the check-in policy was not extracted.",
+      "error_message_many": "WARNING: Session '{session_id}' contains {count} CheckInPolicy vertices. Singleton violation — only one should exist. Review and merge.",
+      "check": "assert count of CheckInPolicy vertices in session == 1"
+    },
+
+    {
+      "rule_id": "HR020",
+      "name": "singleton_checkout_policy_created_exactly_once",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "Exactly one CheckOutPolicy vertex should exist per session. Same rationale as HR019.",
+      "error_message_zero": "WARNING: Session '{session_id}' contains no CheckOutPolicy vertex.",
+      "error_message_many": "WARNING: Session '{session_id}' contains {count} CheckOutPolicy vertices. Singleton violation.",
+      "check": "assert count of CheckOutPolicy vertices in session == 1"
+    },
+
+    {
+      "rule_id": "HR021",
+      "name": "service_failure_has_recovery_action",
+      "scope": "session_close",
+      "severity": "advisory",
+      "description": "Every ServiceFailure vertex should have at least one outgoing resolvedBy edge to a RecoveryAction vertex. A ServiceFailure without a recovery action is a knowledge gap — the expert described a problem but the extractor did not capture how they resolve it. Advisory only — the expert may have simply not volunteered this information.",
+      "error_message": "ADVISORY: ServiceFailure '{vertex_id}' (failureType: '{failureType}') has no resolvedBy edge to a RecoveryAction. This may be an extraction gap — review the transcript around the episode that produced this vertex.",
+      "check": "for each ServiceFailure vertex v in session: assert exists edge e where e.out_id == v.id AND e.label == 'resolvedBy'"
+    },
+
+    {
+      "rule_id": "HR022",
+      "name": "decision_rule_has_at_least_one_connection",
+      "scope": "session_close",
+      "severity": "advisory",
+      "description": "Every DecisionRule vertex should have at least one incoming edge (from TranscriptEpisode, GuestSignal, OperatingHeuristic, ExceptionRule, or ContextualConstraint) and at least one outgoing edge (to Outcome or as target of another vertex's edge). An isolated DecisionRule with no connections is a likely extraction artifact.",
+      "error_message": "ADVISORY: DecisionRule '{vertex_id}' (ruleText: '{ruleText_preview}') has no incoming edges and/or no outgoing edges. This vertex may be an extraction artifact — review the delta that produced it.",
+      "check": "for each DecisionRule vertex v in session: assert count(incoming_edges(v)) >= 1 AND count(outgoing_edges(v)) >= 1"
+    },
+
+    {
+      "rule_id": "HR023",
+      "name": "loyalty_driver_linked_to_persona_or_outcome",
+      "scope": "session_close",
+      "severity": "advisory",
+      "description": "LoyaltyDriver vertices should have at least one drivenBy edge (linking to a GuestPersona) or one loyaltyLeadsTo edge (linking to an Outcome). A LoyaltyDriver with neither connection is floating tacit knowledge with no graph context.",
+      "error_message": "ADVISORY: LoyaltyDriver '{vertex_id}' (driverText: '{driverText_preview}') has no drivenBy or loyaltyLeadsTo edges. Consider linking it to a GuestPersona or Outcome in a post-session enrichment pass.",
+      "check": "for each LoyaltyDriver vertex v in session: assert exists edge e where (e.out_id == v.id AND e.label == 'loyaltyLeadsTo') OR (e.in_id == v.id AND e.label == 'drivenBy')"
+    },
+
+    {
+      "rule_id": "HR024",
+      "name": "minimum_knowledge_vertex_count",
+      "scope": "session_close",
+      "severity": "advisory",
+      "description": "A completed hospitality session of 7 sections should yield a minimum number of knowledge vertices. Counts below the thresholds suggest the extractor was too conservative or the session was too short to be useful.",
+      "minimum_counts": {
+        "GuestExperiencePrinciple": 3,
+        "DecisionRule":             3,
+        "GuestPersona":             2,
+        "OperatingHeuristic":       2,
+        "TimingRule":               1
+      },
+      "error_message": "ADVISORY: Session '{session_id}' contains only {count} '{label}' vertices (minimum expected: {minimum}). The session may have been too brief, or the extractor may have been under-extracting. Review the transcript for missed extraction opportunities.",
+      "check": "for each label, minimum in minimum_counts: assert count(vertices with label in session) >= minimum"
+    },
+
+    {
+      "rule_id": "HR025",
+      "name": "all_provenance_source_episodes_exist",
+      "scope": "session_close",
+      "severity": "soft",
+      "description": "Every ProvenanceEvidence.sourceEpisode value must reference a TranscriptEpisode vertex that exists in the session graph. Orphaned sourceEpisode references indicate a write-order failure or a malformed delta.",
+      "error_message": "WARNING: ProvenanceEvidence '{vertex_id}' references sourceEpisode='{episode_id}' which does not exist as a TranscriptEpisode vertex in this session. This provenance node is orphaned — repair by linking it to the correct episode or re-extracting the delta.",
+      "check": "for each ProvenanceEvidence vertex v in session: assert v.properties.sourceEpisode in (set of all TranscriptEpisode IDs in session)"
+    }
+
+  ],
+
+  "rule_summary": {
+    "delta_hard":    ["HR001", "HR002", "HR003", "HR004", "HR005", "HR008", "HR009", "HR010", "HR011", "HR012", "HR014", "HR015"],
+    "delta_soft":    ["HR006", "HR007", "HR013"],
+    "session_soft":  ["HR016", "HR017", "HR018", "HR019", "HR020", "HR025"],
+    "session_advisory": ["HR021", "HR022", "HR023", "HR024"],
+    "total_rules": 25
+  }
+}
