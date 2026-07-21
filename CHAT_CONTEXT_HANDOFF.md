@@ -1,5 +1,12 @@
 # Chat Context Handoff
 
+> **SUPERSEDED (2026-07-21).** This document describes an earlier iteration and is kept
+> for history. Hospitality extraction is no longer keyword-based; both domains now run an
+> LLM extractor behind the symbolic gate in `lib/gate/`. For current behaviour see
+> `README.md`, `IN_DEPTH_ARCHITECTURE.md` (read its amendment header first), and
+> `results/results.md` for measured evaluation numbers.
+
+
 This document preserves the working context from the long build/debug session for anyone continuing the project in a new Codespace or a fresh chat.
 
 It is not a full verbatim transcript. It is the practical memory that matters: what we built, what broke, what we fixed, what decisions were made, what is still imperfect, and how to keep working without repeating the same loops.

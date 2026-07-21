@@ -1,5 +1,7 @@
 import OpenAI from "openai";
-import { graphSummary, sanitizeDelta, schemaReference } from "@/lib/schema";
+import { graphSummary } from "@/lib/schema";
+import { runGate } from "@/lib/gate/gate";
+import { schemaReference } from "@/lib/gate/prompt";
 import type { ChatRequest, GraphDelta } from "@/lib/types";
 import { getDomain } from "@/lib/domains";
 import { extractGovernedDelta } from "./extract-governed";
@@ -50,19 +52,21 @@ export async function extractGraphDelta(
       feedback = "The previous attempt returned invalid JSON. Emit valid JSON using the emit_graph_delta function.";
       continue;
     }
-    const rawSanitized = sanitizeDelta(rawInput, body.graph, body.domainId);
+    // The same gate serves both domains. Without a governance spec a domain gets
+    // schema-mode admission only, which is what the medical schema declares.
+    const gated = runGate(rawInput, body.graph, body.domainId ?? "medical", { mode: "schema" });
+    const rawSanitized = {
+      delta: gated.delta,
+      warnings: gated.findings.filter((item) => item.action === "dropped").map((item) => `${item.ruleId}: ${item.message}`)
+    };
     const sanitized = body.domainId === "medical"
       ? polishMedicalExtraction(rawSanitized, latestText, body)
       : rawSanitized;
     if (!best || scoreDelta(sanitized) > scoreDelta(best)) best = sanitized;
-    if (sanitized.warnings.length === 0) {
+    if (!gated.retryFeedback) {
       return sanitized;
     }
-    feedback =
-      `The previous graph delta failed validation and was sanitized with these problems:\n` +
-      sanitized.warnings.join("\n") +
-      "\n\nRe-emit the entire corrected delta. Valid schema labels and edge directions:\n" +
-      schemaReference(body.domainId);
+    feedback = `${gated.retryFeedback}\n\nValid schema labels and edge directions:\n${schemaReference(body.domainId ?? "medical")}`;
   }
 
   const result = best ?? {

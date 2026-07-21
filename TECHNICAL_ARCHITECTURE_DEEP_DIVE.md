@@ -1,5 +1,12 @@
 # Technical Architecture Deep Dive
 
+> **SUPERSEDED (2026-07-21).** This document describes an earlier iteration and is kept
+> for history. Hospitality extraction is no longer keyword-based; both domains now run an
+> LLM extractor behind the symbolic gate in `lib/gate/`. For current behaviour see
+> `README.md`, `IN_DEPTH_ARCHITECTURE.md` (read its amendment header first), and
+> `results/results.md` for measured evaluation numbers.
+
+
 This document explains the current chatgraph architecture in detail for a developer continuing the project in a new Codespace or a fresh chat.
 
 It focuses on the actual browser app that exists now, not the older Python/Gremlin CLI architecture described by some legacy files.
