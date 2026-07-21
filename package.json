@@ -11,12 +11,8 @@
     "test": "npm run test:gate && npm run test:results",
     "test:gate": "node --import ./scripts/ts-alias-hooks.mjs --no-warnings src/test/js/gate_conformance.mjs",
     "test:results": "node scripts/nesy_results/validate_results.mjs",
-    "ablation:real": "node scripts/nesy_results/run_real_ablation.mjs",
-    "results:recover": "node scripts/nesy_results/recover_measured_results.mjs",
-    "results:judge-a0": "node scripts/nesy_results/judge_recovered_a0.mjs A0",
-    "results:judge-a5": "node scripts/nesy_results/judge_recovered_a0.mjs A5",
-    "results:audit": "node scripts/nesy_results/ingest_human_audit.mjs",
-    "results:finalize": "npm run results:recover"
+    "ablation": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/run_gated_ablation.mjs",
+    "results:build": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/build_results_package.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

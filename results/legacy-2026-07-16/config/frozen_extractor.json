@@ -1,0 +1,10 @@
+{
+  "provider": "OpenAI",
+  "extractor_model": "gpt-4o-mini",
+  "judge_model": "gpt-4o",
+  "temperature": 0,
+  "seed": 20260716,
+  "prompt_hash_sha256": "f075680de0f1ef0c13a94df1fa5c5baccaf143d09526a3a7b19d7214111d384f",
+  "prompt_hash_source": "lib/domains.ts hospitalityExtractorIntro",
+  "note": "OpenAI seed is best-effort, not a hard determinism guarantee."
+}

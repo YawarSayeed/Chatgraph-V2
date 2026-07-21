@@ -1,0 +1,1067 @@
+{
+  "validation": {
+    "domain": "hospitality",
+    "version": "1.0",
+    "description": "Validation rules for the hospitality knowledge graph. Rules are evaluated at two checkpoints: (1) per-delta — checked immediately after each LLM extractor turn before Gremlin write, and (2) session-close — checked after the final section is complete. Rules are assigned a severity (hard, soft, advisory) and a scope (delta, session). Hard failures on delta scope trigger retry or drop; soft failures warn and continue; advisory failures appear in the post-session report only.",
+    "checkpoint_definitions": {
+      "delta": "Evaluated after every extractor turn, before the Gremlin writer executes. A hard failure at this checkpoint causes the delta to be rejected and the extractor to retry (up to max_correction_attempts). A soft failure logs a warning and writes anyway.",
+      "session_close": "Evaluated once, after the expert session ends and all deltas have been written. Results are written to the session audit log. No retries — these are diagnostic checks on the complete graph."
+    },
+    "severity_definitions": {
+      "hard": "Delta is rejected. Extractor must correct and re-emit. If correction budget is exceeded, delta is dropped and logged.",
+      "soft": "Delta is written. A WARNING is logged. The session is flagged for post-hoc review.",
+      "advisory": "No blocking action. Finding is recorded in the session audit report only. Used for semantic completeness checks that would be over-aggressive as hard rules in a live session."
+    },
+    "rules": [
+      {
+        "rule_id": "HR001",
+        "name": "required_properties_present",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every vertex in the delta that has required properties (as declared in schema-hospitality.json) must include those properties with non-null, non-empty-string values.",
+        "required_properties_by_label": {
+          "GuestExperiencePrinciple": [
+            "principleText"
+          ],
+          "ServiceStandard": [
+            "standardText"
+          ],
+          "GuestSignal": [
+            "signalText"
+          ],
+          "GuestPersona": [
+            "personaType"
+          ],
+          "CheckInPolicy": [],
+          "CheckOutPolicy": [],
+          "TimingRule": [
+            "ruleText"
+          ],
+          "ServiceFailure": [
+            "failureType"
+          ],
+          "RecoveryAction": [
+            "actionText"
+          ],
+          "ExceptionRule": [
+            "triggerCondition"
+          ],
+          "DecisionRule": [
+            "ruleText"
+          ],
+          "OperatingHeuristic": [
+            "heuristicText"
+          ],
+          "LoyaltyDriver": [
+            "driverText"
+          ],
+          "EmotionalMoment": [
+            "momentText"
+          ],
+          "ContextualConstraint": [
+            "constraintType"
+          ],
+          "Outcome": [
+            "outcomeType"
+          ],
+          "ProvenanceEvidence": [
+            "traceText",
+            "sourceEpisode",
+            "speaker"
+          ],
+          "KnowledgeSession": [
+            "domain"
+          ],
+          "Person": [],
+          "TranscriptEpisode": [
+            "order"
+          ]
+        },
+        "error_message": "Vertex '{vertex_id}' (label: '{label}') is missing required property '{property}'. Add the property before re-emitting.",
+        "check": "for each vertex v in delta: for each required_prop in required_properties_by_label[v.label]: assert v.properties[required_prop] is not null and not ''"
+      },
+      {
+        "rule_id": "HR002",
+        "name": "no_unknown_vertex_labels",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every vertex label in the delta must be one of the labels declared in schema-hospitality.json. Invented labels are never permitted.",
+        "allowed_vertex_labels": [
+          "Person",
+          "KnowledgeSession",
+          "SessionSection",
+          "TranscriptEpisode",
+          "ProvenanceEvidence",
+          "GuestPersona",
+          "GuestSignal",
+          "GuestExperiencePrinciple",
+          "ServiceStandard",
+          "CheckInPolicy",
+          "CheckOutPolicy",
+          "TimingRule",
+          "DecisionRule",
+          "OperatingHeuristic",
+          "ServiceFailure",
+          "RecoveryAction",
+          "ExceptionRule",
+          "LoyaltyDriver",
+          "EmotionalMoment",
+          "ContextualConstraint",
+          "Outcome"
+        ],
+        "error_message": "Unknown vertex label '{label}' in delta. Only labels declared in schema-hospitality.json are permitted. If the schema has no home for this concept, use the Comment escape hatch pattern defined in the extractor prompt.",
+        "check": "for each vertex v in delta: assert v.label in allowed_vertex_labels"
+      },
+      {
+        "rule_id": "HR003",
+        "name": "no_unknown_edge_labels",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every edge label in the delta must be one of the edge labels declared in schema-hospitality.json.",
+        "allowed_edge_labels": [
+          "hasSession",
+          "hasSection",
+          "hasEpisode",
+          "discusses",
+          "discussesRule",
+          "discussesFailure",
+          "discussesHeuristic",
+          "appliesToPersona",
+          "standardEnforces",
+          "signalIndicates",
+          "signalTriggers",
+          "principleSupportedBy",
+          "heuristicSupportedBy",
+          "supportedBy",
+          "governs",
+          "governsCheckOut",
+          "resolvedBy",
+          "recoveryLeadsTo",
+          "exceptionAppliesTo",
+          "exceptionMadeFor",
+          "leadsTo",
+          "loyaltyLeadsTo",
+          "modulatedBy",
+          "constraintAffectsPolicy",
+          "shapesLoyalty",
+          "drivenBy",
+          "heuristicExplains"
+        ],
+        "error_message": "Unknown edge label '{label}' in delta. Only edge labels declared in schema-hospitality.json are permitted. Never invent an edge label.",
+        "check": "for each edge e in delta: assert e.label in allowed_edge_labels"
+      },
+      {
+        "rule_id": "HR004",
+        "name": "edge_endpoint_types_match_schema",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every edge in the delta must connect vertex labels that match the (out, in) declaration in schema-hospitality.json. An edge used with wrong endpoint types is rejected.",
+        "edge_endpoint_map": {
+          "hasSession": {
+            "out": "Person",
+            "in": "KnowledgeSession"
+          },
+          "hasSection": {
+            "out": "KnowledgeSession",
+            "in": "SessionSection"
+          },
+          "hasEpisode": {
+            "out": "SessionSection",
+            "in": "TranscriptEpisode"
+          },
+          "discusses": {
+            "out": "TranscriptEpisode",
+            "in": "GuestExperiencePrinciple"
+          },
+          "discussesRule": {
+            "out": "TranscriptEpisode",
+            "in": "DecisionRule"
+          },
+          "discussesFailure": {
+            "out": "TranscriptEpisode",
+            "in": "ServiceFailure"
+          },
+          "discussesHeuristic": {
+            "out": "TranscriptEpisode",
+            "in": "OperatingHeuristic"
+          },
+          "appliesToPersona": {
+            "out": "GuestExperiencePrinciple",
+            "in": "GuestPersona"
+          },
+          "standardEnforces": {
+            "out": "ServiceStandard",
+            "in": "GuestExperiencePrinciple"
+          },
+          "signalIndicates": {
+            "out": "GuestSignal",
+            "in": "GuestPersona"
+          },
+          "signalTriggers": {
+            "out": "GuestSignal",
+            "in": "DecisionRule"
+          },
+          "principleSupportedBy": {
+            "out": "GuestExperiencePrinciple",
+            "in": "ProvenanceEvidence"
+          },
+          "heuristicSupportedBy": {
+            "out_any_of": [
+              "OperatingHeuristic",
+              "TimingRule"
+            ],
+            "in": "ProvenanceEvidence"
+          },
+          "supportedBy": {
+            "out_any_of": [
+              "ExpertRole",
+              "HospitalityBusiness",
+              "OperatingTenure",
+              "ServiceStandard",
+              "GuestSignal",
+              "GuestPersona",
+              "CheckInPolicy",
+              "CheckOutPolicy",
+              "ServiceFailure",
+              "RecoveryAction",
+              "ExceptionRule",
+              "DecisionRule",
+              "LoyaltyDriver",
+              "EmotionalMoment",
+              "ContextualConstraint",
+              "Outcome"
+            ],
+            "in": "ProvenanceEvidence"
+          },
+          "governs": {
+            "out": "CheckInPolicy",
+            "in": "TimingRule"
+          },
+          "governsCheckOut": {
+            "out": "CheckOutPolicy",
+            "in": "TimingRule"
+          },
+          "resolvedBy": {
+            "out": "ServiceFailure",
+            "in": "RecoveryAction"
+          },
+          "recoveryLeadsTo": {
+            "out": "RecoveryAction",
+            "in": "Outcome"
+          },
+          "exceptionAppliesTo": {
+            "out": "ExceptionRule",
+            "in": "DecisionRule"
+          },
+          "exceptionMadeFor": {
+            "out": "ExceptionRule",
+            "in": "GuestPersona"
+          },
+          "leadsTo": {
+            "out": "DecisionRule",
+            "in": "Outcome"
+          },
+          "loyaltyLeadsTo": {
+            "out": "LoyaltyDriver",
+            "in": "Outcome"
+          },
+          "modulatedBy": {
+            "out": "ContextualConstraint",
+            "in": "DecisionRule"
+          },
+          "constraintAffectsPolicy": {
+            "out": "ContextualConstraint",
+            "in_any_of": [
+              "CheckInPolicy",
+              "CheckOutPolicy"
+            ]
+          },
+          "shapesLoyalty": {
+            "out": "EmotionalMoment",
+            "in": "LoyaltyDriver"
+          },
+          "drivenBy": {
+            "out": "LoyaltyDriver",
+            "in": "GuestPersona"
+          },
+          "heuristicExplains": {
+            "out": "OperatingHeuristic",
+            "in": "DecisionRule"
+          }
+        },
+        "error_message": "Edge '{edge_label}' connects '{out_label}' → '{in_label}' but schema declares '{expected_out}' → '{expected_in}'. Fix the edge direction or vertex labels.",
+        "check": "for each edge e in delta: assert (e.out_label, e.in_label) matches edge_endpoint_map[e.label]"
+      },
+      {
+        "rule_id": "HR005",
+        "name": "no_dangling_edges",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every edge endpoint in the delta must resolve to either (a) a vertex emitted in the same delta, or (b) an existing vertex ID in the Gremlin graph (confirmed via the vertex ID cache). An edge to an ID that neither exists in the cache nor is emitted in this delta is a dangling reference.",
+        "error_message": "Edge '{edge_label}' references vertex ID '{vertex_id}' which does not exist in the graph and is not emitted in this delta. Either emit the vertex in the same delta or use an existing vertex ID from the cache.",
+        "check": "for each edge e in delta: assert e.out_id in (delta_vertex_ids UNION known_vertex_cache) AND e.in_id in (delta_vertex_ids UNION known_vertex_cache)"
+      },
+      {
+        "rule_id": "HR006",
+        "name": "provenance_attached_to_knowledge_vertices",
+        "scope": "delta",
+        "severity": "soft",
+        "description": "Every knowledge vertex emitted in this delta must have at least one outgoing provenance edge (supportedBy, principleSupportedBy, or heuristicSupportedBy) pointing to a ProvenanceEvidence vertex in this delta or already in the graph. Infrastructure vertices (Person, KnowledgeSession, SessionSection, TranscriptEpisode, ProvenanceEvidence itself) are exempt.",
+        "knowledge_vertex_labels": [
+          "ExpertRole",
+          "HospitalityBusiness",
+          "OperatingTenure",
+          "GuestExperiencePrinciple",
+          "ServiceStandard",
+          "GuestSignal",
+          "GuestPersona",
+          "CheckInPolicy",
+          "CheckOutPolicy",
+          "TimingRule",
+          "ServiceFailure",
+          "RecoveryAction",
+          "ExceptionRule",
+          "DecisionRule",
+          "OperatingHeuristic",
+          "LoyaltyDriver",
+          "EmotionalMoment",
+          "ContextualConstraint",
+          "Outcome"
+        ],
+        "provenance_edge_labels": [
+          "supportedBy",
+          "principleSupportedBy",
+          "heuristicSupportedBy"
+        ],
+        "error_message": "WARNING: Knowledge vertex '{vertex_id}' (label: '{label}') was emitted without a provenance edge. Delta written. Session flagged for post-hoc provenance repair.",
+        "check": "for each vertex v in delta where v.label in knowledge_vertex_labels: assert exists edge e in (delta_edges UNION graph_edges) where e.out_id == v.id AND e.label in provenance_edge_labels"
+      },
+      {
+        "rule_id": "HR007",
+        "name": "correct_provenance_edge_type_by_vertex",
+        "scope": "delta",
+        "severity": "soft",
+        "description": "Each knowledge vertex type must use the correct provenance edge type as specified in provenance_spec.json. Using supportedBy instead of principleSupportedBy on a GuestExperiencePrinciple is a soft failure — the provenance exists but is mistyped, degrading downstream query precision.",
+        "provenance_edge_by_label": {
+          "ExpertRole": "supportedBy",
+          "HospitalityBusiness": "supportedBy",
+          "OperatingTenure": "supportedBy",
+          "GuestExperiencePrinciple": "principleSupportedBy",
+          "OperatingHeuristic": "heuristicSupportedBy",
+          "TimingRule": "heuristicSupportedBy",
+          "ServiceStandard": "supportedBy",
+          "GuestSignal": "supportedBy",
+          "GuestPersona": "supportedBy",
+          "CheckInPolicy": "supportedBy",
+          "CheckOutPolicy": "supportedBy",
+          "ServiceFailure": "supportedBy",
+          "RecoveryAction": "supportedBy",
+          "ExceptionRule": "supportedBy",
+          "DecisionRule": "supportedBy",
+          "LoyaltyDriver": "supportedBy",
+          "EmotionalMoment": "supportedBy",
+          "ContextualConstraint": "supportedBy",
+          "Outcome": "supportedBy"
+        },
+        "error_message": "WARNING: Vertex '{vertex_id}' (label: '{label}') uses provenance edge '{actual_edge}' but should use '{expected_edge}'. Delta written. This degrades query precision — repair post-session.",
+        "check": "for each vertex v in delta where v.label in provenance_edge_by_label: for each provenance_edge e attached to v: assert e.label == provenance_edge_by_label[v.label]"
+      },
+      {
+        "rule_id": "HR008",
+        "name": "session_root_exists",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "Every delta must be associated with an active KnowledgeSession. If the vertex ID cache contains no KnowledgeSession ID for this session, the delta is rejected. The session root must be written first via the session_init step in ingestion_config.json.",
+        "error_message": "No KnowledgeSession vertex found in the vertex ID cache. The session root must be initialised before any knowledge extraction delta. Check that ingestion_config.session_lifecycle.session_init completed successfully.",
+        "check": "assert vertex_id_cache contains exactly one KnowledgeSession vertex for domain='hospitality' with the current session_id"
+      },
+      {
+        "rule_id": "HR009",
+        "name": "singleton_policy_vertices_not_duplicated",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "CheckInPolicy and CheckOutPolicy are session singletons. A delta must never emit a new CheckInPolicy or CheckOutPolicy vertex if one already exists in the vertex ID cache for this session. If the delta needs to update a policy vertex, it must use the upsert path (reference the existing ID), not emit a new vertex.",
+        "singleton_labels": [
+          "CheckInPolicy",
+          "CheckOutPolicy"
+        ],
+        "error_message": "Delta attempts to emit a new '{label}' vertex (id: '{new_id}') but a '{label}' singleton (id: '{existing_id}') already exists for this session. Use the existing ID '{existing_id}' to add properties or edges — do not create a second instance.",
+        "check": "for each vertex v in delta where v.label in singleton_labels: assert v.id NOT in vertex_id_cache OR (v.id in vertex_id_cache AND upsert_mode=true)"
+      },
+      {
+        "rule_id": "HR010",
+        "name": "provenance_speaker_allowed_value",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "ProvenanceEvidence.speaker must be one of the allowed values: 'expert', 'interviewer', 'system'. No other values are permitted.",
+        "allowed_values": [
+          "expert",
+          "interviewer",
+          "system"
+        ],
+        "error_message": "ProvenanceEvidence '{vertex_id}' has speaker='{value}' which is not in allowed values: expert, interviewer, system.",
+        "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence': assert v.properties.speaker in ['expert', 'interviewer', 'system']"
+      },
+      {
+        "rule_id": "HR011",
+        "name": "provenance_confidence_allowed_value",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "If ProvenanceEvidence.confidence is present, it must be one of: 'high', 'medium', 'low', 'inferred'.",
+        "allowed_values": [
+          "high",
+          "medium",
+          "low",
+          "inferred"
+        ],
+        "error_message": "ProvenanceEvidence '{vertex_id}' has confidence='{value}' which is not in allowed values: high, medium, low, inferred.",
+        "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence' AND v.properties.confidence is not null: assert v.properties.confidence in ['high', 'medium', 'low', 'inferred']"
+      },
+      {
+        "rule_id": "HR012",
+        "name": "provenance_tracetext_not_generic",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "ProvenanceEvidence.traceText must not be a generic hospitality placeholder. The text must capture a specific expert statement, paraphrase, or synthesis — not a generic topic description. Banned phrase patterns are case-insensitive.",
+        "banned_patterns": [
+          "the expert described their approach",
+          "the owner mentioned",
+          "hospitality knowledge",
+          "extracted from interview",
+          "see transcript",
+          "n/a",
+          "not available",
+          "unknown",
+          "the expert talked about",
+          "general hospitality principle"
+        ],
+        "match_type": "case_insensitive_starts_with_or_equals",
+        "error_message": "ProvenanceEvidence '{vertex_id}' traceText is too generic: '{traceText}'. Provide the expert's actual statement, a faithful paraphrase, or a multi-episode synthesis citation.",
+        "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence': assert v.properties.traceText does not match any banned_pattern"
+      },
+      {
+        "rule_id": "HR013",
+        "name": "inferred_confidence_cites_multiple_episodes",
+        "scope": "delta",
+        "severity": "soft",
+        "description": "If ProvenanceEvidence.confidence is 'inferred', the traceText must reference at least two episode IDs in the format 'ep:'. Synthesized nodes should not be created from a single utterance.",
+        "error_message": "WARNING: ProvenanceEvidence '{vertex_id}' has confidence='inferred' but traceText references fewer than 2 episode IDs. Either cite 2+ contributing episodes or downgrade confidence to 'low'.",
+        "check": "for each vertex v in delta where v.label == 'ProvenanceEvidence' AND v.properties.confidence == 'inferred': assert count of 'ep:' occurrences in v.properties.traceText >= 2"
+      },
+      {
+        "rule_id": "HR014",
+        "name": "decision_rule_has_rule_text",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "DecisionRule.ruleText must be a non-empty, non-generic string. It must express a specific if-then condition relevant to hospitality operations. This is the primary content field of the most important knowledge vertex type in the schema.",
+        "banned_patterns": [
+          "if condition then action",
+          "see transcript",
+          "n/a",
+          "unknown",
+          "rule about hospitality",
+          "decision rule"
+        ],
+        "error_message": "DecisionRule '{vertex_id}' has ruleText='{value}' which is too generic or a placeholder. ruleText must express a specific hospitality decision rule (e.g. 'If guest arrives before noon and room is physically ready, allow early check-in regardless of official policy').",
+        "check": "for each vertex v in delta where v.label == 'DecisionRule': assert v.properties.ruleText is not null AND v.properties.ruleText not in banned_patterns AND len(v.properties.ruleText) > 20"
+      },
+      {
+        "rule_id": "HR015",
+        "name": "operating_heuristic_has_heuristic_text",
+        "scope": "delta",
+        "severity": "hard",
+        "description": "OperatingHeuristic.heuristicText must be a non-empty string expressing a specific pattern or intuitive rule the expert has refined through experience. It is the primary value payload of the OperatingHeuristic vertex.",
+        "error_message": "OperatingHeuristic '{vertex_id}' has heuristicText='{value}' which is empty or a placeholder. Provide the expert's specific heuristic verbatim or as a faithful paraphrase.",
+        "check": "for each vertex v in delta where v.label == 'OperatingHeuristic': assert v.properties.heuristicText is not null AND len(v.properties.heuristicText) > 10"
+      },
+      {
+        "rule_id": "HR016",
+        "name": "session_required_sections_covered",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "At session close, the graph must contain SessionSection vertices for sections A (introduction), B (guest experience principles), and C (arrival/check-in/timing). These three sections are foundational — without them the graph lacks the session root (A), the principles layer (B), and the policy singleton layer (C). Missing any of these is a significant knowledge gap.",
+        "required_section_ids": [
+          "A",
+          "B",
+          "C"
+        ],
+        "error_message": "WARNING: Session '{session_id}' completed without section '{section_id}' ({section_title}). The hospitality knowledge graph for this session is missing foundational knowledge. Consider scheduling a follow-up session to cover this section.",
+        "check": "for each section_id in required_section_ids: assert exists SessionSection vertex in graph where section_id property == section_id AND linked to current KnowledgeSession"
+      },
+      {
+        "rule_id": "HR017",
+        "name": "no_duplicate_guest_persona",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "GuestPersona vertices with identical personaType values within the same session indicate the extractor minted a duplicate instead of reusing an existing ID. Duplicates degrade query quality — persona-linked loyalty drivers and decision rules will not consolidate correctly.",
+        "error_message": "WARNING: Session '{session_id}' contains {count} GuestPersona vertices with personaType='{personaType}'. Only one should exist per persona type per session. Review and merge duplicates.",
+        "check": "assert no two GuestPersona vertices in the session share the same personaType property value"
+      },
+      {
+        "rule_id": "HR018",
+        "name": "no_duplicate_guest_signal",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "GuestSignal vertices with identical signalText values within the same session indicate the extractor minted a duplicate instead of reusing an existing ID from the vertex cache.",
+        "error_message": "WARNING: Session '{session_id}' contains {count} GuestSignal vertices with signalText='{signalText}'. Only one should exist per unique signal per session. Review and merge duplicates.",
+        "check": "assert no two GuestSignal vertices in the session share the same signalText property value (case-insensitive)"
+      },
+      {
+        "rule_id": "HR019",
+        "name": "singleton_checkin_policy_created_exactly_once",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "Exactly one CheckInPolicy vertex should exist per session. Zero indicates Section C was skipped or the policy was never extracted. More than one indicates a singleton violation (HR009 should have caught it at delta level — this is the session-close double-check).",
+        "error_message_zero": "WARNING: Session '{session_id}' contains no CheckInPolicy vertex. Section C may have been skipped or the check-in policy was not extracted.",
+        "error_message_many": "WARNING: Session '{session_id}' contains {count} CheckInPolicy vertices. Singleton violation — only one should exist. Review and merge.",
+        "check": "assert count of CheckInPolicy vertices in session == 1"
+      },
+      {
+        "rule_id": "HR020",
+        "name": "singleton_checkout_policy_created_exactly_once",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "Exactly one CheckOutPolicy vertex should exist per session. Same rationale as HR019.",
+        "error_message_zero": "WARNING: Session '{session_id}' contains no CheckOutPolicy vertex.",
+        "error_message_many": "WARNING: Session '{session_id}' contains {count} CheckOutPolicy vertices. Singleton violation.",
+        "check": "assert count of CheckOutPolicy vertices in session == 1"
+      },
+      {
+        "rule_id": "HR021",
+        "name": "service_failure_has_recovery_action",
+        "scope": "session_close",
+        "severity": "advisory",
+        "description": "Every ServiceFailure vertex should have at least one outgoing resolvedBy edge to a RecoveryAction vertex. A ServiceFailure without a recovery action is a knowledge gap — the expert described a problem but the extractor did not capture how they resolve it. Advisory only — the expert may have simply not volunteered this information.",
+        "error_message": "ADVISORY: ServiceFailure '{vertex_id}' (failureType: '{failureType}') has no resolvedBy edge to a RecoveryAction. This may be an extraction gap — review the transcript around the episode that produced this vertex.",
+        "check": "for each ServiceFailure vertex v in session: assert exists edge e where e.out_id == v.id AND e.label == 'resolvedBy'"
+      },
+      {
+        "rule_id": "HR022",
+        "name": "decision_rule_has_at_least_one_connection",
+        "scope": "session_close",
+        "severity": "advisory",
+        "description": "Every DecisionRule vertex should have at least one incoming edge (from TranscriptEpisode, GuestSignal, OperatingHeuristic, ExceptionRule, or ContextualConstraint) and at least one outgoing edge (to Outcome or as target of another vertex's edge). An isolated DecisionRule with no connections is a likely extraction artifact.",
+        "error_message": "ADVISORY: DecisionRule '{vertex_id}' (ruleText: '{ruleText_preview}') has no incoming edges and/or no outgoing edges. This vertex may be an extraction artifact — review the delta that produced it.",
+        "check": "for each DecisionRule vertex v in session: assert count(incoming_edges(v)) >= 1 AND count(outgoing_edges(v)) >= 1"
+      },
+      {
+        "rule_id": "HR023",
+        "name": "loyalty_driver_linked_to_persona_or_outcome",
+        "scope": "session_close",
+        "severity": "advisory",
+        "description": "LoyaltyDriver vertices should have at least one drivenBy edge (linking to a GuestPersona) or one loyaltyLeadsTo edge (linking to an Outcome). A LoyaltyDriver with neither connection is floating tacit knowledge with no graph context.",
+        "error_message": "ADVISORY: LoyaltyDriver '{vertex_id}' (driverText: '{driverText_preview}') has no drivenBy or loyaltyLeadsTo edges. Consider linking it to a GuestPersona or Outcome in a post-session enrichment pass.",
+        "check": "for each LoyaltyDriver vertex v in session: assert exists edge e where (e.out_id == v.id AND e.label == 'loyaltyLeadsTo') OR (e.in_id == v.id AND e.label == 'drivenBy')"
+      },
+      {
+        "rule_id": "HR024",
+        "name": "minimum_knowledge_vertex_count",
+        "scope": "session_close",
+        "severity": "advisory",
+        "description": "A completed hospitality session of 7 sections should yield a minimum number of knowledge vertices. Counts below the thresholds suggest the extractor was too conservative or the session was too short to be useful.",
+        "minimum_counts": {
+          "GuestExperiencePrinciple": 3,
+          "DecisionRule": 3,
+          "GuestPersona": 2,
+          "OperatingHeuristic": 2,
+          "TimingRule": 1
+        },
+        "error_message": "ADVISORY: Session '{session_id}' contains only {count} '{label}' vertices (minimum expected: {minimum}). The session may have been too brief, or the extractor may have been under-extracting. Review the transcript for missed extraction opportunities.",
+        "check": "for each label, minimum in minimum_counts: assert count(vertices with label in session) >= minimum"
+      },
+      {
+        "rule_id": "HR025",
+        "name": "all_provenance_source_episodes_exist",
+        "scope": "session_close",
+        "severity": "soft",
+        "description": "Every ProvenanceEvidence.sourceEpisode value must reference a TranscriptEpisode vertex that exists in the session graph. Orphaned sourceEpisode references indicate a write-order failure or a malformed delta.",
+        "error_message": "WARNING: ProvenanceEvidence '{vertex_id}' references sourceEpisode='{episode_id}' which does not exist as a TranscriptEpisode vertex in this session. This provenance node is orphaned — repair by linking it to the correct episode or re-extracting the delta.",
+        "check": "for each ProvenanceEvidence vertex v in session: assert v.properties.sourceEpisode in (set of all TranscriptEpisode IDs in session)"
+      }
+    ],
+    "rule_summary": {
+      "delta_hard": [
+        "HR001",
+        "HR002",
+        "HR003",
+        "HR004",
+        "HR005",
+        "HR008",
+        "HR009",
+        "HR010",
+        "HR011",
+        "HR012",
+        "HR014",
+        "HR015"
+      ],
+      "delta_soft": [
+        "HR006",
+        "HR007",
+        "HR013"
+      ],
+      "session_soft": [
+        "HR016",
+        "HR017",
+        "HR018",
+        "HR019",
+        "HR020",
+        "HR025"
+      ],
+      "session_advisory": [
+        "HR021",
+        "HR022",
+        "HR023",
+        "HR024"
+      ],
+      "total_rules": 25
+    }
+  },
+  "provenance": {
+    "domain": "hospitality",
+    "version": "1.0",
+    "description": "Defines the ProvenanceEvidence vertex schema, attachment rules, confidence semantics, edge-type mapping, and traceability conventions for the hospitality knowledge graph. Hospitality knowledge is predominantly tacit and experiential — provenance is the only mechanism that distinguishes a refined personal rule from a generic business platitude. Every extracted knowledge node must trace back to a specific transcript utterance.",
+    "provenance_vertex": {
+      "label": "ProvenanceEvidence",
+      "id_convention": "prov:{episode_id}:{sequence}",
+      "id_example": "prov:ep:session:hospitality:2026-06-18:5:01",
+      "fields": [
+        {
+          "field": "traceText",
+          "type": "string",
+          "required": true,
+          "description": "The verbatim quote or faithful paraphrase from the transcript that directly justifies the extracted node or edge. For hospitality knowledge, this is often a conversational, anecdotal statement — preserve the expert's natural phrasing. Do not sanitize, generalize, or convert to formal language. The traceText must be specific enough that a human reviewer can locate it in the raw transcript.",
+          "bad_example": "The expert described their check-in approach.",
+          "good_example": "If a guest arrives before noon and I can see the room is physically ready — even if housekeeping hasn't formally signed it off — I let them in. I've never had a complaint from doing that.",
+          "hospitality_note": "Hospitality experts often embed their rules inside stories and anecdotes. Accept paraphrased story summaries as valid traceText as long as the specific rule or principle is captured, not just the topic."
+        },
+        {
+          "field": "sourceEpisode",
+          "type": "string",
+          "required": true,
+          "description": "The ID of the TranscriptEpisode vertex this evidence was extracted from. Must match an existing TranscriptEpisode ID in the graph.",
+          "id_format": "ep:{session_id}:{sequence}"
+        },
+        {
+          "field": "speaker",
+          "type": "string",
+          "required": true,
+          "description": "Who made the statement. Use one of the allowed values only.",
+          "allowed_values": [
+            "expert",
+            "interviewer",
+            "system"
+          ]
+        },
+        {
+          "field": "timestamp",
+          "type": "string",
+          "required": false,
+          "description": "ISO-8601 datetime or relative session offset (e.g. '00:14:32'). Include when available."
+        },
+        {
+          "field": "confidence",
+          "type": "string",
+          "required": false,
+          "description": "The LLM extractor's confidence that the extracted node faithfully represents the expert's stated intent. In hospitality sessions, 'inferred' will appear frequently because experts often embed rules inside stories rather than stating them directly.",
+          "allowed_values": [
+            "high",
+            "medium",
+            "low",
+            "inferred"
+          ],
+          "confidence_definitions": {
+            "high": "The expert stated this principle or rule directly and unambiguously. The traceText is a near-verbatim quote. Example: 'We never skip the welcome drink. That is non-negotiable.'",
+            "medium": "The expert clearly implied the rule or principle but phrased it conversationally rather than as a formal statement. The traceText is a faithful paraphrase. Example: An anecdote where the expert always did X, from which the rule 'always do X' is extracted.",
+            "low": "The expert gestured toward this idea without elaborating. The extraction involves moderate interpretation. Flag these for human review.",
+            "inferred": "The node was synthesized across multiple utterances or derived from a pattern in several stories. No single quote fully supports it. The traceText summarizes the synthesis rationale and names the contributing episodes."
+          }
+        }
+      ]
+    },
+    "attachment_rules": {
+      "rule": "EVERY extracted knowledge vertex must have at least one outgoing provenance edge to a ProvenanceEvidence vertex in the same delta as the extraction. The edge label varies by vertex type — use the table below.",
+      "failure_action": "warn_and_continue",
+      "failure_description": "If a knowledge vertex is emitted without a provenance edge, the validator emits a WARNING and writes the vertex anyway. The session is flagged for post-hoc provenance repair. The delta is NOT rejected.",
+      "edge_label_by_vertex": {
+        "ExpertRole": "supportedBy",
+        "HospitalityBusiness": "supportedBy",
+        "OperatingTenure": "supportedBy",
+        "GuestExperiencePrinciple": "principleSupportedBy",
+        "ServiceStandard": "supportedBy",
+        "GuestSignal": "supportedBy",
+        "GuestPersona": "supportedBy",
+        "CheckInPolicy": "supportedBy",
+        "CheckOutPolicy": "supportedBy",
+        "TimingRule": "heuristicSupportedBy",
+        "ServiceFailure": "supportedBy",
+        "RecoveryAction": "supportedBy",
+        "ExceptionRule": "supportedBy",
+        "DecisionRule": "supportedBy",
+        "OperatingHeuristic": "heuristicSupportedBy",
+        "LoyaltyDriver": "supportedBy",
+        "EmotionalMoment": "supportedBy",
+        "ContextualConstraint": "supportedBy",
+        "Outcome": "supportedBy"
+      },
+      "exempt_vertex_labels": [
+        "Person",
+        "KnowledgeSession",
+        "SessionSection",
+        "TranscriptEpisode",
+        "ProvenanceEvidence"
+      ],
+      "edge_label_rationale": {
+        "principleSupportedBy": "Used exclusively for GuestExperiencePrinciple — the foundational belief layer. Kept separate to allow downstream queries like 'show me all principles with high-confidence provenance' without conflating with operational rules.",
+        "heuristicSupportedBy": "Used for OperatingHeuristic and TimingRule — tacit, experience-refined knowledge that is distinct from explicit decision rules. Keeping a separate edge allows the query layer to distinguish 'textbook' rules from 'lived-experience' heuristics.",
+        "supportedBy": "Default provenance edge for all remaining knowledge vertex types — operational rules, recovery actions, loyalty drivers, signals, personas, constraints, and outcomes."
+      }
+    },
+    "reuse_rules": {
+      "description": "A single ProvenanceEvidence node may support multiple knowledge vertices extracted from the same utterance.",
+      "rule": "If two or more vertices are extracted from the same TranscriptEpisode in the same delta, emit ONE ProvenanceEvidence vertex and attach all knowledge vertices to it. Do not emit duplicate ProvenanceEvidence nodes for the same source episode within a single delta.",
+      "exception": "If two vertices from the same episode have meaningfully different justifications (different sub-sentences or different sub-stories within the same turn), emit separate ProvenanceEvidence nodes with distinct sequence numbers.",
+      "hospitality_note": "Hospitality experts often cover multiple topics in a single answer — e.g. in one turn they describe early check-in, mention a guest persona, and state a rule. In that case one ProvenanceEvidence node is sufficient IF the traceText captures the full relevant passage. Only split if the justifications are genuinely distinct."
+    },
+    "singleton_vertex_provenance": {
+      "description": "CheckInPolicy and CheckOutPolicy are session singletons — emitted once in Section C and upserted in later sections. Special provenance rules apply.",
+      "rule": "When a new property is added to CheckInPolicy or CheckOutPolicy in a later section (e.g. Section G adds a seasonality-driven constraint), a NEW ProvenanceEvidence node must be emitted for that delta. The new ProvenanceEvidence traces the specific utterance that justified the new property or edge addition.",
+      "principle": "Provenance always traces the delta (the specific change), not the vertex creation event. The same vertex may accumulate multiple ProvenanceEvidence nodes across the session — one per delta that modified it.",
+      "applies_also_to": [
+        "ServiceStandard",
+        "GuestPersona",
+        "GuestSignal"
+      ],
+      "note": "GuestPersona, GuestSignal, and ServiceStandard are also frequently reused across sections. Each time a new property or edge is added to an existing vertex, a new ProvenanceEvidence node should be emitted for that delta."
+    },
+    "cross_section_provenance": {
+      "description": "When a vertex created in an earlier section gains new edges in a later section (e.g. a GuestPersona from Section B gains a drivenBy edge in Section F), a NEW ProvenanceEvidence node must be emitted for the enriching delta.",
+      "rule": "The ProvenanceEvidence node always traces the specific delta in which the edge was added, not the delta in which the vertex was first created.",
+      "example": "GuestPersona 'repeat-guest' created in Section B with principleSupportedBy → prov:ep:...:3:01. In Section F, a drivenBy edge is added from LoyaltyDriver to 'repeat-guest'. A new ProvenanceEvidence prov:ep:...:18:01 must be emitted, tracing the Section F utterance that justified the drivenBy edge."
+    },
+    "inferred_provenance": {
+      "description": "Hospitality expertise is heavily pattern-based — experts often state the same rule across multiple anecdotes without ever saying it once explicitly. These synthesized nodes require inferred provenance.",
+      "rule": "Set confidence='inferred'. In traceText, write a brief synthesis statement that: (1) names the contributing episode IDs, (2) describes the common pattern across those episodes. Example: 'Synthesized from ep:session:hospitality:2026-06-18:4, :7, :12 — expert consistently described letting room-ready guests check in early regardless of official time, implying an informal early check-in rule.'",
+      "sourceEpisode": "Set to the episode ID of the most recent contributing utterance.",
+      "frequency_threshold": "Use inferred confidence only when the synthesized rule appears across 2 or more separate utterances. A single vague statement should be confidence='low', not 'inferred'."
+    },
+    "tacit_knowledge_guidance": {
+      "description": "Hospitality knowledge differs from clinical knowledge in that much of it is embedded in stories, examples, and counterfactuals rather than direct rule statements. The LLM extractor must handle these patterns.",
+      "patterns": [
+        {
+          "pattern": "Story-embedded rule",
+          "example": "'I had a guest once who arrived at 8am. I let them in early. They've been coming back for 7 years.'",
+          "extraction": "Emit an ExceptionRule (earlyCheckIn exception) and an Outcome (guestRetained=true, loyaltyAchieved=true). Set confidence='medium' — the rule is implied by the story outcome.",
+          "traceText_guidance": "Paraphrase: 'Expert allowed early check-in for a guest arriving at 8am; that guest has returned for 7 years, implying the exception created lasting loyalty.'"
+        },
+        {
+          "pattern": "Counterfactual rule",
+          "example": "'If I hadn't apologized immediately, she would have left a terrible review.'",
+          "extraction": "Emit a RecoveryAction (apology) and a DecisionRule (if service failure then apologize immediately). Set confidence='high' — the counterfactual implies a strong belief.",
+          "traceText_guidance": "Quote directly: 'If I hadn't apologized immediately, she would have left a terrible review.'"
+        },
+        {
+          "pattern": "Negation rule",
+          "example": "'I never argue with a guest about checkout time. Never. Even if they're wrong.'",
+          "extraction": "Emit a DecisionRule with ruleText='Never argue with a guest about checkout time, regardless of fault.' Set confidence='high'.",
+          "traceText_guidance": "Quote directly — the emphatic repetition of 'never' is itself high-confidence signal."
+        },
+        {
+          "pattern": "Comparative wisdom",
+          "example": "'New operators always try to enforce the policy. Experienced ones know when to bend it.'",
+          "extraction": "Emit an OperatingHeuristic with heuristic='Policy flexibility is a mark of experienced operators; new operators over-enforce.' Set confidence='medium'.",
+          "traceText_guidance": "Paraphrase: 'Expert contrasted new operators (policy enforcement) with experienced ones (knowing when to bend policy), identifying flexibility as an experience-based heuristic.'"
+        }
+      ]
+    },
+    "id_convention": {
+      "pattern": "prov:{episode_id}:{sequence}",
+      "sequence": "Zero-padded 2-digit integer starting at 01, incrementing per ProvenanceEvidence node emitted within the same episode.",
+      "examples": [
+        "prov:ep:session:hospitality:2026-06-18:3:01",
+        "prov:ep:session:hospitality:2026-06-18:3:02",
+        "prov:ep:session:hospitality:2026-06-18:11:01"
+      ]
+    },
+    "validation": {
+      "validator": "hydra_graph_schema",
+      "checks": [
+        {
+          "check_id": "PV001",
+          "name": "traceText_not_empty",
+          "description": "ProvenanceEvidence.traceText must not be an empty string or whitespace-only string.",
+          "action_on_failure": "reject_delta_and_retry"
+        },
+        {
+          "check_id": "PV002",
+          "name": "sourceEpisode_exists",
+          "description": "ProvenanceEvidence.sourceEpisode must match an existing TranscriptEpisode ID in the vertex cache.",
+          "action_on_failure": "warn_and_continue"
+        },
+        {
+          "check_id": "PV003",
+          "name": "speaker_allowed_value",
+          "description": "ProvenanceEvidence.speaker must be one of: expert, interviewer, system.",
+          "action_on_failure": "reject_delta_and_retry"
+        },
+        {
+          "check_id": "PV004",
+          "name": "confidence_allowed_value",
+          "description": "If confidence is present, it must be one of: high, medium, low, inferred.",
+          "action_on_failure": "reject_delta_and_retry"
+        },
+        {
+          "check_id": "PV005",
+          "name": "no_duplicate_prov_same_delta",
+          "description": "Within a single delta, two ProvenanceEvidence nodes must not share the same sourceEpisode and traceText combination.",
+          "action_on_failure": "warn_and_continue"
+        },
+        {
+          "check_id": "PV006",
+          "name": "traceText_not_generic_hospitality",
+          "description": "ProvenanceEvidence.traceText must not be a generic hospitality placeholder. Strings matching the banned patterns below are rejected.",
+          "banned_patterns": [
+            "the expert described their approach",
+            "the owner mentioned",
+            "hospitality knowledge",
+            "extracted from interview",
+            "see transcript",
+            "n/a",
+            "not available",
+            "unknown",
+            "the expert talked about",
+            "general hospitality principle"
+          ],
+          "match_type": "case_insensitive_starts_with_or_equals",
+          "action_on_failure": "reject_delta_and_retry",
+          "error_message": "ProvenanceEvidence.traceText '{trace_text}' is too generic for hospitality domain. Provide a specific quote, paraphrase, or synthesis statement that captures the expert's actual rule, principle, or heuristic."
+        },
+        {
+          "check_id": "PV007",
+          "name": "inferred_confidence_requires_multi_episode_reference",
+          "description": "If confidence='inferred', the traceText must reference at least two episode IDs in the format 'ep:...'.",
+          "check": "if confidence == 'inferred' then traceText contains at least 2 occurrences of 'ep:'",
+          "action_on_failure": "warn_and_continue",
+          "error_message": "ProvenanceEvidence has confidence='inferred' but traceText does not reference multiple source episodes. Either cite the contributing episodes or downgrade confidence to 'low'."
+        }
+      ]
+    }
+  },
+  "ingestionConfig": {
+    "domain": "hospitality",
+    "version": "1.0",
+    "description": "Runtime ingestion configuration for the hospitality knowledge graph. Controls the LLM extractor model, tool-use settings, Gremlin writer behaviour, chunking strategy, delta budget, retry policy, vertex ID cache, and singleton upsert rules. Mirrors the chatgraph medical domain runtime conventions adapted for tacit expert-interview sessions rather than patient symptom capture.",
+    "schema": {
+      "path": "src/main/json/hospitality.json",
+      "id_convention": "lowercase, hyphen-separated, colon-namespaced slugs",
+      "build_command": "chatgraph-build-schema hospitality",
+      "source_of_truth": "hospitality.json is the runtime source of truth. Never hand-edit it — modify schema_build.py and regenerate."
+    },
+    "domain_registration": {
+      "registry_name": "hospitality",
+      "description": "Expert interview capturing tacit hospitality knowledge — guest experience principles, arrival/departure policies, service recovery playbooks, operating heuristics, loyalty drivers, and contextual constraints.",
+      "opening_line": "Let's start with a quick introduction. Tell me about your property and how long you've been running it.",
+      "agent_system_prompt_module": "chatgraph.domains.hospitality.agent_prompt",
+      "extractor_prompt_module": "chatgraph.domains.hospitality.extractor_prompt"
+    },
+    "extractor": {
+      "description": "LLM extractor settings. The extractor receives one expert turn at a time and emits a property-graph delta (vertices + edges) validated against hospitality.json before writing.",
+      "model": {
+        "provider": "anthropic",
+        "model_id": "claude-3-5-haiku-20241022",
+        "rationale": "Haiku provides the latency and cost profile needed for real-time turn-by-turn extraction. The hospitality schema is relationally simpler than the medical schema (28 edges vs 158), so a smaller model is sufficient. Upgrade to Sonnet if confidence='inferred' provenance synthesis accuracy is insufficient in testing.",
+        "temperature": 0,
+        "max_tokens": 2048
+      },
+      "tool_use": {
+        "mode": "required",
+        "tool_name": "emit_delta",
+        "description": "The extractor must always call emit_delta — even for utterances that produce no graph changes (emit an empty delta). This ensures the session transcript is always complete.",
+        "empty_delta_behaviour": "emit empty vertices:[] edges:[] with session_state flags still populated"
+      },
+      "retry_policy": {
+        "max_correction_attempts": 3,
+        "retry_trigger": "validation_failure",
+        "failure_action_on_budget_exceeded": "drop_delta_and_log",
+        "log_level": "WARNING",
+        "retry_note": "Hospitality sessions produce more 'inferred' provenance than medical sessions. Validation failures on PV007 (inferred confidence missing multi-episode reference) are expected in early sessions — treat them as warnings, not hard failures, until the extractor prompt is tuned."
+      },
+      "context_window": {
+        "prior_turns_included": 4,
+        "rationale": "Hospitality experts frequently use anaphora across multiple turns ('...same as what I said about check-in', 'that guest I mentioned'). Four prior turns is the minimum to resolve cross-turn references reliably. Increase to 6 if anaphora resolution errors appear in testing.",
+        "known_vertex_cache": {
+          "included": true,
+          "cache_contents": [
+            "KnowledgeSession ID and properties",
+            "Person ID and name",
+            "All GuestPersona IDs and slugs emitted so far",
+            "All GuestSignal IDs and slugs emitted so far",
+            "CheckInPolicy ID (singleton) and current properties",
+            "CheckOutPolicy ID (singleton) and current properties",
+            "All ServiceStandard IDs emitted so far",
+            "Current section_id and section_title from section_map"
+          ],
+          "rationale": "GuestPersona, GuestSignal, CheckInPolicy, and CheckOutPolicy must be reused across sections, not duplicated. The cache is the mechanism that enforces reuse. If the extractor does not receive these IDs it will mint duplicates."
+        }
+      }
+    },
+    "chunking": {
+      "strategy": "turn_boundary",
+      "description": "One delta per expert conversational turn. A 'turn' is defined as a single uninterrupted expert utterance between two interviewer prompts.",
+      "rationale": "Hospitality experts pack multiple knowledge types into a single answer (e.g. a single turn might describe a timing rule, embed a guest persona, and state an exception). Turn-boundary chunking keeps the full semantic context intact. Sub-sentence chunking would lose the anecdotal context that is often the only justification for a rule.",
+      "max_tokens_per_turn": 600,
+      "overflow_behaviour": "split_at_sentence_boundary",
+      "overflow_note": "If an expert turn exceeds 600 tokens (rare — this is a conversational interview, not a lecture), split at the nearest sentence boundary. Each fragment gets its own TranscriptEpisode vertex and its own delta. Cross-fragment provenance must reference the episode ID of the fragment that contains the justifying sentence.",
+      "min_tokens_per_turn": 5,
+      "skip_turns_below_min": true,
+      "skip_turn_labels": [
+        "acknowledgement",
+        "filler",
+        "clarification_request"
+      ],
+      "skip_turn_examples": [
+        "Yes.",
+        "Mm-hmm.",
+        "Can you repeat that?",
+        "Exactly.",
+        "Sure."
+      ]
+    },
+    "gremlin_writer": {
+      "description": "TinkerPop Gremlin writer settings. Controls how validated deltas are persisted.",
+      "upsert_mode": true,
+      "upsert_rationale": "Vertices are upserted by ID — if a vertex with the same ID already exists, its properties are merged (new properties added, existing properties updated if the new value is non-null). This is essential for singleton vertices (CheckInPolicy, CheckOutPolicy) and reused vertices (GuestPersona, GuestSignal) that gain new properties and edges across sections.",
+      "edge_upsert_key": [
+        "out_vertex_id",
+        "edge_label",
+        "in_vertex_id"
+      ],
+      "edge_upsert_rationale": "Edges are upserted by (out, label, in) triple. Adding the same logical edge twice from two different deltas is idempotent.",
+      "write_order": [
+        "KnowledgeSession",
+        "Person",
+        "SessionSection",
+        "TranscriptEpisode",
+        "ProvenanceEvidence",
+        "GuestPersona",
+        "GuestSignal",
+        "ServiceStandard",
+        "CheckInPolicy",
+        "CheckOutPolicy",
+        "GuestExperiencePrinciple",
+        "TimingRule",
+        "DecisionRule",
+        "OperatingHeuristic",
+        "ServiceFailure",
+        "RecoveryAction",
+        "ExceptionRule",
+        "LoyaltyDriver",
+        "EmotionalMoment",
+        "ContextualConstraint",
+        "Outcome",
+        "edges"
+      ],
+      "write_order_rationale": "Infrastructure vertices (session, section, episode) are written first so that ProvenanceEvidence.sourceEpisode foreign keys resolve. Singleton vertices (CheckInPolicy, CheckOutPolicy) are written before DecisionRule/TimingRule so that constraint edges have valid targets. Edges are always written last.",
+      "singleton_upsert_rules": {
+        "description": "CheckInPolicy and CheckOutPolicy are created once in Section C and upserted in every subsequent section that modifies them. The writer must never create a second instance.",
+        "singletons": [
+          {
+            "vertex_label": "CheckInPolicy",
+            "id_pattern": "policy:checkin:{session_id}",
+            "created_in_section": "C",
+            "upserted_in_sections": [
+              "G"
+            ],
+            "upsert_action": "merge_properties_and_add_edges"
+          },
+          {
+            "vertex_label": "CheckOutPolicy",
+            "id_pattern": "policy:checkout:{session_id}",
+            "created_in_section": "C",
+            "upserted_in_sections": [
+              "G"
+            ],
+            "upsert_action": "merge_properties_and_add_edges"
+          }
+        ],
+        "enforcement": "Before writing a vertex with label CheckInPolicy or CheckOutPolicy, the writer checks the vertex ID cache. If a vertex with that label already exists for the session, it upserts (merges) rather than creates."
+      },
+      "connection": {
+        "server": "${GREMLIN_HOST}",
+        "port": "${GREMLIN_PORT}",
+        "transport": "websocket",
+        "auth_mode": "env_vars",
+        "env_vars": {
+          "host": "GREMLIN_HOST",
+          "port": "GREMLIN_PORT",
+          "username": "GREMLIN_USERNAME",
+          "password": "GREMLIN_PASSWORD"
+        }
+      },
+      "transaction_mode": "per_delta",
+      "rollback_on_partial_failure": true,
+      "rollback_note": "If any vertex or edge write within a delta fails, the entire delta is rolled back and the failure is logged. This prevents partial deltas that would leave dangling provenance edges or orphan knowledge vertices."
+    },
+    "session_lifecycle": {
+      "session_init": {
+        "action": "emit_KnowledgeSession_and_Person",
+        "description": "At session start, write the KnowledgeSession vertex (domain='hospitality', date, session_id) and the Person vertex (expert), linked via hasSession. These must succeed before any other write — session_root_first rule.",
+        "blocking": true,
+        "failure_action": "abort_session"
+      },
+      "section_transitions": {
+        "action": "emit_SessionSection",
+        "description": "At each section transition (A→B, B→C, ...), emit a new SessionSection vertex linked to the KnowledgeSession via hasSection. Update the extractor's active section_id in the context window.",
+        "blocking": false
+      },
+      "session_close": {
+        "action": "finalize_and_validate",
+        "description": "At session end, run the validation rules (from validation_rules.json) over the full session graph. Log any vertices flagged as missing provenance edges. Emit a session_closed property on the KnowledgeSession vertex.",
+        "flag_orphan_provenance": true,
+        "flag_missing_required_sections": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    },
+    "id_conventions": {
+      "description": "All vertex IDs are lowercase, hyphen-separated, colon-namespaced slugs. The slug is derived from the vertex label, key properties, and session context.",
+      "rules": [
+        "No spaces — replace with hyphens",
+        "No special characters except hyphens (-) and colons (:)",
+        "Max 80 characters — truncate slug portion if needed",
+        "Session-scoped IDs include session_id to prevent cross-session collisions",
+        "Reusable concept IDs (GuestPersona, GuestSignal) are session-scoped to prevent false merges across different expert sessions"
+      ],
+      "examples": {
+        "KnowledgeSession": "session:hospitality:2026-06-18",
+        "Person": "person:jane-smith",
+        "SessionSection": "section:session:hospitality:2026-06-18:3",
+        "TranscriptEpisode": "ep:session:hospitality:2026-06-18:7",
+        "ProvenanceEvidence": "prov:ep:session:hospitality:2026-06-18:7:01",
+        "GuestPersona": "persona:repeat-guest",
+        "GuestSignal": "signal:unpacking-slowly",
+        "CheckInPolicy": "policy:checkin:session:hospitality:2026-06-18",
+        "CheckOutPolicy": "policy:checkout:session:hospitality:2026-06-18",
+        "GuestExperiencePrinciple": "principle:first-impressions-are-permanent",
+        "ServiceStandard": "standard:welcome-drink-non-negotiable",
+        "TimingRule": "timing:early-checkin-room-ready:1",
+        "DecisionRule": "rule:if-guest-arrives-before-noon-and-room-ready",
+        "OperatingHeuristic": "heuristic:can-tell-repeat-guest-in-five-minutes",
+        "ServiceFailure": "failure:room-not-ready-on-arrival",
+        "RecoveryAction": "recovery:immediate-apology-plus-upgrade",
+        "ExceptionRule": "exception:early-checkin-for-loyalty-guest:1",
+        "LoyaltyDriver": "loyalty:remembering-guest-name-on-return",
+        "EmotionalMoment": "moment:name-recalled-at-checkin:1",
+        "ContextualConstraint": "constraint:peak-season-no-early-checkin:1",
+        "Outcome": "outcome:recovery:1"
+      }
+    },
+    "hospitality_specific_notes": {
+      "tacit_knowledge_extraction": "Hospitality knowledge is predominantly tacit. The extractor will encounter far more story-embedded rules, counterfactual rules, and comparative wisdom than direct rule statements. See provenance_spec.json tacit_knowledge_guidance section for pattern handling.",
+      "anecdote_handling": "When an expert tells a story as evidence for a rule, extract the rule as the primary vertex (e.g. DecisionRule or OperatingHeuristic) and use the story as the traceText for the ProvenanceEvidence — do NOT try to model the story itself as graph structure.",
+      "no_clinical_red_flags": "Unlike the medical domain, hospitality has no red-flag vertex types. The section_map Section D (ServiceFailure) handles critical service issues.",
+      "policy_singleton_enforcement": "The extractor prompt must be loaded with the CheckInPolicy and CheckOutPolicy IDs from the vertex cache at the start of every Section G turn. Failure to do so is the primary cause of duplicate policy vertices."
+    }
+  }
+}

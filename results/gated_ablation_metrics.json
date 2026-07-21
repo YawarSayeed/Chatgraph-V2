@@ -1,0 +1,1015 @@
+{
+  "generatedAt": "2026-07-21T21:34:48.177Z",
+  "status": "MEASURED_GATED_ABLATION",
+  "harness": {
+    "note": "Conditions call the deployed gate in lib/gate; there is no separate evaluation implementation.",
+    "statelessExtraction": true,
+    "statelessExtractionNote": "The extraction request depends only on the turn, attempt, and correction text, so attempt-1 proposals are identical across A1-A5 and fact-level pairing is valid.",
+    "extractorModel": "gpt-4o-mini",
+    "judgeModel": "gpt-4o",
+    "temperature": 0,
+    "seed": 20260721,
+    "maxAttempts": 3,
+    "promptHash": "25aa1b780beeda5dbf58e99d9e2fc09c7e18e084f187b0d4cb1c8c5acd137fad"
+  },
+  "schema": {
+    "vertexClasses": 24,
+    "knowledgeClasses": 19,
+    "infrastructureClasses": 5,
+    "edgeTypes": 33,
+    "contractDrift": 0
+  },
+  "corpus": {
+    "sessions": 1,
+    "expertTurns": 45,
+    "eligibleTurns": 32,
+    "excludedAsFiller": 13
+  },
+  "factDefinition": "A fact is one non-infrastructure vertex, or one edge whose endpoints are both non-infrastructure vertices. Infrastructure and provenance structure are excluded.",
+  "conditions": {
+    "A0": {
+      "condition": "A0",
+      "label": "ungated free-form",
+      "eligibleTurns": 32,
+      "proposedFacts": 48,
+      "admittedFacts": 48,
+      "OC": {
+        "value": "2.1%",
+        "numerator": 1,
+        "denominator": 48,
+        "count": "1/48",
+        "ci95": {
+          "low": 0.4,
+          "high": 10.9
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 14,
+        "count": "0/14",
+        "ci95": {
+          "low": 0,
+          "high": 21.5
+        }
+      },
+      "RH": {
+        "value": "100.0%",
+        "numerator": 14,
+        "denominator": 14,
+        "count": "14/14",
+        "ci95": {
+          "low": 78.5,
+          "high": 100
+        }
+      },
+      "OH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 14,
+        "count": "0/14",
+        "ci95": {
+          "low": 0,
+          "high": 21.5
+        }
+      },
+      "EF": {
+        "value": "95.8%",
+        "numerator": 46,
+        "denominator": 48,
+        "count": "46/48",
+        "ci95": {
+          "low": 86,
+          "high": 98.8
+        }
+      },
+      "faithfulFacts": 46,
+      "usableFaithfulFacts": 1,
+      "usableFaithfulYield": {
+        "value": "2.1%",
+        "numerator": 1,
+        "denominator": 48,
+        "count": "1/48",
+        "ci95": {
+          "low": 0.4,
+          "high": 10.9
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 16,
+        "count": "0/16",
+        "ci95": {
+          "low": 0,
+          "high": 19.4
+        }
+      },
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "100.0%",
+        "numerator": 48,
+        "denominator": 48,
+        "count": "48/48",
+        "ci95": {
+          "low": 92.6,
+          "high": 100
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 16,
+        "count": "0/16",
+        "ci95": {
+          "low": 0,
+          "high": 19.4
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 476,
+      "secondsPerFact": 1.42,
+      "totalTokens": 22841,
+      "totalLatencyMs": 67947,
+      "judgedFacts": 48,
+      "evidence": "results/raw/A0.jsonl"
+    },
+    "A1": {
+      "condition": "A1",
+      "label": "constrained decoding",
+      "eligibleTurns": 32,
+      "proposedFacts": 45,
+      "admittedFacts": 45,
+      "OC": {
+        "value": "95.6%",
+        "numerator": 43,
+        "denominator": 45,
+        "count": "43/45",
+        "ci95": {
+          "low": 85.2,
+          "high": 98.8
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 8,
+        "count": "0/8",
+        "ci95": {
+          "low": 0,
+          "high": 32.4
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 8,
+        "count": "0/8",
+        "ci95": {
+          "low": 0,
+          "high": 32.4
+        }
+      },
+      "OH": {
+        "value": "12.5%",
+        "numerator": 1,
+        "denominator": 8,
+        "count": "1/8",
+        "ci95": {
+          "low": 2.2,
+          "high": 47.1
+        }
+      },
+      "EF": {
+        "value": "82.2%",
+        "numerator": 37,
+        "denominator": 45,
+        "count": "37/45",
+        "ci95": {
+          "low": 68.7,
+          "high": 90.7
+        }
+      },
+      "faithfulFacts": 37,
+      "usableFaithfulFacts": 36,
+      "usableFaithfulYield": {
+        "value": "80.0%",
+        "numerator": 36,
+        "denominator": 45,
+        "count": "36/45",
+        "ci95": {
+          "low": 66.2,
+          "high": 89.1
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 37,
+        "count": "0/37",
+        "ci95": {
+          "low": 0,
+          "high": 9.4
+        }
+      },
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "100.0%",
+        "numerator": 45,
+        "denominator": 45,
+        "count": "45/45",
+        "ci95": {
+          "low": 92.1,
+          "high": 100
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 36,
+        "count": "0/36",
+        "ci95": {
+          "low": 0,
+          "high": 9.6
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 1510,
+      "secondsPerFact": 1.82,
+      "totalTokens": 67939,
+      "totalLatencyMs": 81970,
+      "judgedFacts": 45,
+      "evidence": "results/raw/A1.jsonl"
+    },
+    "A2": {
+      "condition": "A2",
+      "label": "+ typed-schema gate",
+      "eligibleTurns": 32,
+      "proposedFacts": 45,
+      "admittedFacts": 42,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 42,
+        "denominator": 42,
+        "count": "42/42",
+        "ci95": {
+          "low": 91.6,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 5,
+        "count": "0/5",
+        "ci95": {
+          "low": 0,
+          "high": 43.4
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 5,
+        "count": "0/5",
+        "ci95": {
+          "low": 0,
+          "high": 43.4
+        }
+      },
+      "OH": {
+        "value": "20.0%",
+        "numerator": 1,
+        "denominator": 5,
+        "count": "1/5",
+        "ci95": {
+          "low": 3.6,
+          "high": 62.4
+        }
+      },
+      "EF": {
+        "value": "83.3%",
+        "numerator": 35,
+        "denominator": 42,
+        "count": "35/42",
+        "ci95": {
+          "low": 69.4,
+          "high": 91.7
+        }
+      },
+      "faithfulFacts": 35,
+      "usableFaithfulFacts": 35,
+      "usableFaithfulYield": {
+        "value": "77.8%",
+        "numerator": 35,
+        "denominator": 45,
+        "count": "35/45",
+        "ci95": {
+          "low": 63.7,
+          "high": 87.5
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 37,
+        "count": "0/37",
+        "ci95": {
+          "low": 0,
+          "high": 9.4
+        }
+      },
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "93.3%",
+        "numerator": 42,
+        "denominator": 45,
+        "count": "42/45",
+        "ci95": {
+          "low": 82.1,
+          "high": 97.7
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 36,
+        "count": "0/36",
+        "ci95": {
+          "low": 0,
+          "high": 9.6
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 1618,
+      "secondsPerFact": 1.95,
+      "totalTokens": 67939,
+      "totalLatencyMs": 81970,
+      "judgedFacts": 42,
+      "evidence": "results/raw/A2.jsonl"
+    },
+    "A3": {
+      "condition": "A3",
+      "label": "+ typed-error retry",
+      "eligibleTurns": 32,
+      "proposedFacts": 75,
+      "admittedFacts": 69,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 69,
+        "denominator": 69,
+        "count": "69/69",
+        "ci95": {
+          "low": 94.7,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "6.7%",
+        "numerator": 1,
+        "denominator": 15,
+        "count": "1/15",
+        "ci95": {
+          "low": 1.2,
+          "high": 29.8
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 15,
+        "count": "0/15",
+        "ci95": {
+          "low": 0,
+          "high": 20.4
+        }
+      },
+      "OH": {
+        "value": "13.3%",
+        "numerator": 2,
+        "denominator": 15,
+        "count": "2/15",
+        "ci95": {
+          "low": 3.7,
+          "high": 37.9
+        }
+      },
+      "EF": {
+        "value": "85.5%",
+        "numerator": 59,
+        "denominator": 69,
+        "count": "59/69",
+        "ci95": {
+          "low": 75.3,
+          "high": 91.9
+        }
+      },
+      "faithfulFacts": 59,
+      "usableFaithfulFacts": 59,
+      "usableFaithfulYield": {
+        "value": "78.7%",
+        "numerator": 59,
+        "denominator": 75,
+        "count": "59/75",
+        "ci95": {
+          "low": 68.1,
+          "high": 86.4
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 54,
+        "count": "0/54",
+        "ci95": {
+          "low": 0,
+          "high": 6.6
+        }
+      },
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "92.0%",
+        "numerator": 69,
+        "denominator": 75,
+        "count": "69/75",
+        "ci95": {
+          "low": 83.6,
+          "high": 96.3
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 52,
+        "count": "0/52",
+        "ci95": {
+          "low": 0,
+          "high": 6.9
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "60.9%",
+        "numerator": 39,
+        "denominator": 64,
+        "count": "39/64",
+        "ci95": {
+          "low": 48.7,
+          "high": 71.9
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 2300,
+      "secondsPerFact": 3.71,
+      "totalTokens": 158699,
+      "totalLatencyMs": 255697,
+      "judgedFacts": 69,
+      "evidence": "results/raw/A3.jsonl"
+    },
+    "A4": {
+      "condition": "A4",
+      "label": "+ provenance requirement",
+      "eligibleTurns": 32,
+      "proposedFacts": 81,
+      "admittedFacts": 74,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 74,
+        "denominator": 74,
+        "count": "74/74",
+        "ci95": {
+          "low": 95.1,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "10.5%",
+        "numerator": 2,
+        "denominator": 19,
+        "count": "2/19",
+        "ci95": {
+          "low": 2.9,
+          "high": 31.4
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 19,
+        "count": "0/19",
+        "ci95": {
+          "low": 0,
+          "high": 16.8
+        }
+      },
+      "OH": {
+        "value": "21.1%",
+        "numerator": 4,
+        "denominator": 19,
+        "count": "4/19",
+        "ci95": {
+          "low": 8.5,
+          "high": 43.3
+        }
+      },
+      "EF": {
+        "value": "81.1%",
+        "numerator": 60,
+        "denominator": 74,
+        "count": "60/74",
+        "ci95": {
+          "low": 70.7,
+          "high": 88.4
+        }
+      },
+      "faithfulFacts": 60,
+      "usableFaithfulFacts": 60,
+      "usableFaithfulYield": {
+        "value": "74.1%",
+        "numerator": 60,
+        "denominator": 81,
+        "count": "60/81",
+        "ci95": {
+          "low": 63.6,
+          "high": 82.4
+        }
+      },
+      "provenanceCoverage": {
+        "value": "92.7%",
+        "numerator": 51,
+        "denominator": 55,
+        "count": "51/55",
+        "ci95": {
+          "low": 82.7,
+          "high": 97.1
+        }
+      },
+      "citationCorrectness": {
+        "value": "70.6%",
+        "numerator": 36,
+        "denominator": 51,
+        "count": "36/51",
+        "ci95": {
+          "low": 57,
+          "high": 81.3
+        }
+      },
+      "yield": {
+        "value": "91.4%",
+        "numerator": 74,
+        "denominator": 81,
+        "count": "74/81",
+        "ci95": {
+          "low": 83.2,
+          "high": 95.8
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 53,
+        "count": "0/53",
+        "ci95": {
+          "low": 0,
+          "high": 6.8
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "65.6%",
+        "numerator": 42,
+        "denominator": 64,
+        "count": "42/64",
+        "ci95": {
+          "low": 53.4,
+          "high": 76.1
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 2244,
+      "secondsPerFact": 3.62,
+      "totalTokens": 166071,
+      "totalLatencyMs": 268033,
+      "judgedFacts": 74,
+      "evidence": "results/raw/A4.jsonl"
+    },
+    "A4-strict": {
+      "condition": "A4-strict",
+      "label": "+ provenance enforced hard",
+      "eligibleTurns": 32,
+      "proposedFacts": 78,
+      "admittedFacts": 66,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 66,
+        "denominator": 66,
+        "count": "66/66",
+        "ci95": {
+          "low": 94.5,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "7.1%",
+        "numerator": 1,
+        "denominator": 14,
+        "count": "1/14",
+        "ci95": {
+          "low": 1.3,
+          "high": 31.5
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 14,
+        "count": "0/14",
+        "ci95": {
+          "low": 0,
+          "high": 21.5
+        }
+      },
+      "OH": {
+        "value": "14.3%",
+        "numerator": 2,
+        "denominator": 14,
+        "count": "2/14",
+        "ci95": {
+          "low": 4,
+          "high": 39.9
+        }
+      },
+      "EF": {
+        "value": "86.4%",
+        "numerator": 57,
+        "denominator": 66,
+        "count": "57/66",
+        "ci95": {
+          "low": 76.1,
+          "high": 92.7
+        }
+      },
+      "faithfulFacts": 57,
+      "usableFaithfulFacts": 57,
+      "usableFaithfulYield": {
+        "value": "73.1%",
+        "numerator": 57,
+        "denominator": 78,
+        "count": "57/78",
+        "ci95": {
+          "low": 62.3,
+          "high": 81.7
+        }
+      },
+      "provenanceCoverage": {
+        "value": "98.1%",
+        "numerator": 51,
+        "denominator": 52,
+        "count": "51/52",
+        "ci95": {
+          "low": 89.9,
+          "high": 99.7
+        }
+      },
+      "citationCorrectness": {
+        "value": "78.4%",
+        "numerator": 40,
+        "denominator": 51,
+        "count": "40/51",
+        "ci95": {
+          "low": 65.4,
+          "high": 87.5
+        }
+      },
+      "yield": {
+        "value": "84.6%",
+        "numerator": 66,
+        "denominator": 78,
+        "count": "66/78",
+        "ci95": {
+          "low": 75,
+          "high": 91
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 50,
+        "count": "0/50",
+        "ci95": {
+          "low": 0,
+          "high": 7.1
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "68.8%",
+        "numerator": 44,
+        "denominator": 64,
+        "count": "44/64",
+        "ci95": {
+          "low": 56.6,
+          "high": 78.8
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 2597,
+      "secondsPerFact": 4.32,
+      "totalTokens": 171393,
+      "totalLatencyMs": 285056,
+      "judgedFacts": 66,
+      "evidence": "results/raw/A4-strict.jsonl"
+    },
+    "A5": {
+      "condition": "A5",
+      "label": "full deployed gate",
+      "eligibleTurns": 32,
+      "proposedFacts": 80,
+      "admittedFacts": 75,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 75,
+        "denominator": 75,
+        "count": "75/75",
+        "ci95": {
+          "low": 95.1,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "20.0%",
+        "numerator": 4,
+        "denominator": 20,
+        "count": "4/20",
+        "ci95": {
+          "low": 8.1,
+          "high": 41.6
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 20,
+        "count": "0/20",
+        "ci95": {
+          "low": 0,
+          "high": 16.1
+        }
+      },
+      "OH": {
+        "value": "25.0%",
+        "numerator": 5,
+        "denominator": 20,
+        "count": "5/20",
+        "ci95": {
+          "low": 11.2,
+          "high": 46.9
+        }
+      },
+      "EF": {
+        "value": "80.0%",
+        "numerator": 60,
+        "denominator": 75,
+        "count": "60/75",
+        "ci95": {
+          "low": 69.6,
+          "high": 87.5
+        }
+      },
+      "faithfulFacts": 60,
+      "usableFaithfulFacts": 60,
+      "usableFaithfulYield": {
+        "value": "75.0%",
+        "numerator": 60,
+        "denominator": 80,
+        "count": "60/80",
+        "ci95": {
+          "low": 64.5,
+          "high": 83.2
+        }
+      },
+      "provenanceCoverage": {
+        "value": "92.7%",
+        "numerator": 51,
+        "denominator": 55,
+        "count": "51/55",
+        "ci95": {
+          "low": 82.7,
+          "high": 97.1
+        }
+      },
+      "citationCorrectness": {
+        "value": "76.5%",
+        "numerator": 39,
+        "denominator": 51,
+        "count": "39/51",
+        "ci95": {
+          "low": 63.2,
+          "high": 86
+        }
+      },
+      "yield": {
+        "value": "93.8%",
+        "numerator": 75,
+        "denominator": 80,
+        "count": "75/80",
+        "ci95": {
+          "low": 86.2,
+          "high": 97.3
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 55,
+        "count": "0/55",
+        "ci95": {
+          "low": 0,
+          "high": 6.5
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "65.6%",
+        "numerator": 42,
+        "denominator": 64,
+        "count": "42/64",
+        "ci95": {
+          "low": 53.4,
+          "high": 76.1
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 2,
+      "tokensPerFact": 2212,
+      "secondsPerFact": 3.53,
+      "totalTokens": 165923,
+      "totalLatencyMs": 264896,
+      "judgedFacts": 75,
+      "evidence": "results/raw/A5.jsonl"
+    }
+  },
+  "pairedTests": {
+    "A0 vs A1": {
+      "leftOnly": 0,
+      "rightOnly": 6,
+      "discordant": 6,
+      "p": 0.0313
+    },
+    "A1 vs A2": {
+      "leftOnly": 1,
+      "rightOnly": 0,
+      "discordant": 1,
+      "p": 1
+    },
+    "A2 vs A3": {
+      "leftOnly": 1,
+      "rightOnly": 2,
+      "discordant": 3,
+      "p": 1
+    },
+    "A3 vs A4": {
+      "leftOnly": 1,
+      "rightOnly": 2,
+      "discordant": 3,
+      "p": 1
+    },
+    "A4 vs A4-strict": {
+      "leftOnly": 2,
+      "rightOnly": 0,
+      "discordant": 2,
+      "p": 0.5
+    },
+    "A4 vs A5": {
+      "leftOnly": 1,
+      "rightOnly": 1,
+      "discordant": 2,
+      "p": 1
+    },
+    "A0 vs A5": {
+      "leftOnly": 0,
+      "rightOnly": 7,
+      "discordant": 7,
+      "p": 0.0156
+    }
+  },
+  "humanAudit": {
+    "status": "UNMEASURED",
+    "reason": "EF and citation correctness are adjudicated by an independent model. Human labels require the blinded sample in results/human_audit_sample.csv to be completed."
+  }
+}

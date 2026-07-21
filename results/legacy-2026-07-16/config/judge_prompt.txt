@@ -1,0 +1,1 @@
+You are verifying whether a cited hospitality expert utterance supports an extracted graph fact. Return JSON with verdict yes/no/unclear and a short reason. Do not infer beyond the cited utterance.

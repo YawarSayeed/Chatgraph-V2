@@ -1,0 +1,719 @@
+{
+  "note": "Condition assignments for the blinded sample. Do not open before labelling.",
+  "rows": [
+    {
+      "row_id": "R001",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R002",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R003",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R004",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R005",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R006",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R007",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R008",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R009",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R010",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R011",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R012",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R013",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R014",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R015",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R016",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R017",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R018",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R019",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R020",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R021",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u041",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R022",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R023",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R024",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R025",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R026",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R027",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u021",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R028",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u021",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R029",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u021",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R030",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R031",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R032",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R033",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R034",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R035",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R036",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R037",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R038",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R039",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R040",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R041",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R042",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R043",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R044",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R045",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R046",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R047",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R048",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R049",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u030",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R050",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R051",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R052",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u021",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R053",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R054",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R055",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u008",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R056",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R057",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R058",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u018",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R059",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u010",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R060",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R061",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R062",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u024",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R063",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u010",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R064",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R065",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u009",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R066",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u009",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R067",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u009",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R068",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R069",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R070",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R071",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R072",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u030",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R073",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R074",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R075",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R076",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R077",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R078",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R079",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R080",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R081",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R082",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R083",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R084",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R085",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R086",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R087",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R088",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R089",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R090",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R091",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R092",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R093",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R094",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u008",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R095",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u009",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R096",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R097",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R098",
+      "condition": "A4-strict",
+      "utterance_id": "chatgraph-20260716-203203:u010",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R099",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R100",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R101",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R102",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R103",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R104",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R105",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R106",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R107",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R108",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R109",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R110",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R111",
+      "condition": "A3",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R112",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R113",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R114",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R115",
+      "condition": "A2",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R116",
+      "condition": "A0",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    },
+    {
+      "row_id": "R117",
+      "condition": "A4",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R118",
+      "condition": "A5",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "edge"
+    },
+    {
+      "row_id": "R119",
+      "condition": "A1",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "kind": "vertex"
+    }
+  ]
+}

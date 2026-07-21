@@ -13,3 +13,17 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
+
+# Interview content is never committed. These hold verbatim expert speech from
+# real elicitation sessions: session transcripts, per-turn evaluation rows, the
+# cached model requests/responses that embed the utterances, and the audit sample
+# built from them. Regenerate locally with `npm run ablation`.
+data/
+results/cache/
+results/raw/
+results/human_audit_sample.csv
+results/legacy-*/raw/
+results/legacy-*/rejections/
+results/legacy-*/human_audit_*.csv
+results/legacy-*/human_audit_*.xlsx
+results/legacy-*/corpus_stats.json

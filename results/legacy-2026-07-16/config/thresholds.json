@@ -1,0 +1,18 @@
+{
+  "HR012_min_trace_tokens": {
+    "value": 5,
+    "justification": "Executed deterministic threshold."
+  },
+  "HR012_min_lexical_overlap": {
+    "value": 0.2,
+    "justification": "Executed deterministic trace/source overlap threshold."
+  },
+  "filler_turn_max_words_short_ack": {
+    "value": 3,
+    "justification": "Short acknowledgements and navigation commands are excluded."
+  },
+  "audit_shuffle_seed": {
+    "value": 20260716,
+    "justification": "Fixed audit sampling seed."
+  }
+}

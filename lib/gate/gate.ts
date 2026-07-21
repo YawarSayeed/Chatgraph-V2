@@ -20,7 +20,7 @@
  */
 
 import type { GraphDelta, GraphEdge, GraphState, GraphVertex, JsonValue } from "@/lib/types";
-import { gateContract, severityOf, type GateContract, type Severity } from "./contract";
+import { gateContract, severityOf as contractSeverity, type GateContract, type Severity } from "./contract";
 
 export type GateMode = "schema" | "governed";
 
@@ -49,6 +49,12 @@ export type GateOptions = {
    * prior version invalid and keeps it, so corrections stay auditable.
    */
   temporalContradictions?: boolean;
+  /**
+   * Raise or lower a rule's severity for this run. Used by the evaluation harness
+   * to price what strict enforcement of an otherwise-soft rule costs; the deployed
+   * configuration always uses the severities the spec declares.
+   */
+  severityOverrides?: Record<string, Severity>;
 };
 
 /** A prior fact a new one invalidates. */
@@ -77,6 +83,16 @@ export type GateResult = {
 
 /** Edges the gate writes itself; the extractor is never offered them. */
 export const SUPERSEDED_BY = "supersededBy";
+
+/** Rule severity, with any harness override applied. */
+function severityOf(
+  contract: GateContract,
+  ruleId: string,
+  fallback: Severity,
+  options?: GateOptions
+): Severity {
+  return options?.severityOverrides?.[ruleId] ?? contractSeverity(contract, ruleId, fallback);
+}
 
 type Candidate = {
   id: string;
@@ -109,7 +125,7 @@ export function runGate(
   // Materialize inline evidence before validation, so the synthesized vertices and
   // edges are held to exactly the same rules as extractor-authored ones.
   const materialized = governed
-    ? materializeEvidence(candidates, contract, findings, options.evidenceContext)
+    ? materializeEvidence(candidates, contract, findings, options)
     : { vertices: [], edges: [] };
 
   const admittedVertices: GraphVertex[] = [];
@@ -127,17 +143,17 @@ export function runGate(
     }
     const spec = contract.vertexSpecs.get(candidate.label);
     if (!spec) {
-      findings.push(finding("HR002", severityOf(contract, "HR002", "hard"), `unknown vertex label ${candidate.label}`, candidate.id, "dropped"));
+      findings.push(finding("HR002", severityOf(contract, "HR002", "hard", options), `unknown vertex label ${candidate.label}`, candidate.id, "dropped"));
       continue;
     }
     const properties = pick(candidate.properties, spec.properties);
     const missing = [...spec.requiredProperties].filter((key) => isBlank(properties[key]));
     if (missing.length > 0) {
-      findings.push(finding("HR001", severityOf(contract, "HR001", "hard"), `${candidate.id} missing required ${missing.join(", ")}`, candidate.id, "dropped"));
+      findings.push(finding("HR001", severityOf(contract, "HR001", "hard", options), `${candidate.id} missing required ${missing.join(", ")}`, candidate.id, "dropped"));
       continue;
     }
-    if (governed && !admitEvidenceQuality(candidate.label, properties, contract, findings, candidate.id, options.evidenceContext?.utterance)) continue;
-    if (governed && !admitTextQuality(candidate.label, properties, contract, findings, candidate.id)) continue;
+    if (governed && !admitEvidenceQuality(candidate.label, properties, contract, findings, candidate.id, options)) continue;
+    if (governed && !admitTextQuality(candidate.label, properties, contract, findings, candidate.id, options)) continue;
     if (governed && !admitSingleton(candidate, properties, graph, contract, findings, options, supersessions)) continue;
     admittedVertices.push({ id: candidate.id, label: candidate.label, properties });
     labels.set(candidate.id, candidate.label);
@@ -149,17 +165,17 @@ export function runGate(
     if (!item) continue;
     const spec = contract.edgeSpecs.get(item.label);
     if (!spec) {
-      findings.push(finding("HR003", severityOf(contract, "HR003", "hard"), `unknown edge label ${item.label}`, item.id || null, "dropped"));
+      findings.push(finding("HR003", severityOf(contract, "HR003", "hard", options), `unknown edge label ${item.label}`, item.id || null, "dropped"));
       continue;
     }
     if (!labels.has(item.out) || !labels.has(item.in)) {
-      findings.push(finding("HR005", severityOf(contract, "HR005", "hard"), `dangling ${item.label}: ${labels.has(item.out) ? item.in : item.out} is not in this delta or the graph`, item.id || null, "dropped"));
+      findings.push(finding("HR005", severityOf(contract, "HR005", "hard", options), `dangling ${item.label}: ${labels.has(item.out) ? item.in : item.out} is not in this delta or the graph`, item.id || null, "dropped"));
       continue;
     }
     const outLabel = labels.get(item.out) ?? "";
     const inLabel = labels.get(item.in) ?? "";
     if (!endpointsConform(contract, item.label, outLabel, inLabel)) {
-      findings.push(finding("HR004", severityOf(contract, "HR004", "hard"), `${item.label} connects ${outLabel}->${inLabel}, expected ${expectedEndpoints(contract, item.label)}`, item.id || null, "dropped"));
+      findings.push(finding("HR004", severityOf(contract, "HR004", "hard", options), `${item.label} connects ${outLabel}->${inLabel}, expected ${expectedEndpoints(contract, item.label)}`, item.id || null, "dropped"));
       continue;
     }
     const id = item.id || `${item.out}--${item.label}-->${item.in}`;
@@ -169,9 +185,18 @@ export function runGate(
   }
 
   // Provenance attachment is checked after admission, on what actually survived.
-  if (governed) checkProvenanceAttachment(admittedVertices, admittedEdges, labels, contract, findings);
+  const ungrounded = governed
+    ? checkProvenanceAttachment(admittedVertices, admittedEdges, labels, contract, findings, options)
+    : new Set<string>();
 
-  let delta: GraphDelta = { vertices: admittedVertices, edges: admittedEdges };
+  let delta: GraphDelta = ungrounded.size > 0
+    ? {
+        // Only when the spec's soft provenance rule is escalated to hard: the
+        // ungrounded fact and anything hanging off it leave with it.
+        vertices: admittedVertices.filter((vertex) => !ungrounded.has(vertex.id)),
+        edges: admittedEdges.filter((edge) => !ungrounded.has(edge.out) && !ungrounded.has(edge.in))
+      }
+    : { vertices: admittedVertices, edges: admittedEdges };
   if (governed && options.deterministicIds) delta = applyDeterministicIds(delta, contract, supersessions);
   for (const supersession of supersessions) {
     delta.edges.push({
@@ -267,8 +292,9 @@ function materializeEvidence(
   candidates: Candidate[],
   contract: GateContract,
   findings: GateFinding[],
-  context?: EvidenceContext
+  options: GateOptions
 ): { vertices: Candidate[]; edges: ParsedEdge[] } {
+  const context = options.evidenceContext;
   const vertices: Candidate[] = [];
   const edges: ParsedEdge[] = [];
   if (!contract.evidenceLabel) return { vertices, edges };
@@ -278,7 +304,7 @@ function materializeEvidence(
     if (!candidate.evidence) continue;
     const edgeLabel = contract.provenanceEdgeByLabel.get(candidate.label);
     if (!edgeLabel) {
-      findings.push(finding("HR007", severityOf(contract, "HR007", "soft"), `no provenance edge is mapped for ${candidate.label}`, candidate.id, "flagged"));
+      findings.push(finding("HR007", severityOf(contract, "HR007", "soft", options), `no provenance edge is mapped for ${candidate.label}`, candidate.id, "flagged"));
       continue;
     }
     const evidenceId = `evidence:${candidate.id}`;
@@ -312,30 +338,31 @@ function admitEvidenceQuality(
   contract: GateContract,
   findings: GateFinding[],
   id: string,
-  utterance: string | undefined
+  options: GateOptions
 ): boolean {
+  const utterance = options.evidenceContext?.utterance;
   if (label !== contract.evidenceLabel) return true;
 
   const speaker = asString(properties.speaker);
   if (contract.speakerValues.size > 0 && !contract.speakerValues.has(speaker)) {
-    findings.push(finding("HR010", severityOf(contract, "HR010", "hard"), `${id} speaker "${speaker}" is outside the allowed vocabulary`, id, "dropped"));
+    findings.push(finding("HR010", severityOf(contract, "HR010", "hard", options), `${id} speaker "${speaker}" is outside the allowed vocabulary`, id, "dropped"));
     return false;
   }
   const confidence = asString(properties.confidence);
   if (confidence && contract.confidenceValues.size > 0 && !contract.confidenceValues.has(confidence)) {
-    findings.push(finding("HR011", severityOf(contract, "HR011", "hard"), `${id} confidence "${confidence}" is outside the allowed vocabulary`, id, "dropped"));
+    findings.push(finding("HR011", severityOf(contract, "HR011", "hard", options), `${id} confidence "${confidence}" is outside the allowed vocabulary`, id, "dropped"));
     return false;
   }
   const traceText = asString(properties.traceText);
   const trace = traceText.toLowerCase();
   const banned = contract.bannedTracePatterns.find((pattern) => trace === pattern || trace.startsWith(pattern));
   if (banned) {
-    findings.push(finding("HR012", severityOf(contract, "HR012", "hard"), `${id} traceText is generic ("${banned}")`, id, "dropped"));
+    findings.push(finding("HR012", severityOf(contract, "HR012", "hard", options), `${id} traceText is generic ("${banned}")`, id, "dropped"));
     return false;
   }
   const specificity = traceSpecificity(traceText, utterance);
   if (specificity) {
-    findings.push(finding("HR012", severityOf(contract, "HR012", "hard"), `${id} traceText ${specificity}`, id, "dropped"));
+    findings.push(finding("HR012", severityOf(contract, "HR012", "hard", options), `${id} traceText ${specificity}`, id, "dropped"));
     return false;
   }
   return true;
@@ -388,15 +415,17 @@ function admitTextQuality(
   properties: Record<string, JsonValue>,
   contract: GateContract,
   findings: GateFinding[],
-  id: string
+  id: string,
+  options: GateOptions
 ): boolean {
   for (const rule of contract.textQualityRules) {
     if (rule.label !== label) continue;
     const value = asString(properties[rule.property]).toLowerCase().trim();
     const banned = rule.bannedPatterns.find((pattern) => value === pattern || value.startsWith(pattern));
     if (!banned) continue;
-    findings.push(finding(rule.ruleId, rule.severity, `${id} ${rule.property} is generic ("${banned}")`, id, rule.severity === "hard" ? "dropped" : "flagged"));
-    if (rule.severity === "hard") return false;
+    const severity = severityOf(contract, rule.ruleId, rule.severity, options);
+    findings.push(finding(rule.ruleId, severity, `${id} ${rule.property} is generic ("${banned}")`, id, severity === "hard" ? "dropped" : "flagged"));
+    if (severity === "hard") return false;
   }
   return true;
 }
@@ -415,7 +444,7 @@ function admitSingleton(
   if (!existing || existing.id === candidate.id) return true;
 
   if (!options.temporalContradictions) {
-    findings.push(finding("HR009", severityOf(contract, "HR009", "hard"), `${candidate.label} is a session singleton; ${existing.id} already exists`, candidate.id, "dropped"));
+    findings.push(finding("HR009", severityOf(contract, "HR009", "hard", options), `${candidate.label} is a session singleton; ${existing.id} already exists`, candidate.id, "dropped"));
     return false;
   }
 
@@ -439,8 +468,11 @@ function checkProvenanceAttachment(
   edges: GraphEdge[],
   labels: Map<string, string>,
   contract: GateContract,
-  findings: GateFinding[]
-): void {
+  findings: GateFinding[],
+  options: GateOptions
+): Set<string> {
+  const unprovenanced = severityOf(contract, "HR006", "soft", options);
+  const ungrounded = new Set<string>();
   for (const vertex of vertices) {
     if (!contract.knowledgeLabels.has(vertex.label)) continue;
     const attached = edges.find(
@@ -450,14 +482,16 @@ function checkProvenanceAttachment(
         labels.get(edge.in) === contract.evidenceLabel
     );
     if (!attached) {
-      findings.push(finding("HR006", severityOf(contract, "HR006", "soft"), `${vertex.id} has no evidence`, vertex.id, severityOf(contract, "HR006", "soft") === "hard" ? "dropped" : "flagged"));
+      findings.push(finding("HR006", unprovenanced, `${vertex.id} has no evidence`, vertex.id, unprovenanced === "hard" ? "dropped" : "flagged"));
+      ungrounded.add(vertex.id);
       continue;
     }
     const expected = contract.provenanceEdgeByLabel.get(vertex.label);
     if (expected && attached.label !== expected) {
-      findings.push(finding("HR007", severityOf(contract, "HR007", "soft"), `${vertex.id} uses ${attached.label}, expected ${expected}`, vertex.id, "flagged"));
+      findings.push(finding("HR007", severityOf(contract, "HR007", "soft", options), `${vertex.id} uses ${attached.label}, expected ${expected}`, vertex.id, "flagged"));
     }
   }
+  return unprovenanced === "hard" ? ungrounded : new Set<string>();
 }
 
 function buildRetryFeedback(findings: GateFinding[], contract: GateContract): string | null {

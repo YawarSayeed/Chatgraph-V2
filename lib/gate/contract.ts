@@ -58,6 +58,8 @@ export type GateContract = {
   /** Empty when the domain has no authored governance spec. */
   governed: boolean;
   knowledgeLabels: Set<string>;
+  /** Labels that carry no knowledge and therefore need no evidence. */
+  infrastructureLabels: Set<string>;
   evidenceLabel: string | null;
   provenanceEdgeByLabel: Map<string, string>;
   provenanceEdgeLabels: Set<string>;
@@ -129,6 +131,7 @@ function buildContract(domainId: string): GateContract {
       edgeSpecs,
       governed: false,
       knowledgeLabels: new Set(),
+      infrastructureLabels: new Set(),
       evidenceLabel: null,
       provenanceEdgeByLabel: new Map(),
       provenanceEdgeLabels: new Set(),
@@ -188,6 +191,19 @@ function buildContract(domainId: string): GateContract {
   for (const label of knowledgeLabels) {
     if (!provenanceEdgeByLabel.has(label)) {
       drift.push({ ruleId: "HR007", message: `knowledge label ${label} has no provenance edge mapping` });
+    }
+  }
+
+  const infrastructureLabels = new Set(
+    stringArray(
+      isRecord(governance.provenance.attachment_rules)
+        ? governance.provenance.attachment_rules.exempt_vertex_labels
+        : undefined
+    )
+  );
+  for (const label of infrastructureLabels) {
+    if (!vertexSpecs.has(label)) {
+      drift.push({ ruleId: "HR006", message: `exempt label ${label} is not declared in the schema` });
     }
   }
 
@@ -258,6 +274,7 @@ function buildContract(domainId: string): GateContract {
     edgeSpecs,
     governed: true,
     knowledgeLabels,
+    infrastructureLabels,
     evidenceLabel,
     provenanceEdgeByLabel,
     provenanceEdgeLabels,

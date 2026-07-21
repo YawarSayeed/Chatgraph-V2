@@ -1,0 +1,745 @@
+{
+  "generatedAt": "2026-07-16T23:42:39.334Z",
+  "status": "MEASURED_OR_UNMEASURED_ONLY",
+  "scope": "One hospitality session; 32 eligible expert turns after deterministic filler exclusion",
+  "schema": {
+    "vertexClasses": 24,
+    "knowledgeVertexClasses": 19,
+    "infrastructureClasses": 5,
+    "edgeTypes": 32
+  },
+  "validationRules": 25,
+  "factDefinition": "One knowledge vertex, or one edge whose endpoints are both knowledge vertices. Infrastructure and provenance edges are excluded.",
+  "corpus": {
+    "sessions": 1,
+    "messages": {
+      "totalMessages": 78,
+      "assistantMessages": 33,
+      "userMessages": 45
+    },
+    "expertTurns": 45,
+    "eligibleTurns": 32,
+    "excludedTurns": 13
+  },
+  "conditions": {
+    "A0": {
+      "proposedFacts": 62,
+      "admittedFacts": 62,
+      "OC": {
+        "value": "88.7%",
+        "numerator": 55,
+        "denominator": 62,
+        "count": "55/62",
+        "ci95": {
+          "low": 78.5,
+          "high": 94.4
+        }
+      },
+      "SH": {
+        "value": "18.8%",
+        "numerator": 3,
+        "denominator": 16,
+        "count": "3/16",
+        "ci95": {
+          "low": 6.6,
+          "high": 43
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 16,
+        "count": "0/16",
+        "ci95": {
+          "low": 0,
+          "high": 19.4
+        }
+      },
+      "OH": {
+        "value": "18.8%",
+        "numerator": 3,
+        "denominator": 16,
+        "count": "3/16",
+        "ci95": {
+          "low": 6.6,
+          "high": 43
+        }
+      },
+      "provenanceCoverage": {
+        "value": "2.2%",
+        "numerator": 1,
+        "denominator": 46,
+        "count": "1/46",
+        "ci95": {
+          "low": 0.4,
+          "high": 11.3
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "100.0%",
+        "numerator": 62,
+        "denominator": 62,
+        "count": "62/62",
+        "ci95": {
+          "low": 94.2,
+          "high": 100
+        }
+      },
+      "secondsPerFact": 2.4,
+      "tokensPerFact": 991,
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 62,
+        "count": "0/62",
+        "ci95": {
+          "low": 0,
+          "high": 5.8
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 61418,
+      "totalLatencyMs": 148780,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "16/16",
+      "evidence": "results/raw/A0.jsonl",
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      }
+    },
+    "A1": {
+      "proposedFacts": 67,
+      "admittedFacts": 67,
+      "OC": {
+        "value": "94.0%",
+        "numerator": 63,
+        "denominator": 67,
+        "count": "63/67",
+        "ci95": {
+          "low": 85.6,
+          "high": 97.7
+        }
+      },
+      "SH": {
+        "value": "3.3%",
+        "numerator": 1,
+        "denominator": 30,
+        "count": "1/30",
+        "ci95": {
+          "low": 0.6,
+          "high": 16.7
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 30,
+        "count": "0/30",
+        "ci95": {
+          "low": 0,
+          "high": 11.4
+        }
+      },
+      "OH": {
+        "value": "10.0%",
+        "numerator": 3,
+        "denominator": 30,
+        "count": "3/30",
+        "ci95": {
+          "low": 3.5,
+          "high": 25.6
+        }
+      },
+      "provenanceCoverage": {
+        "value": "5.4%",
+        "numerator": 2,
+        "denominator": 37,
+        "count": "2/37",
+        "ci95": {
+          "low": 1.5,
+          "high": 17.7
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "100.0%",
+        "numerator": 67,
+        "denominator": 67,
+        "count": "67/67",
+        "ci95": {
+          "low": 94.6,
+          "high": 100
+        }
+      },
+      "secondsPerFact": 1.71,
+      "tokensPerFact": 1065,
+      "duplicateRate": {
+        "value": "3.0%",
+        "numerator": 2,
+        "denominator": 67,
+        "count": "2/67",
+        "ci95": {
+          "low": 0.8,
+          "high": 10.2
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 71350,
+      "totalLatencyMs": 114439,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "30/30",
+      "evidence": "results/raw/A1.jsonl"
+    },
+    "A2": {
+      "proposedFacts": 40,
+      "admittedFacts": 3,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 3,
+        "denominator": 3,
+        "count": "3/3",
+        "ci95": {
+          "low": 43.9,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "OH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 2,
+        "count": "0/2",
+        "ci95": {
+          "low": 0,
+          "high": 65.8
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "7.5%",
+        "numerator": 3,
+        "denominator": 40,
+        "count": "3/40",
+        "ci95": {
+          "low": 2.6,
+          "high": 19.9
+        }
+      },
+      "secondsPerFact": 37.11,
+      "tokensPerFact": 20314,
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 3,
+        "count": "0/3",
+        "ci95": {
+          "low": 0,
+          "high": 56.1
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 60943,
+      "totalLatencyMs": 111329,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "1/1",
+      "evidence": "results/raw/A2.jsonl"
+    },
+    "A3": {
+      "proposedFacts": 48,
+      "admittedFacts": 29,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 29,
+        "denominator": 29,
+        "count": "29/29",
+        "ci95": {
+          "low": 88.3,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 8,
+        "count": "0/8",
+        "ci95": {
+          "low": 0,
+          "high": 32.4
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 8,
+        "count": "0/8",
+        "ci95": {
+          "low": 0,
+          "high": 32.4
+        }
+      },
+      "OH": {
+        "value": "12.5%",
+        "numerator": 1,
+        "denominator": 8,
+        "count": "1/8",
+        "ci95": {
+          "low": 2.2,
+          "high": 47.1
+        }
+      },
+      "provenanceCoverage": {
+        "value": "4.8%",
+        "numerator": 1,
+        "denominator": 21,
+        "count": "1/21",
+        "ci95": {
+          "low": 0.8,
+          "high": 22.7
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "60.4%",
+        "numerator": 29,
+        "denominator": 48,
+        "count": "29/48",
+        "ci95": {
+          "low": 46.3,
+          "high": 73
+        }
+      },
+      "secondsPerFact": 10.72,
+      "tokensPerFact": 4315,
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 29,
+        "count": "0/29",
+        "ci95": {
+          "low": 0,
+          "high": 11.7
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "39.1%",
+        "numerator": 25,
+        "denominator": 64,
+        "count": "25/64",
+        "ci95": {
+          "low": 28.1,
+          "high": 51.3
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 125123,
+      "totalLatencyMs": 310813,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "8/8",
+      "evidence": "results/raw/A3.jsonl"
+    },
+    "A4": {
+      "proposedFacts": 59,
+      "admittedFacts": 0,
+      "OC": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "SH": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "RH": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "OH": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "provenanceCoverage": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 59,
+        "count": "0/59",
+        "ci95": {
+          "low": 0,
+          "high": 6.1
+        }
+      },
+      "secondsPerFact": "UNMEASURED",
+      "tokensPerFact": "UNMEASURED",
+      "duplicateRate": {
+        "value": "UNMEASURED",
+        "numerator": 0,
+        "denominator": 0,
+        "count": "0/0",
+        "ci95": null
+      },
+      "retryBudgetConsumed": {
+        "value": "78.1%",
+        "numerator": 50,
+        "denominator": 64,
+        "count": "50/64",
+        "ci95": {
+          "low": 66.6,
+          "high": 86.5
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 172297,
+      "totalLatencyMs": 646422,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "0/0",
+      "evidence": "results/raw/A4.jsonl"
+    },
+    "A5": {
+      "proposedFacts": 61,
+      "admittedFacts": 3,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 3,
+        "denominator": 3,
+        "count": "3/3",
+        "ci95": {
+          "low": 43.9,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "OH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 1,
+        "count": "0/1",
+        "ci95": {
+          "low": 0,
+          "high": 79.3
+        }
+      },
+      "provenanceCoverage": {
+        "value": "100.0%",
+        "numerator": 2,
+        "denominator": 2,
+        "count": "2/2",
+        "ci95": {
+          "low": 34.2,
+          "high": 100
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "4.9%",
+        "numerator": 3,
+        "denominator": 61,
+        "count": "3/61",
+        "ci95": {
+          "low": 1.7,
+          "high": 13.5
+        }
+      },
+      "secondsPerFact": 165.72,
+      "tokensPerFact": 57692,
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 3,
+        "count": "0/3",
+        "ci95": {
+          "low": 0,
+          "high": 56.1
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "78.1%",
+        "numerator": 50,
+        "denominator": 64,
+        "count": "50/64",
+        "ci95": {
+          "low": 66.6,
+          "high": 86.5
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 173077,
+      "totalLatencyMs": 497172,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "1/1",
+      "evidence": "results/raw/A5.jsonl"
+    },
+    "A4-soft": {
+      "proposedFacts": 69,
+      "admittedFacts": 53,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 53,
+        "denominator": 53,
+        "count": "53/53",
+        "ci95": {
+          "low": 93.2,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "10.7%",
+        "numerator": 3,
+        "denominator": 28,
+        "count": "3/28",
+        "ci95": {
+          "low": 3.7,
+          "high": 27.2
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 28,
+        "count": "0/28",
+        "ci95": {
+          "low": 0,
+          "high": 12.1
+        }
+      },
+      "OH": {
+        "value": "21.4%",
+        "numerator": 6,
+        "denominator": 28,
+        "count": "6/28",
+        "ci95": {
+          "low": 10.2,
+          "high": 39.5
+        }
+      },
+      "provenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 25,
+        "count": "0/25",
+        "ci95": {
+          "low": 0,
+          "high": 13.3
+        }
+      },
+      "EF": {
+        "value": "UNMEASURED",
+        "reason": "Pending adjudicated human audit labels."
+      },
+      "yield": {
+        "value": "76.8%",
+        "numerator": 53,
+        "denominator": 69,
+        "count": "53/69",
+        "ci95": {
+          "low": 65.6,
+          "high": 85.2
+        }
+      },
+      "secondsPerFact": 6.66,
+      "tokensPerFact": 2495,
+      "duplicateRate": {
+        "value": "1.9%",
+        "numerator": 1,
+        "denominator": 53,
+        "count": "1/53",
+        "ci95": {
+          "low": 0.3,
+          "high": 9.9
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "43.8%",
+        "numerator": 28,
+        "denominator": 64,
+        "count": "28/64",
+        "ci95": {
+          "low": 32.3,
+          "high": 55.9
+        }
+      },
+      "temporalContradictions": "UNMEASURED",
+      "totalTokens": 132244,
+      "totalLatencyMs": 353174,
+      "eligibleTurns": 32,
+      "groundingJudgeCoverage": "28/28",
+      "evidence": "results/raw/A4-soft.jsonl"
+    }
+  },
+  "cohensKappa": "UNMEASURED",
+  "downstreamQa": {
+    "status": "UNMEASURED",
+    "reason": "Out of scope; experiment was not run."
+  },
+  "mcnemar": {
+    "A0_vs_A1": {
+      "status": "MEASURED",
+      "contrast": "A0 vs A1",
+      "pairedUtterances": 32,
+      "outcome": "utterance contains at least one admitted edge with an unsupported subject or object",
+      "leftOnly": 3,
+      "rightOnly": 3,
+      "discordant": 6,
+      "exactTwoSidedP": 1
+    },
+    "A3_vs_A4": {
+      "status": "MEASURED",
+      "contrast": "A3 vs A4",
+      "pairedUtterances": 32,
+      "outcome": "utterance contains at least one admitted edge with an unsupported subject or object",
+      "leftOnly": 1,
+      "rightOnly": 0,
+      "discordant": 1,
+      "exactTwoSidedP": 1
+    },
+    "A0_vs_A5": {
+      "status": "MEASURED",
+      "contrast": "A0 vs A5",
+      "pairedUtterances": 32,
+      "outcome": "utterance contains at least one admitted edge with an unsupported subject or object",
+      "leftOnly": 3,
+      "rightOnly": 0,
+      "discordant": 3,
+      "exactTwoSidedP": 0.25
+    }
+  },
+  "humanAudit": {
+    "status": "pending",
+    "totalRows": 83,
+    "byCondition": {
+      "A0": 40,
+      "A1": 40,
+      "A4": 0,
+      "A5": 3
+    }
+  },
+  "lesson5": {
+    "count": 0,
+    "examples": []
+  },
+  "methodology": {
+    "proportions": "Exact counts with Wilson 95% confidence intervals.",
+    "unavailable": "UNMEASURED is used when the required experiment, denominator, or human labels do not exist."
+  }
+}

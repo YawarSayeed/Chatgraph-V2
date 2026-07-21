@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-16T23:42:39.334Z",
+  "canonical": "results/metrics.json",
+  "status": "measured_or_unmeasured_only",
+  "conditionEvidence": {
+    "A0": "results/raw/A0.jsonl",
+    "A1": "results/raw/A1.jsonl",
+    "A2": "results/raw/A2.jsonl",
+    "A3": "results/raw/A3.jsonl",
+    "A4": "results/raw/A4.jsonl",
+    "A5": "results/raw/A5.jsonl",
+    "A4-soft": "results/raw/A4-soft.jsonl"
+  },
+  "groundingJudgeEvidence": "results/cache/real-ablation/*.json responses containing verdicts",
+  "humanAuditStatus": "pending",
+  "endpointContract": [
+    "hopitality files/provenance spec.json",
+    "hopitality files/validation rules.json"
+  ]
+}

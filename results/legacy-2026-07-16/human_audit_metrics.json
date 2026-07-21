@@ -1,0 +1,11 @@
+{
+  "status": "pending",
+  "cohensKappa": "UNMEASURED",
+  "EF": "UNMEASURED",
+  "expectedDirectory": "results/audit_completed",
+  "requiredFiles": [
+    "annotator_A.csv",
+    "annotator_B.csv",
+    "adjudicated.csv"
+  ]
+}

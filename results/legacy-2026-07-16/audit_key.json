@@ -1,0 +1,504 @@
+{
+  "seed": 20260716,
+  "design": "A0/A1/A4/A5; census when condition <=50 admitted facts, otherwise section-stratified n=40",
+  "rows": {
+    "audit:001": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "raw_fact_id": "timing-rule:demographic-variability"
+    },
+    "audit:002": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "raw_fact_id": "checkin-policy:sweet-spot"
+    },
+    "audit:003": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "raw_fact_id": "signalIndicates:guest-signal:twitching-eye:guest-persona:high-value-leisure-guests"
+    },
+    "audit:004": {
+      "condition": "A5",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "policy:checkin:session:hospitality:default"
+    },
+    "audit:005": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "raw_fact_id": "guest-signal:twitching-eye"
+    },
+    "audit:006": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u018",
+      "raw_fact_id": "guest-experience-principle:direct-communication"
+    },
+    "audit:007": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "raw_fact_id": "signalIndicates:guest-signal:nostalgia->guest-persona:high-value-leisure-guests"
+    },
+    "audit:008": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "raw_fact_id": "chatgraph-20260716-203203:u013:a0:v02"
+    },
+    "audit:009": {
+      "condition": "A0",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "raw_fact_id": "chatgraph-20260716-203203:u014:a0:v01"
+    },
+    "audit:010": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "checkin-policy:simple-digital"
+    },
+    "audit:011": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "chatgraph-20260716-203203:u026:a0:e03"
+    },
+    "audit:012": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u032",
+      "raw_fact_id": "chatgraph-20260716-203203:u032:a0:v01"
+    },
+    "audit:013": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u011",
+      "raw_fact_id": "chatgraph-20260716-203203:u011:a0:v01"
+    },
+    "audit:014": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u008",
+      "raw_fact_id": "timing-rule:session:hospitality:default"
+    },
+    "audit:015": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "raw_fact_id": "chatgraph-20260716-203203:u007:a0:e04"
+    },
+    "audit:016": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u027",
+      "raw_fact_id": "chatgraph-20260716-203203:u027:a0:v02"
+    },
+    "audit:017": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "business:apex-hotels-and-resorts"
+    },
+    "audit:018": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u020",
+      "raw_fact_id": "service-failure:protocol-reference"
+    },
+    "audit:019": {
+      "condition": "A1",
+      "section": "D",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "raw_fact_id": "decision-rule:customer-connection"
+    },
+    "audit:020": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "raw_fact_id": "chatgraph-20260716-203203:u015:a0:e01"
+    },
+    "audit:021": {
+      "condition": "A1",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "raw_fact_id": "business-differentiated-by:recognition"
+    },
+    "audit:022": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "raw_fact_id": "chatgraph-20260716-203203:u015:a0:v03"
+    },
+    "audit:023": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u027",
+      "raw_fact_id": "chatgraph-20260716-203203:u027:a0:v01"
+    },
+    "audit:024": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "raw_fact_id": "signalTriggers:guest-signal:red-flag-issue-recurrence:decision-rule:timing-enforcement"
+    },
+    "audit:025": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "raw_fact_id": "guest-signal:red-flag-issue-recurrence"
+    },
+    "audit:026": {
+      "condition": "A1",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u014",
+      "raw_fact_id": "loyalty-driver:recognition"
+    },
+    "audit:027": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "raw_fact_id": "chatgraph-20260716-203203:u015:a0:e02"
+    },
+    "audit:028": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "chatgraph-20260716-203203:u026:a0:v03"
+    },
+    "audit:029": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "business:apex-hotels-resorts->loyalty-driver:regular-customer-discounts"
+    },
+    "audit:030": {
+      "condition": "A1",
+      "section": "D",
+      "utterance_id": "chatgraph-20260716-203203:u024",
+      "raw_fact_id": "decision-rule:noise-complaint"
+    },
+    "audit:031": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "checkin-policy:simple-digital->timing-rule:session:hospitality:default"
+    },
+    "audit:032": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u027",
+      "raw_fact_id": "chatgraph-20260716-203203:u027:a0:e02"
+    },
+    "audit:033": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "loyalty-driver:regular-customer-discounts"
+    },
+    "audit:034": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "chatgraph-20260716-203203:u026:a0:v01"
+    },
+    "audit:035": {
+      "condition": "A5",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "edge:checkinpolicy:session:hospitality:default:timingrule:checkin:session:hospitality:default"
+    },
+    "audit:036": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "raw_fact_id": "guest-experience-principle:profile-recognition"
+    },
+    "audit:037": {
+      "condition": "A0",
+      "section": "D",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "raw_fact_id": "chatgraph-20260716-203203:u022:a0:v01"
+    },
+    "audit:038": {
+      "condition": "A5",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "timingrule:checkin:session:hospitality:default"
+    },
+    "audit:039": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "chatgraph-20260716-203203:u003:a0:v03"
+    },
+    "audit:040": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "raw_fact_id": "business-differentiated-by:business:apex-hotels-resorts->guest-experience-principle:ecosystem"
+    },
+    "audit:041": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u017",
+      "raw_fact_id": "policy:checkin:session:hospitality:default"
+    },
+    "audit:042": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "chatgraph-20260716-203203:u003:a0:v01"
+    },
+    "audit:043": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "raw_fact_id": "standard-enforces:fast-track-processing"
+    },
+    "audit:044": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "raw_fact_id": "standard-enforces:service-standard:operational-agreements"
+    },
+    "audit:045": {
+      "condition": "A1",
+      "section": "D",
+      "utterance_id": "chatgraph-20260716-203203:u022",
+      "raw_fact_id": "service-failure:customer-connection"
+    },
+    "audit:046": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "raw_fact_id": "guest-signal:nostalgia"
+    },
+    "audit:047": {
+      "condition": "A1",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u030",
+      "raw_fact_id": "signal-indicates:trust-indicator"
+    },
+    "audit:048": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "business-differentiated-by:apex-hotels-resorts:brand-standardization"
+    },
+    "audit:049": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "chatgraph-20260716-203203:u026:a0:e02"
+    },
+    "audit:050": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "service-standard:operational-agreements"
+    },
+    "audit:051": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "raw_fact_id": "chatgraph-20260716-203203:u007:a0:v01"
+    },
+    "audit:052": {
+      "condition": "A0",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "raw_fact_id": "chatgraph-20260716-203203:u025:a0:v01"
+    },
+    "audit:053": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "raw_fact_id": "chatgraph-20260716-203203:u005:a0:e08"
+    },
+    "audit:054": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "heuristic-explains:monitoring-feedback:operational-agreements"
+    },
+    "audit:055": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "chatgraph-20260716-203203:u002:a0:e03"
+    },
+    "audit:056": {
+      "condition": "A1",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u030",
+      "raw_fact_id": "signal-indicates:trust-indicator"
+    },
+    "audit:057": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u006",
+      "raw_fact_id": "chatgraph-20260716-203203:u006:a0:v01"
+    },
+    "audit:058": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "raw_fact_id": "chatgraph-20260716-203203:u007:a0:v05"
+    },
+    "audit:059": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u021",
+      "raw_fact_id": "resolvedBy:emergency-communication-failure"
+    },
+    "audit:060": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u007",
+      "raw_fact_id": "chatgraph-20260716-203203:u007:a0:v03"
+    },
+    "audit:061": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u023",
+      "raw_fact_id": "chatgraph-20260716-203203:u023:a0:v01"
+    },
+    "audit:062": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u009",
+      "raw_fact_id": "decision-rule:timing-enforcement"
+    },
+    "audit:063": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "role:founder-ceo"
+    },
+    "audit:064": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "role:founder-ceo"
+    },
+    "audit:065": {
+      "condition": "A0",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u015",
+      "raw_fact_id": "chatgraph-20260716-203203:u015:a0:v02"
+    },
+    "audit:066": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u032",
+      "raw_fact_id": "chatgraph-20260716-203203:u032:a0:v02"
+    },
+    "audit:067": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "business:apex-hotels-resorts"
+    },
+    "audit:068": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "raw_fact_id": "chatgraph-20260716-203203:u005:a0:e06"
+    },
+    "audit:069": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u008",
+      "raw_fact_id": "chatgraph-20260716-203203:u008:a0:v01"
+    },
+    "audit:070": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "chatgraph-20260716-203203:u003:a0:v02"
+    },
+    "audit:071": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "raw_fact_id": "guest-signal:satisfaction"
+    },
+    "audit:072": {
+      "condition": "A1",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u025",
+      "raw_fact_id": "signalIndicates:guest-signal:satisfaction->guest-persona:corporate-travelers"
+    },
+    "audit:073": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u026",
+      "raw_fact_id": "chatgraph-20260716-203203:u026:a0:v02"
+    },
+    "audit:074": {
+      "condition": "A0",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u002",
+      "raw_fact_id": "tenure:hospitality-management-28-years"
+    },
+    "audit:075": {
+      "condition": "A0",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "raw_fact_id": "chatgraph-20260716-203203:u016:a0:v01"
+    },
+    "audit:076": {
+      "condition": "A1",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u041",
+      "raw_fact_id": "contextual-constraint:demographic-dependence"
+    },
+    "audit:077": {
+      "condition": "A0",
+      "section": "unknown",
+      "utterance_id": "chatgraph-20260716-203203:u023",
+      "raw_fact_id": "chatgraph-20260716-203203:u023:a0:v02"
+    },
+    "audit:078": {
+      "condition": "A0",
+      "section": "E",
+      "utterance_id": "chatgraph-20260716-203203:u012",
+      "raw_fact_id": "chatgraph-20260716-203203:u012:a0:v01"
+    },
+    "audit:079": {
+      "condition": "A1",
+      "section": "C",
+      "utterance_id": "chatgraph-20260716-203203:u016",
+      "raw_fact_id": "checkin-policy:sweet-spot:governs"
+    },
+    "audit:080": {
+      "condition": "A1",
+      "section": "F",
+      "utterance_id": "chatgraph-20260716-203203:u030",
+      "raw_fact_id": "guest-signal:trust-indicator"
+    },
+    "audit:081": {
+      "condition": "A1",
+      "section": "A",
+      "utterance_id": "chatgraph-20260716-203203:u003",
+      "raw_fact_id": "standard-enforces:operational-agreements:brand-standardization"
+    },
+    "audit:082": {
+      "condition": "A1",
+      "section": "B",
+      "utterance_id": "chatgraph-20260716-203203:u013",
+      "raw_fact_id": "business-differentiated-by:apex-hotels-resorts:profile-recognition"
+    },
+    "audit:083": {
+      "condition": "A0",
+      "section": "G",
+      "utterance_id": "chatgraph-20260716-203203:u005",
+      "raw_fact_id": "chatgraph-20260716-203203:u005:a0:v04"
+    }
+  }
+}

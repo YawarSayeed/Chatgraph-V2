@@ -5,8 +5,8 @@
  *
  * Two kinds of check:
  *   - behavioural assertions on admission, materialized provenance, and severity;
- *   - a replay of the frozen ablation deltas in results/raw, which pins the
- *     per-fact admission gain against the published per-delta numbers without
+ *   - a replay of the archived 2026-07-16 ablation deltas, which pins the per-fact
+ *     admission gain against that run's published per-delta numbers without
  *     re-running any paid API call.
  */
 
@@ -376,7 +376,7 @@ function countFacts(vertices, edges, graph) {
 }
 
 function replay(condition, mode) {
-  const file = path.join(ROOT, "results/raw", `${condition}.jsonl`);
+  const file = path.join(ROOT, "results/legacy-2026-07-16/raw", `${condition}.jsonl`);
   const rows = fs.readFileSync(file, "utf8").trim().split("\n").map((line) => JSON.parse(line))
     .filter((row) => !row.excluded_as_filler && !row.skipped_as_filler);
   const graph = { vertices: { ...EMPTY_GRAPH.vertices }, edges: {} };
@@ -396,7 +396,14 @@ function replay(condition, mode) {
   return { proposed, admitted, turns: rows.length };
 }
 
+const ARCHIVED_RAW = path.join(ROOT, "results/legacy-2026-07-16/raw");
+
 test("per-fact admission recovers the facts per-delta rejection discarded", () => {
+  if (!fs.existsSync(ARCHIVED_RAW)) {
+    // The archived rows quote the expert verbatim and are not committed.
+    process.stdout.write("    replay: skipped (archived evidence not present locally)\n");
+    return;
+  }
   // Published per-delta figures from results/results.md, recomputed per fact here.
   const a3 = replay("A3", "schema");
   assert.equal(a3.turns, 32, "eligible turn count changed");
