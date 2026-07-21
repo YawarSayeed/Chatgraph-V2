@@ -42,6 +42,8 @@ export class OpenAIRealtimeSession {
   private pendingAssistantTurns = 0;
   private userTranscriptBuffer: string[] = [];
   private userTranscriptTimer: ReturnType<typeof setTimeout> | null = null;
+  private responseRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private watchdogTimer: ReturnType<typeof setInterval> | null = null;
   private userTranscriptSettleUntil = 0;
   private needsResponseAfterSettle = false;
 
@@ -76,6 +78,9 @@ export class OpenAIRealtimeSession {
       this.channel = peer.createDataChannel("oai-events");
       this.channel.addEventListener("open", () => {
         this.callbacks.onStatus("connected");
+        // Belt-and-braces against any missed event: if a user turn is owed an
+        // answer and nothing is in flight, ask for one. Cheap no-op otherwise.
+        this.watchdogTimer = setInterval(() => this.requestResponseIfReady(), 1500);
       });
       this.channel.addEventListener("message", (event) => this.handleEvent(event.data));
       this.channel.addEventListener("close", () => this.callbacks.onStatus("idle"));
@@ -119,6 +124,14 @@ export class OpenAIRealtimeSession {
     this.responseInFlight = false;
     this.pendingAssistantTurns = 0;
     this.clearUserTranscriptTimer();
+    if (this.responseRetryTimer) {
+      clearTimeout(this.responseRetryTimer);
+      this.responseRetryTimer = null;
+    }
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
     this.userTranscriptBuffer = [];
     this.userTranscriptSettleUntil = 0;
     this.needsResponseAfterSettle = false;
@@ -164,7 +177,10 @@ export class OpenAIRealtimeSession {
         this.pendingAssistantTurns === 0 ||
         Date.now() < this.userTranscriptSettleUntil
       ) {
-        if (this.pendingAssistantTurns > 0) this.needsResponseAfterSettle = true;
+        if (this.pendingAssistantTurns > 0) {
+          this.needsResponseAfterSettle = true;
+          this.scheduleResponseRetry();
+        }
         this.cancelResponse(event.response?.id);
         return;
       }
@@ -197,7 +213,15 @@ export class OpenAIRealtimeSession {
         return;
       }
       if (event.response?.status && event.response.status !== "completed") {
+        // A cancelled or failed response still owes the user an answer. Without
+        // re-arming here the session deadlocked: pendingAssistantTurns stayed
+        // positive, nothing ever called response.create again, and the interview
+        // sat silent until the user prompted it with "continue".
         this.assistantTranscript = "";
+        if (this.pendingAssistantTurns > 0) {
+          this.needsResponseAfterSettle = true;
+          this.scheduleResponseRetry();
+        }
         return;
       }
       const text = (extractResponseTranscript(event) || this.assistantTranscript).trim();
@@ -248,6 +272,15 @@ export class OpenAIRealtimeSession {
 
     this.needsResponseAfterSettle = false;
     this.channel.send(JSON.stringify({ type: "response.create" }));
+  }
+
+  private scheduleResponseRetry(): void {
+    if (this.responseRetryTimer) clearTimeout(this.responseRetryTimer);
+    const settleRemaining = Math.max(0, this.userTranscriptSettleUntil - Date.now());
+    this.responseRetryTimer = setTimeout(() => {
+      this.responseRetryTimer = null;
+      this.requestResponseIfReady();
+    }, settleRemaining + 150);
   }
 
   private clearUserTranscriptTimer(): void {

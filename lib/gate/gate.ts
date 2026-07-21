@@ -55,6 +55,15 @@ export type GateOptions = {
    * configuration always uses the severities the spec declares.
    */
   severityOverrides?: Record<string, Severity>;
+  /**
+   * Resolve near-duplicate knowledge vertices onto the vertex the graph already
+   * holds. Content hashing only merges exact restatements; an expert who says
+   * "guest-centered service" one turn and "guest-centred experience" the next
+   * otherwise mints a new concept each time, and the graph sprawls into
+   * hub-and-spoke clutter. Matching is deterministic: same label, same normalized
+   * key text, or token overlap above a fixed threshold.
+   */
+  resolveEntities?: boolean;
 };
 
 /** A prior fact a new one invalidates. */
@@ -119,8 +128,32 @@ export function runGate(
   }
 
   const candidates = parseVertices(raw.vertices, findings);
-  const rawEdges = Array.isArray(raw.edges) ? raw.edges : [];
+  const parsedEdges = (Array.isArray(raw.edges) ? raw.edges : [])
+    .map(parseEdge)
+    .filter((item): item is ParsedEdge => item !== null);
   const supersessions: Supersession[] = [];
+
+  // Resolution runs before evidence materialization so evidence follows the
+  // resolved id, and before admission so singleton and duplicate checks see the
+  // canonical identity.
+  const resolvedIds = new Set<string>();
+  if (governed && options.resolveEntities) {
+    const rewrites = resolveEntities(candidates, graph, contract);
+    for (const [from, to] of rewrites) {
+      findings.push(finding("HR009", "advisory", `resolved ${from} to existing ${to}`, from, "repaired"));
+      resolvedIds.add(to);
+    }
+    if (rewrites.size > 0) {
+      for (const candidate of candidates) {
+        const to = rewrites.get(candidate.id);
+        if (to) candidate.id = to;
+      }
+      for (const edge of parsedEdges) {
+        edge.out = rewrites.get(edge.out) ?? edge.out;
+        edge.in = rewrites.get(edge.in) ?? edge.in;
+      }
+    }
+  }
 
   // Materialize inline evidence before validation, so the synthesized vertices and
   // edges are held to exactly the same rules as extractor-authored ones.
@@ -133,7 +166,10 @@ export function runGate(
     Object.values(graph.vertices).map((vertex) => [vertex.id, vertex.label])
   );
 
+  const seenCandidateIds = new Set<string>();
   for (const candidate of [...candidates, ...materialized.vertices]) {
+    if (seenCandidateIds.has(candidate.id)) continue;
+    seenCandidateIds.add(candidate.id);
     // Evidence is the gate's to author. An extractor-supplied evidence vertex is
     // dropped rather than admitted, otherwise the orphan nodes it emits alongside
     // the materialized ones accumulate as unreferenced clutter.
@@ -161,8 +197,7 @@ export function runGate(
 
   const admittedEdges: GraphEdge[] = [];
   const seenEdgeIds = new Set<string>();
-  for (const item of [...rawEdges.map(parseEdge), ...materialized.edges]) {
-    if (!item) continue;
+  for (const item of [...parsedEdges, ...materialized.edges]) {
     const spec = contract.edgeSpecs.get(item.label);
     if (!spec) {
       findings.push(finding("HR003", severityOf(contract, "HR003", "hard", options), `unknown edge label ${item.label}`, item.id || null, "dropped"));
@@ -189,6 +224,13 @@ export function runGate(
     ? checkProvenanceAttachment(admittedVertices, admittedEdges, labels, contract, findings, options)
     : new Set<string>();
 
+  if (governed && options.deterministicIds) {
+    for (const vertex of admittedVertices) {
+      const existing = graph.vertices[vertex.id];
+      if (existing && existing.label === vertex.label) resolvedIds.add(vertex.id);
+    }
+  }
+
   let delta: GraphDelta = ungrounded.size > 0
     ? {
         // Only when the spec's soft provenance rule is escalated to hard: the
@@ -197,7 +239,7 @@ export function runGate(
         edges: admittedEdges.filter((edge) => !ungrounded.has(edge.out) && !ungrounded.has(edge.in))
       }
     : { vertices: admittedVertices, edges: admittedEdges };
-  if (governed && options.deterministicIds) delta = applyDeterministicIds(delta, contract, supersessions);
+  if (governed && options.deterministicIds) delta = applyDeterministicIds(delta, contract, supersessions, resolvedIds);
   for (const supersession of supersessions) {
     delta.edges.push({
       id: `${supersession.supersededId}--${SUPERSEDED_BY}-->${supersession.supersedingId}`,
@@ -212,6 +254,139 @@ export function runGate(
 }
 
 /**
+ * The property that names a knowledge vertex, in priority order. Shared by
+ * resolution here and by human-readable rendering in the evaluation harness.
+ */
+export const KEY_TEXT_PROPERTIES = [
+  "name", "title", "ruleText", "heuristic", "standardText", "description", "duration", "signalText"
+] as const;
+
+export function keyText(properties: Record<string, JsonValue>): string {
+  for (const key of KEY_TEXT_PROPERTIES) {
+    const value = properties[key];
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  // Labels whose naming property is not in the preferred list (constraintType,
+  // standardTime, ...) fall back to the first non-empty string property, so
+  // resolution and display are never blind to a vertex that has any text at all.
+  for (const value of Object.values(properties)) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return "";
+}
+
+const RESOLUTION_STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "of", "in", "on", "for", "to", "at", "is", "it", "with"
+]);
+
+function conceptTokens(normalized: string): Set<string> {
+  return new Set(normalized.split(" ").filter((token) => token && !RESOLUTION_STOPWORDS.has(token)));
+}
+
+/** True when two tokens are the same word up to one edit (plural, spelling variant). */
+function tokensMatch(left: string, right: string): boolean {
+  if (left === right) return true;
+  if (left.length < 5 || right.length < 5) return false;
+  if (Math.abs(left.length - right.length) > 1) return false;
+  // One-pass edit-distance-≤-1 check.
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < left.length && j < right.length) {
+    if (left[i] === right[j]) { i += 1; j += 1; continue; }
+    if (edits > 0) return false;
+    edits = 1;
+    if (left.length === right.length) { i += 1; j += 1; }
+    else if (left.length > right.length) i += 1;
+    else j += 1;
+  }
+  return edits + (left.length - i) + (right.length - j) <= 1;
+}
+
+/**
+ * Jaccard overlap where tokens match up to one edit, so "centred" matches
+ * "centered" and "signal" matches "signals" without any language resource.
+ */
+function conceptOverlap(left: Set<string>, right: Set<string>): number {
+  if (left.size === 0 || right.size === 0) return 0;
+  const unmatched = [...right];
+  let shared = 0;
+  for (const token of left) {
+    const index = unmatched.findIndex((other) => tokensMatch(token, other));
+    if (index >= 0) {
+      shared += 1;
+      unmatched.splice(index, 1);
+    }
+  }
+  return shared / (left.size + right.size - shared);
+}
+
+/**
+ * Map candidate ids onto existing graph vertices that hold the same concept.
+ * Two vertices are the same concept when they share a label and their key text
+ * is identical after normalization, or overlaps beyond a fixed threshold with
+ * tokens matched up to one edit. Deterministic and order-independent:
+ * candidates match against the graph, then against earlier candidates in the
+ * same delta, never transitively.
+ */
+function resolveEntities(
+  candidates: Candidate[],
+  graph: GraphState,
+  contract: GateContract
+): Map<string, string> {
+  type Anchor = { id: string; normalized: string; tokens: Set<string> };
+  const anchorsByLabel = new Map<string, Anchor[]>();
+
+  const superseded = new Set<string>();
+  for (const edge of Object.values(graph.edges)) {
+    if (edge.label === SUPERSEDED_BY) superseded.add(edge.out);
+  }
+
+  const addAnchor = (label: string, id: string, text: string) => {
+    const normalized = normalizeText(text);
+    if (!normalized) return;
+    let list = anchorsByLabel.get(label);
+    if (!list) {
+      list = [];
+      anchorsByLabel.set(label, list);
+    }
+    list.push({ id, normalized, tokens: conceptTokens(normalized) });
+  };
+
+  for (const vertex of Object.values(graph.vertices)) {
+    // A superseded fact is not a merge target; matching it would resurrect it.
+    if (!contract.knowledgeLabels.has(vertex.label) || superseded.has(vertex.id)) continue;
+    addAnchor(vertex.label, vertex.id, keyText(vertex.properties));
+  }
+
+  const rewrites = new Map<string, string>();
+  for (const candidate of candidates) {
+    if (!contract.knowledgeLabels.has(candidate.label)) continue;
+    const text = keyText(candidate.properties);
+    const normalized = normalizeText(text);
+    if (!normalized) continue;
+    const tokens = conceptTokens(normalized);
+
+    let match: Anchor | null = null;
+    for (const anchor of anchorsByLabel.get(candidate.label) ?? []) {
+      if (anchor.id === candidate.id) { match = null; break; }
+      if (anchor.normalized === normalized || conceptOverlap(anchor.tokens, tokens) >= 0.6) {
+        match = anchor;
+        break;
+      }
+    }
+    if (match) {
+      rewrites.set(candidate.id, match.id);
+    } else {
+      // Unmatched candidates become anchors so a second near-duplicate in the
+      // same delta lands on the first, not beside it.
+      addAnchor(candidate.label, candidate.id, text);
+    }
+  }
+  return rewrites;
+}
+
+/**
  * Content-derived ids for knowledge vertices: the same fact stated twice lands on
  * the same id and merges, so duplicates become structurally impossible rather
  * than something a later deduplication pass has to find.
@@ -219,11 +394,15 @@ export function runGate(
 function applyDeterministicIds(
   delta: GraphDelta,
   contract: GateContract,
-  supersessions: Supersession[]
+  supersessions: Supersession[],
+  resolvedIds: Set<string> = new Set()
 ): GraphDelta {
   const rewritten = new Map<string, string>();
   for (const vertex of delta.vertices) {
     if (!contract.knowledgeLabels.has(vertex.label)) continue;
+    // A vertex resolved onto an existing graph id keeps that id: re-hashing its
+    // (possibly partial) properties would fork the identity resolution just fixed.
+    if (resolvedIds.has(vertex.id)) continue;
     rewritten.set(vertex.id, `${vertex.label.toLowerCase()}:${contentHash(vertex.label, vertex.properties)}`);
   }
   // Evidence follows the fact it grounds, so identical facts share evidence too.

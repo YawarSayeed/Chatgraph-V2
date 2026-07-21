@@ -18,8 +18,7 @@
 import OpenAI from "openai";
 import { gateContract } from "@/lib/gate/contract";
 import { runGate, type GateFinding } from "@/lib/gate/gate";
-import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
-import { graphSummary } from "@/lib/schema";
+import { extractionToolSchema, knownEntitiesSummary, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { getDomain } from "@/lib/domains";
 import type { ChatRequest, GraphDelta, GraphState } from "@/lib/types";
 
@@ -55,7 +54,8 @@ export async function extractGovernedDelta(
       evidenceContext: { sourceEpisode: scaffold.episodeId, speaker: "expert", utterance: latestText },
       // The deployed configuration is the full gate.
       deterministicIds: true,
-      temporalContradictions: true
+      temporalContradictions: true,
+      resolveEntities: true
     });
 
     const candidate = {
@@ -182,7 +182,7 @@ async function callExtractor(
             .slice(-8)
             .map((message) => `${message.role}: ${message.content}`)
             .join("\n")}\n\n` +
-          `Current graph:\n${graphSummary(body.graph)}` +
+          `${knownEntitiesSummary(domainId, body.graph)}` +
           (feedback ? `\n\nCORRECTION REQUIRED:\n${feedback}` : "")
       }
     ],

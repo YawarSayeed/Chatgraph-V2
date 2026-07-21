@@ -77,7 +77,11 @@ async function runAgent(openai: OpenAI, messages: ChatMessage[], systemPrompt: s
     max_completion_tokens: 420,
     messages: [
       { role: "system", content: systemPrompt },
-      ...normalizedMessages.slice(-14).map((message) => ({
+      // The full interview, not a sliding window. A 14-message window meant that
+      // by mid-session the agent could no longer see which sections it had
+      // covered, so it lost its place, re-asked questions, and stalled waiting
+      // for "continue". A structured interview is bounded; keep all of it.
+      ...normalizedMessages.slice(-120).map((message) => ({
         role: message.role as "user" | "assistant",
         content: message.content
       }))

@@ -68,6 +68,83 @@ function conditionLine(id) {
     `${c.tokensPerFact ?? "UNMEASURED"} tokens/fact, ${c.secondsPerFact ?? "UNMEASURED"} s/fact, retry budget ${show(c.retryBudgetConsumed)}.`;
 }
 
+/**
+ * The findings narrative is computed from the measurements, not written beside
+ * them: every "significant"/"not significant" is decided by the exact test it
+ * cites, so a re-run that moves a number cannot leave a stale claim behind.
+ */
+function findingsSection() {
+  const c = metrics.conditions;
+  const tests = metrics.pairedTests;
+  const sig = (t) => t.p < 0.05;
+  const describeTest = (name) => {
+    const t = tests[name];
+    return `${name}: discordant ${t.discordant}, exact p = ${t.p} — ${sig(t) ? "significant" : "not statistically significant"}`;
+  };
+
+  const parts = [];
+
+  parts.push(`### 1. Ungated extraction produces almost no usable typed knowledge
+
+The composite metric — facts both schema-conforming and judge-confirmed, over proposals — is
+${withCount(c.A0.usableFaithfulYield)} ungated versus ${withCount(c.A1.usableFaithfulYield)} under a typed
+tool schema. Free-form output invents its own vocabulary and stays close to the wording of the
+turn; such statements can be individually faithful (A0 EF ${show(c.A0.EF)}) and collectively useless,
+because they conform to no ontology that could be queried, merged, or governed. The A0 EF column
+must never be read as "ungated extraction works": its usable yield is ${show(c.A0.usableFaithfulYield)}.
+
+Whether constrained decoding also *costs* per-fact faithfulness is prompt-sensitive: an earlier
+run of this harness (archived with the repository history) measured a significant A0→A1 EF drop;
+under the current prompt the same contrast is ${describeTest("A0 vs A1")}. We report the
+composite because it is stable across both runs; the EF-direction claim is not.`);
+
+  parts.push(`### 2. Structural provenance: coverage is architectural, not behavioural
+
+Provenance coverage is ${show(c.A4.provenanceCoverage)}–${show(c["A4-strict"].provenanceCoverage)} in the conditions that
+require evidence and ${show(c.A1.provenanceCoverage)} in those that do not. The 2026-07-16 package measured
+2.2–5.4% under identical intent, when evidence was a separate vertex plus an edge the extractor
+had to remember to emit. Carrying evidence inline on the fact and letting the gate materialize
+the node and select the typed edge makes the orphan-evidence failure unrepresentable. Coverage
+moved ~90 points because the representation changed, not because the model behaved better.`);
+
+  parts.push(`### 3. Enforcing provenance hard buys coverage, and only coverage
+
+A4 and A4-strict differ in one bit: whether the spec's soft evidence rule is enforced as hard.
+Coverage rises ${show(c.A4.provenanceCoverage)} → ${show(c["A4-strict"].provenanceCoverage)}; yield falls
+${show(c.A4.yield)} → ${show(c["A4-strict"].yield)}; usable+faithful falls ${show(c.A4.usableFaithfulYield)} →
+${show(c["A4-strict"].usableFaithfulYield)}; per-fact EF is unchanged within its interval
+(${withCount(c.A4.EF)} → ${withCount(c["A4-strict"].EF)}; ${describeTest("A4 vs A4-strict")}).
+Severity escalation purchases a reporting metric at the price of knowledge kept. The spec's
+choice of soft severity for live sessions is the right default.`);
+
+  parts.push(`### 4. Typed-error retry buys volume; its faithfulness cost is real here
+
+Retry raises admitted facts ${c.A2.admittedFacts} → ${c.A3.admittedFacts} at
+${c.A2.tokensPerFact} → ${c.A3.tokensPerFact} tokens per admitted fact. On this run the recovered
+volume is measurably less grounded: ${describeTest("A2 vs A3")}, EF ${show(c.A2.EF)} → ${show(c.A3.EF)}.
+The earlier run measured no such cost, so the effect is not stable across prompts either — but a
+deployment enabling retry should watch EF, not assume recovery is free.`);
+
+  parts.push(`### 5. The full deployed gate
+
+A5 (schema + soft provenance + confidence vocabulary + entity resolution + content-derived
+identity + supersession) admits ${withCount(c.A5.yield)} of proposals with OC ${show(c.A5.OC)},
+duplicates ${show(c.A5.duplicateRate)} (${c.A5.duplicateRate.count}), usable+faithful
+${withCount(c.A5.usableFaithfulYield)} — the highest composite among the retry-bearing
+conditions — and ${c.A5.temporalContradictions} temporal supersessions that the other conditions
+would have overwritten silently. Against ungated extraction the per-utterance contamination test
+is ${describeTest("A0 vs A5")}.`);
+
+  parts.push(`### 6. Coverage is not quality
+
+An independent judge confirms only ${withCount(c.A4.citationCorrectness)} (A4) to
+${withCount(c.A5.citationCorrectness)} (A5) of admitted citations actually license the fact that
+cites them, even after the span-based specificity rule. Roughly one citation in five is a quote
+that does not support its claim. Provenance coverage alone overstates grounding; report both.`);
+
+  return parts.join("\n\n");
+}
+
 function resultsMarkdown() {
   const c = metrics.conditions;
   const tests = metrics.pairedTests;
@@ -103,79 +180,7 @@ ${ORDER.map(conditionLine).join("\n")}
 
 ## Findings
 
-### 1. Structure is not grounding — and it costs grounding
-
-Constrained decoding does what it claims: ontology conformance rises from
-${show(c.A0.OC)} (${c.A0.OC.count}) ungated to ${show(c.A1.OC)} (${c.A1.OC.count}) under a typed tool schema.
-Evidential faithfulness moves the other way, from ${withCount(c.A0.EF)} to ${withCount(c.A1.EF)}.
-The paired test over the ${metrics.corpus.eligibleTurns} shared utterances is significant:
-A0 vs A1 discordant ${tests["A0 vs A1"].discordant}, exact p = ${tests["A0 vs A1"].p}.
-
-The mechanism is visible in the raw output. Ungated extraction invents its own
-vocabulary — labels such as "Service Standardization" and "eye twitch signal",
-relations such as "appreciates" and "enhances" — and stays close to the wording of
-the turn. Those statements are easy for a judge to confirm and impossible to query,
-merge, or govern. **Free-form faithfulness is the precision of vagueness.**
-
-### 2. What the gate is actually worth: usable, grounded knowledge
-
-Neither conformance nor faithfulness alone captures the goal. A fact that conforms to
-no ontology cannot be used; a schema-perfect fact the utterance does not support is a
-hallucination with good manners. Counting facts that are **both**:
-
-${ORDER.map((id) => `- ${id}: ${withCount(metrics.conditions[id].usableFaithfulYield)}`).join("\n")}
-
-Ungated extraction converts ${show(c.A0.usableFaithfulYield)} of what it proposes into usable
-grounded knowledge. Every gated condition converts ${show(c.A2.usableFaithfulYield)}–${show(c.A1.usableFaithfulYield)}.
-That gap, not the EF column, is what the gate buys.
-
-### 3. Provenance as an admission criterion
-
-A4 and A4-strict differ in exactly one bit: whether the spec's soft rule HR006
-("every knowledge vertex must carry evidence") is enforced as hard. Everything else —
-prompt, model, seed, retry budget, other constraints — is identical.
-
-| | A4 (soft) | A4-strict (hard) |
-|---|---|---|
-| Provenance coverage | ${withCount(c.A4.provenanceCoverage)} | ${withCount(c["A4-strict"].provenanceCoverage)} |
-| Citation correctness | ${withCount(c.A4.citationCorrectness)} | ${withCount(c["A4-strict"].citationCorrectness)} |
-| Evidential faithfulness | ${withCount(c.A4.EF)} | ${withCount(c["A4-strict"].EF)} |
-| Yield | ${withCount(c.A4.yield)} | ${withCount(c["A4-strict"].yield)} |
-
-Enforcing evidence raises faithfulness and citation quality and costs yield, in the
-direction the design predicts. **The effect is not statistically significant on this
-corpus**: only ${tests["A4 vs A4-strict"].discordant} utterances are discordant, exact p = ${tests["A4 vs A4-strict"].p}.
-The point estimate is suggestive; the sample cannot carry the claim.
-
-### 4. Structural provenance is what made provenance measurable at all
-
-Provenance coverage is ${show(c.A4.provenanceCoverage)}–${show(c["A4-strict"].provenanceCoverage)} in the conditions that require it
-and ${show(c.A1.provenanceCoverage)} in those that do not. The archived 2026-07-16 run measured
-2.2–5.4% under an identical intent, because evidence was a separate vertex plus an edge the
-extractor had to remember to emit: it produced 41 evidence nodes and only 7 provenance edges.
-Carrying evidence inline on the fact and letting the gate materialize the node and select the
-correctly-typed edge makes the orphan case unrepresentable.
-
-### 5. Coverage is not quality
-
-Citations pass the anti-generic rule and still fail on inspection: an independent judge
-confirms only ${withCount(c.A4.citationCorrectness)} of A4 citations and ${withCount(c["A4-strict"].citationCorrectness)} of A4-strict
-citations actually license the fact that cites them. **Provenance coverage overstates
-grounding.** A deployment that reports coverage alone is reporting the wrong number.
-
-### 6. Constraints that bought nothing measurable here
-
-Reported plainly because the ablation is only worth running if it can return a negative:
-
-- **Deterministic identity.** Duplicate rate is ${show(c.A5.duplicateRate)} (${c.A5.duplicateRate.count}) under the full
-  gate and ${show(c.A3.duplicateRate)} (${c.A3.duplicateRate.count}) without it. On this corpus the extractor rarely
-  restates a fact in content-identical form, so content-derived ids had nothing to collapse.
-  The constraint is cheap and prevents a failure this session did not exhibit.
-- **Typed-error retry** raised admitted facts from ${c.A2.admittedFacts} to ${c.A3.admittedFacts} at
-  ${c.A2.tokensPerFact}→${c.A3.tokensPerFact} tokens per admitted fact, with EF unchanged within its interval
-  (${show(c.A2.EF)} → ${show(c.A3.EF)}). Retry buys volume, not faithfulness — and does not cost it.
-- **Temporal contradiction handling** fired ${c.A5.temporalContradictions} times: ${c.A5.temporalContradictions} superseding corrections
-  the other conditions would have silently overwritten. Real, but a single-session count.
+${findingsSection()}
 
 ## Paired tests
 

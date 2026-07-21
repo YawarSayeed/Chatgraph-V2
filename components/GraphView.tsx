@@ -79,44 +79,77 @@ function color(label: string, display?: GraphDisplayConfig): string {
 const W = 720;
 const H = 520;
 
+/**
+ * Incremental force layout. Nodes the previous layout already placed keep their
+ * positions as the starting state; new nodes are seeded beside a neighbor they
+ * connect to (or near the centre when unconnected). When most of the graph is
+ * unchanged the simulation is warm-started at low alpha, so adding a turn's facts
+ * adjusts the picture instead of reshuffling it — the per-turn reshuffle was the
+ * single biggest reason the graph read as messy.
+ */
 function computeLayout(
   vertices: GraphVertex[],
   edges: { out: string; in: string; label: string }[],
-  display?: GraphDisplayConfig
+  display: GraphDisplayConfig | undefined,
+  previous: Map<string, Pos>
 ): { nodes: LayoutNode[]; edges: LayoutEdge[] } | null {
   if (vertices.length === 0) return null;
 
-  const simNodes: (LayoutNode & { vx: number; vy: number })[] = vertices.map((v) => ({
-    id: v.id,
-    label: v.label,
-    x: W / 2 + (Math.random() - 0.5) * 40,
-    y: H / 2 + (Math.random() - 0.5) * 40,
-    vx: 0,
-    vy: 0,
-  }));
+  const neighborSeed = (id: string): Pos | null => {
+    for (const e of edges) {
+      const other = e.out === id ? e.in : e.in === id ? e.out : null;
+      if (!other) continue;
+      const anchor = previous.get(other);
+      if (anchor) return anchor;
+    }
+    return null;
+  };
+
+  let placed = 0;
+  const simNodes: (LayoutNode & { vx: number; vy: number })[] = vertices.map((v) => {
+    const kept = previous.get(v.id);
+    if (kept) {
+      placed += 1;
+      return { id: v.id, label: v.label, x: kept.x, y: kept.y, vx: 0, vy: 0 };
+    }
+    const seed = neighborSeed(v.id);
+    const jitter = () => (Math.random() - 0.5) * 60;
+    return {
+      id: v.id,
+      label: v.label,
+      x: (seed?.x ?? W / 2) + jitter(),
+      y: (seed?.y ?? H / 2) + jitter(),
+      vx: 0,
+      vy: 0,
+    };
+  });
 
   const nodeMap = new Map(simNodes.map((n) => [n.id, n]));
   const simEdges: { source: LayoutNode & { vx: number; vy: number }; target: LayoutNode & { vx: number; vy: number }; label: string }[] = [];
-
   for (const e of edges) {
     const src = nodeMap.get(e.out);
     const tgt = nodeMap.get(e.in);
     if (src && tgt) simEdges.push({ source: src, target: tgt, label: e.label });
   }
 
+  // Charge scales with node count so dense graphs spread instead of clumping;
+  // the collision radius reserves room for the label pill under each node.
+  const chargeStrength = -Math.min(600, 180 + simNodes.length * 6);
+  const mostlyStable = simNodes.length > 0 && placed / simNodes.length > 0.7;
+
   const sim = d3Force
     .forceSimulation(simNodes)
-    .force("link", d3Force.forceLink(simEdges).distance(90).strength(0.15))
-    .force("charge", d3Force.forceManyBody().strength(-200))
+    .force("link", d3Force.forceLink(simEdges).distance(95).strength(0.2))
+    .force("charge", d3Force.forceManyBody().strength(chargeStrength))
     .force("center", d3Force.forceCenter(W / 2, H / 2))
-    .force("collision", d3Force.forceCollide().radius((n) => radius((n as LayoutNode).label, display) + 10))
+    .force("collision", d3Force.forceCollide().radius((n) => radius((n as LayoutNode).label, display) + 22))
     .alphaDecay(0.04)
     .velocityDecay(0.5)
     .stop();
 
-  sim.alpha(1);
-  const totalTicks = Math.ceil(Math.log(0.001) / Math.log(1 - 0.04));
-  for (let i = 0; i < totalTicks; i += 1) sim.tick();
+  sim.alpha(mostlyStable ? 0.25 : 1);
+  const totalTicks = Math.ceil(Math.log(0.001 / (mostlyStable ? 0.25 : 1)) / Math.log(1 - 0.04));
+  for (let i = 0; i < Math.max(totalTicks, 30); i += 1) sim.tick();
 
   return {
     nodes: simNodes.map((n) => ({ id: n.id, label: n.label, x: n.x, y: n.y })),
@@ -135,14 +168,24 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     () => (display?.hiddenTextPatterns ?? []).map((pattern) => new RegExp(pattern, "i")),
     [display]
   );
+  // A superseded fact is history, not current knowledge: the view shows the
+  // graph as it stands now, and the superseded version stays in the data for audit.
+  const supersededIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const edgeItem of Object.values(graph.edges)) {
+      if (edgeItem.label === "supersededBy") ids.add(edgeItem.out);
+    }
+    return ids;
+  }, [graph.edges]);
   const vertexList = useMemo(
     () =>
       Object.values(graph.vertices).filter(
         (vertex) =>
           !hiddenLabels.has(vertex.label) &&
+          !supersededIds.has(vertex.id) &&
           !hiddenTextPatterns.some((pattern) => pattern.test(semanticLabel(vertex, display)))
       ),
-    [display, graph.vertices, hiddenLabels, hiddenTextPatterns]
+    [display, graph.vertices, hiddenLabels, hiddenTextPatterns, supersededIds]
   );
   const visibleIds = useMemo(() => new Set(vertexList.map((vertex) => vertex.id)), [vertexList]);
   const edgeList = useMemo(
@@ -150,6 +193,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
       Object.values(graph.edges).filter(
         (edgeItem) =>
           !hiddenEdges.has(edgeItem.label) &&
+          edgeItem.label !== "supersededBy" &&
           visibleIds.has(edgeItem.out) &&
           visibleIds.has(edgeItem.in)
       ),
@@ -160,17 +204,52 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
   const [layout, setLayout] = useState<{ nodes: LayoutNode[]; edges: LayoutEdge[] } | null>(null);
   const [nodePositions, setNodePositions] = useState<Map<string, Pos>>(new Map());
 
-  // Compute initial layout once when graph changes
+  // Recompute layout when the graph changes, warm-starting from wherever the
+  // nodes currently are — including positions the user dragged them to.
+  const positionsRef = useRef<Map<string, Pos>>(new Map());
   useEffect(() => {
-    const result = computeLayout(vertexList, edgeList, display);
+    positionsRef.current = nodePositions.size > 0 ? nodePositions : positionsRef.current;
+  }, [nodePositions]);
+  useEffect(() => {
+    const result = computeLayout(vertexList, edgeList, display, positionsRef.current);
     if (result) {
       setLayout(result);
       const pos = new Map<string, Pos>();
       for (const n of result.nodes) pos.set(n.id, { x: n.x, y: n.y });
       setNodePositions(pos);
+      positionsRef.current = pos;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
+
+  // The viewport survives re-layouts: it lives in a ref, not in the effect.
+  const transformRef = useRef({ x: 0, y: 0, k: 1 });
+  const userAdjustedViewRef = useRef(false);
+
+  // Until the user pans or zooms themselves, keep the whole graph in view.
+  useEffect(() => {
+    if (!layout || userAdjustedViewRef.current) return;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of layout.nodes) {
+      const pos = nodePositions.get(n.id) ?? { x: n.x, y: n.y };
+      minX = Math.min(minX, pos.x); maxX = Math.max(maxX, pos.x);
+      minY = Math.min(minY, pos.y); maxY = Math.max(maxY, pos.y);
+    }
+    if (!Number.isFinite(minX)) return;
+    const pad = 60;
+    const width = maxX - minX + pad * 2;
+    const height = maxY - minY + pad * 2;
+    const k = Math.min(1.4, Math.min(W / width, H / height));
+    transformRef.current = {
+      k,
+      x: (W - k * (minX + maxX)) / 2,
+      y: (H - k * (minY + maxY)) / 2
+    };
+    zoomGroupRef.current?.setAttribute(
+      "transform",
+      `translate(${transformRef.current.x}, ${transformRef.current.y}) scale(${transformRef.current.k})`
+    );
+  }, [layout, nodePositions]);
 
   // Setup zoom + drag
   useEffect(() => {
@@ -178,9 +257,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     const zoomGroup = zoomGroupRef.current;
     if (!svg || !zoomGroup || !layout) return;
     const zg = zoomGroup;
-
-    // eslint-disable-next-line prefer-const
-    let currentTransform = { x: 0, y: 0, k: 1 };
+    const currentTransform = transformRef.current;
 
     function applyTransform() {
       zg.setAttribute(
@@ -188,6 +265,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
         `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`
       );
     }
+    applyTransform();
 
     let isPanning = false;
     let isDragging = false;
@@ -239,6 +317,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
         return;
       }
       isPanning = true;
+      userAdjustedViewRef.current = true;
       panStartX = e.clientX - currentTransform.x;
       panStartY = e.clientY - currentTransform.y;
       svg.style.cursor = "grabbing";
@@ -273,6 +352,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      userAdjustedViewRef.current = true;
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const newK = Math.max(0.1, Math.min(4, currentTransform.k * delta));
       const rect = svg.getBoundingClientRect();

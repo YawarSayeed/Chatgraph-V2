@@ -1,6 +1,6 @@
 # Measured results — gated elicitation ablation
 
-Generated: 2026-07-21T21:34:48.177Z
+Generated: 2026-07-21T22:58:50.638Z
 
 ## What this package is
 
@@ -21,100 +21,78 @@ Quantities that were not measured are written `UNMEASURED`. They are never treat
   5 infrastructure), 33 edge types,
   contract drift 0.
 - Extractor gpt-4o-mini, temperature 0, seed 20260721,
-  prompt hash `25aa1b780beeda5d`. Judge gpt-4o.
+  prompt hash `dd62d951b0145838`. Judge gpt-4o.
 - Fact definition: A fact is one non-infrastructure vertex, or one edge whose endpoints are both non-infrastructure vertices. Infrastructure and provenance structure are excluded.
 
 ## Conditions
 
-- **A0** (ungated free-form): proposed 48, admitted 48. OC 2.1% (1/48; CI 0.4-10.9%). EF 95.8% (46/48; CI 86-98.8%). Provenance 0.0% (0/16; CI 0-19.4%). Citations UNMEASURED. Usable+faithful 2.1% (1/48; CI 0.4-10.9%). 476 tokens/fact, 1.42 s/fact, retry budget 0.0%.
-- **A1** (constrained decoding): proposed 45, admitted 45. OC 95.6% (43/45; CI 85.2-98.8%). EF 82.2% (37/45; CI 68.7-90.7%). Provenance 0.0% (0/37; CI 0-9.4%). Citations UNMEASURED. Usable+faithful 80.0% (36/45; CI 66.2-89.1%). 1510 tokens/fact, 1.82 s/fact, retry budget 0.0%.
-- **A2** (+ typed-schema gate): proposed 45, admitted 42. OC 100.0% (42/42; CI 91.6-100%). EF 83.3% (35/42; CI 69.4-91.7%). Provenance 0.0% (0/37; CI 0-9.4%). Citations UNMEASURED. Usable+faithful 77.8% (35/45; CI 63.7-87.5%). 1618 tokens/fact, 1.95 s/fact, retry budget 0.0%.
-- **A3** (+ typed-error retry): proposed 75, admitted 69. OC 100.0% (69/69; CI 94.7-100%). EF 85.5% (59/69; CI 75.3-91.9%). Provenance 0.0% (0/54; CI 0-6.6%). Citations UNMEASURED. Usable+faithful 78.7% (59/75; CI 68.1-86.4%). 2300 tokens/fact, 3.71 s/fact, retry budget 60.9%.
-- **A4** (+ provenance requirement): proposed 81, admitted 74. OC 100.0% (74/74; CI 95.1-100%). EF 81.1% (60/74; CI 70.7-88.4%). Provenance 92.7% (51/55; CI 82.7-97.1%). Citations 70.6% (36/51; CI 57-81.3%). Usable+faithful 74.1% (60/81; CI 63.6-82.4%). 2244 tokens/fact, 3.62 s/fact, retry budget 65.6%.
-- **A4-strict** (+ provenance enforced hard): proposed 78, admitted 66. OC 100.0% (66/66; CI 94.5-100%). EF 86.4% (57/66; CI 76.1-92.7%). Provenance 98.1% (51/52; CI 89.9-99.7%). Citations 78.4% (40/51; CI 65.4-87.5%). Usable+faithful 73.1% (57/78; CI 62.3-81.7%). 2597 tokens/fact, 4.32 s/fact, retry budget 68.8%.
-- **A5** (full deployed gate): proposed 80, admitted 75. OC 100.0% (75/75; CI 95.1-100%). EF 80.0% (60/75; CI 69.6-87.5%). Provenance 92.7% (51/55; CI 82.7-97.1%). Citations 76.5% (39/51; CI 63.2-86%). Usable+faithful 75.0% (60/80; CI 64.5-83.2%). 2212 tokens/fact, 3.53 s/fact, retry budget 65.6%.
+- **A0** (ungated free-form): proposed 48, admitted 48. OC 4.2% (2/48; CI 1.2-14%). EF 87.5% (42/48; CI 75.3-94.1%). Provenance 0.0% (0/11; CI 0-25.9%). Citations UNMEASURED. Usable+faithful 4.2% (2/48; CI 1.2-14%). 519 tokens/fact, 1.22 s/fact, retry budget 0.0%.
+- **A1** (constrained decoding): proposed 45, admitted 45. OC 91.1% (41/45; CI 79.3-96.5%). EF 93.3% (42/45; CI 82.1-97.7%). Provenance 0.0% (0/39; CI 0-9%). Citations UNMEASURED. Usable+faithful 84.4% (38/45; CI 71.2-92.3%). 1550 tokens/fact, 1.25 s/fact, retry budget 0.0%.
+- **A2** (+ typed-schema gate): proposed 45, admitted 41. OC 100.0% (41/41; CI 91.4-100%). EF 92.7% (38/41; CI 80.6-97.5%). Provenance 0.0% (0/39; CI 0-9%). Citations UNMEASURED. Usable+faithful 84.4% (38/45; CI 71.2-92.3%). 1701 tokens/fact, 1.37 s/fact, retry budget 0.0%.
+- **A3** (+ typed-error retry): proposed 78, admitted 74. OC 100.0% (74/74; CI 95.1-100%). EF 74.3% (55/74; CI 63.3-82.9%). Provenance 0.0% (0/56; CI 0-6.4%). Citations UNMEASURED. Usable+faithful 70.5% (55/78; CI 59.6-79.5%). 2054 tokens/fact, 2.19 s/fact, retry budget 53.1%.
+- **A4** (+ provenance requirement): proposed 75, admitted 71. OC 100.0% (71/71; CI 94.9-100%). EF 76.1% (54/71; CI 65-84.5%). Provenance 87.5% (49/56; CI 76.4-93.8%). Citations 79.6% (39/49; CI 66.4-88.5%). Usable+faithful 72.0% (54/75; CI 61-80.9%). 2285 tokens/fact, 2.52 s/fact, retry budget 59.4%.
+- **A4-strict** (+ provenance enforced hard): proposed 77, admitted 61. OC 100.0% (61/61; CI 94.1-100%). EF 75.4% (46/61; CI 63.3-84.5%). Provenance 100.0% (49/49; CI 92.7-100%). Citations 79.6% (39/49; CI 66.4-88.5%). Usable+faithful 59.7% (46/77; CI 48.6-70%). 2774 tokens/fact, 2.98 s/fact, retry budget 64.1%.
+- **A5** (full deployed gate): proposed 75, admitted 75. OC 100.0% (75/75; CI 95.1-100%). EF 76.0% (57/75; CI 65.2-84.2%). Provenance 84.5% (49/58; CI 73.1-91.6%). Citations 81.6% (40/49; CI 68.6-90%). Usable+faithful 76.0% (57/75; CI 65.2-84.2%). 2230 tokens/fact, 2.47 s/fact, retry budget 62.5%.
 
 ## Findings
 
-### 1. Structure is not grounding — and it costs grounding
+### 1. Ungated extraction produces almost no usable typed knowledge
 
-Constrained decoding does what it claims: ontology conformance rises from
-2.1% (1/48) ungated to 95.6% (43/45) under a typed tool schema.
-Evidential faithfulness moves the other way, from 95.8% (46/48; CI 86-98.8%) to 82.2% (37/45; CI 68.7-90.7%).
-The paired test over the 32 shared utterances is significant:
-A0 vs A1 discordant 6, exact p = 0.0313.
+The composite metric — facts both schema-conforming and judge-confirmed, over proposals — is
+4.2% (2/48; CI 1.2-14%) ungated versus 84.4% (38/45; CI 71.2-92.3%) under a typed
+tool schema. Free-form output invents its own vocabulary and stays close to the wording of the
+turn; such statements can be individually faithful (A0 EF 87.5%) and collectively useless,
+because they conform to no ontology that could be queried, merged, or governed. The A0 EF column
+must never be read as "ungated extraction works": its usable yield is 4.2%.
 
-The mechanism is visible in the raw output. Ungated extraction invents its own
-vocabulary — labels such as "Service Standardization" and "eye twitch signal",
-relations such as "appreciates" and "enhances" — and stays close to the wording of
-the turn. Those statements are easy for a judge to confirm and impossible to query,
-merge, or govern. **Free-form faithfulness is the precision of vagueness.**
+Whether constrained decoding also *costs* per-fact faithfulness is prompt-sensitive: an earlier
+run of this harness (archived with the repository history) measured a significant A0→A1 EF drop;
+under the current prompt the same contrast is A0 vs A1: discordant 3, exact p = 1 — not statistically significant. We report the
+composite because it is stable across both runs; the EF-direction claim is not.
 
-### 2. What the gate is actually worth: usable, grounded knowledge
+### 2. Structural provenance: coverage is architectural, not behavioural
 
-Neither conformance nor faithfulness alone captures the goal. A fact that conforms to
-no ontology cannot be used; a schema-perfect fact the utterance does not support is a
-hallucination with good manners. Counting facts that are **both**:
+Provenance coverage is 87.5%–100.0% in the conditions that
+require evidence and 0.0% in those that do not. The 2026-07-16 package measured
+2.2–5.4% under identical intent, when evidence was a separate vertex plus an edge the extractor
+had to remember to emit. Carrying evidence inline on the fact and letting the gate materialize
+the node and select the typed edge makes the orphan-evidence failure unrepresentable. Coverage
+moved ~90 points because the representation changed, not because the model behaved better.
 
-- A0: 2.1% (1/48; CI 0.4-10.9%)
-- A1: 80.0% (36/45; CI 66.2-89.1%)
-- A2: 77.8% (35/45; CI 63.7-87.5%)
-- A3: 78.7% (59/75; CI 68.1-86.4%)
-- A4: 74.1% (60/81; CI 63.6-82.4%)
-- A4-strict: 73.1% (57/78; CI 62.3-81.7%)
-- A5: 75.0% (60/80; CI 64.5-83.2%)
+### 3. Enforcing provenance hard buys coverage, and only coverage
 
-Ungated extraction converts 2.1% of what it proposes into usable
-grounded knowledge. Every gated condition converts 77.8%–80.0%.
-That gap, not the EF column, is what the gate buys.
+A4 and A4-strict differ in one bit: whether the spec's soft evidence rule is enforced as hard.
+Coverage rises 87.5% → 100.0%; yield falls
+94.7% → 79.2%; usable+faithful falls 72.0% →
+59.7%; per-fact EF is unchanged within its interval
+(76.1% (54/71; CI 65-84.5%) → 75.4% (46/61; CI 63.3-84.5%); A4 vs A4-strict: discordant 1, exact p = 1 — not statistically significant).
+Severity escalation purchases a reporting metric at the price of knowledge kept. The spec's
+choice of soft severity for live sessions is the right default.
 
-### 3. Provenance as an admission criterion
+### 4. Typed-error retry buys volume; its faithfulness cost is real here
 
-A4 and A4-strict differ in exactly one bit: whether the spec's soft rule HR006
-("every knowledge vertex must carry evidence") is enforced as hard. Everything else —
-prompt, model, seed, retry budget, other constraints — is identical.
+Retry raises admitted facts 41 → 74 at
+1701 → 2054 tokens per admitted fact. On this run the recovered
+volume is measurably less grounded: A2 vs A3: discordant 7, exact p = 0.0156 — significant, EF 92.7% → 74.3%.
+The earlier run measured no such cost, so the effect is not stable across prompts either — but a
+deployment enabling retry should watch EF, not assume recovery is free.
 
-| | A4 (soft) | A4-strict (hard) |
-|---|---|---|
-| Provenance coverage | 92.7% (51/55; CI 82.7-97.1%) | 98.1% (51/52; CI 89.9-99.7%) |
-| Citation correctness | 70.6% (36/51; CI 57-81.3%) | 78.4% (40/51; CI 65.4-87.5%) |
-| Evidential faithfulness | 81.1% (60/74; CI 70.7-88.4%) | 86.4% (57/66; CI 76.1-92.7%) |
-| Yield | 91.4% (74/81; CI 83.2-95.8%) | 84.6% (66/78; CI 75-91%) |
+### 5. The full deployed gate
 
-Enforcing evidence raises faithfulness and citation quality and costs yield, in the
-direction the design predicts. **The effect is not statistically significant on this
-corpus**: only 2 utterances are discordant, exact p = 0.5.
-The point estimate is suggestive; the sample cannot carry the claim.
+A5 (schema + soft provenance + confidence vocabulary + entity resolution + content-derived
+identity + supersession) admits 100.0% (75/75; CI 95.1-100%) of proposals with OC 100.0%,
+duplicates 0.0% (0/57), usable+faithful
+76.0% (57/75; CI 65.2-84.2%) — the highest composite among the retry-bearing
+conditions — and 2 temporal supersessions that the other conditions
+would have overwritten silently. Against ungated extraction the per-utterance contamination test
+is A0 vs A5: discordant 5, exact p = 0.0625 — not statistically significant.
 
-### 4. Structural provenance is what made provenance measurable at all
+### 6. Coverage is not quality
 
-Provenance coverage is 92.7%–98.1% in the conditions that require it
-and 0.0% in those that do not. The archived 2026-07-16 run measured
-2.2–5.4% under an identical intent, because evidence was a separate vertex plus an edge the
-extractor had to remember to emit: it produced 41 evidence nodes and only 7 provenance edges.
-Carrying evidence inline on the fact and letting the gate materialize the node and select the
-correctly-typed edge makes the orphan case unrepresentable.
-
-### 5. Coverage is not quality
-
-Citations pass the anti-generic rule and still fail on inspection: an independent judge
-confirms only 70.6% (36/51; CI 57-81.3%) of A4 citations and 78.4% (40/51; CI 65.4-87.5%) of A4-strict
-citations actually license the fact that cites them. **Provenance coverage overstates
-grounding.** A deployment that reports coverage alone is reporting the wrong number.
-
-### 6. Constraints that bought nothing measurable here
-
-Reported plainly because the ablation is only worth running if it can return a negative:
-
-- **Deterministic identity.** Duplicate rate is 0.0% (0/55) under the full
-  gate and 0.0% (0/52) without it. On this corpus the extractor rarely
-  restates a fact in content-identical form, so content-derived ids had nothing to collapse.
-  The constraint is cheap and prevents a failure this session did not exhibit.
-- **Typed-error retry** raised admitted facts from 42 to 69 at
-  1618→2300 tokens per admitted fact, with EF unchanged within its interval
-  (83.3% → 85.5%). Retry buys volume, not faithfulness — and does not cost it.
-- **Temporal contradiction handling** fired 2 times: 2 superseding corrections
-  the other conditions would have silently overwritten. Real, but a single-session count.
+An independent judge confirms only 79.6% (39/49; CI 66.4-88.5%) (A4) to
+81.6% (40/49; CI 68.6-90%) (A5) of admitted citations actually license the fact that
+cites them, even after the span-based specificity rule. Roughly one citation in five is a quote
+that does not support its claim. Provenance coverage alone overstates grounding; report both.
 
 ## Paired tests
 
@@ -123,13 +101,13 @@ Exact two-sided McNemar over the 32 eligible turns.
 
 | Comparison | left-only | right-only | discordant | exact p |
 |---|---:|---:|---:|---:|
-| A0 vs A1 | 0 | 6 | 6 | 0.0313 |
-| A1 vs A2 | 1 | 0 | 1 | 1 |
-| A2 vs A3 | 1 | 2 | 3 | 1 |
-| A3 vs A4 | 1 | 2 | 3 | 1 |
-| A4 vs A4-strict | 2 | 0 | 2 | 0.5 |
+| A0 vs A1 | 2 | 1 | 3 | 1 |
+| A1 vs A2 | 0 | 0 | 0 | 1 |
+| A2 vs A3 | 0 | 7 | 7 | 0.0156 |
+| A3 vs A4 | 1 | 0 | 1 | 1 |
+| A4 vs A4-strict | 1 | 0 | 1 | 1 |
 | A4 vs A5 | 1 | 1 | 2 | 1 |
-| A0 vs A5 | 0 | 7 | 7 | 0.0156 |
+| A0 vs A5 | 0 | 5 | 5 | 0.0625 |
 
 ## Threats to validity
 

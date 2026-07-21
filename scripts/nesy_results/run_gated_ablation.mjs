@@ -63,7 +63,7 @@ const CONDITIONS = [
     id: "A5",
     label: "full deployed gate",
     style: "tool",
-    gate: { mode: "governed", deterministicIds: true, temporalContradictions: true },
+    gate: { mode: "governed", deterministicIds: true, temporalContradictions: true, resolveEntities: true },
     retry: true
   }
 ];

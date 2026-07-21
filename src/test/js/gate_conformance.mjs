@@ -362,6 +362,129 @@ test("hard rejections drive a bounded retry and the best attempt wins", async ()
   );
 });
 
+
+// --- entity resolution ----------------------------------------------------
+
+test("a near-duplicate concept resolves onto the existing vertex", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "principle:guest-centered-service", label: "GuestExperiencePrinciple", properties: { name: "Guest-centered service" } }
+  );
+  const result = runGate(
+    {
+      vertices: [{
+        id: "principle:guest-centred-experience", label: "GuestExperiencePrinciple",
+        properties: { name: "guest centred  service" },
+        evidence: { traceText: "we always put the guest at the center of service" }
+      }],
+      edges: []
+    },
+    graph, "hospitality",
+    { resolveEntities: true, evidenceContext: { ...CONTEXT, utterance: "we always put the guest at the center of service decisions" } }
+  );
+  const principle = result.delta.vertices.find((v) => v.label === "GuestExperiencePrinciple");
+  assert.equal(principle.id, "principle:guest-centered-service", "the candidate must land on the existing id");
+  const evidence = result.delta.vertices.find((v) => v.label === "ProvenanceEvidence");
+  assert.equal(evidence.id, "evidence:principle:guest-centered-service", "evidence must follow the resolved id");
+  assert.ok(result.findings.some((f) => f.action === "repaired" && f.message.includes("resolved")));
+});
+
+test("resolution + deterministic ids: the resolved id survives, distinct concepts do not merge", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "servicestandard:abc123", label: "ServiceStandard", properties: { name: "Hot towel on arrival" } }
+  );
+  const result = runGate(
+    {
+      vertices: [
+        { id: "standard:hot-towels", label: "ServiceStandard", properties: { name: "hot towel  on arrival" }, evidence: { traceText: "we hand every guest a hot towel" } },
+        { id: "standard:seated-checkin", label: "ServiceStandard", properties: { name: "Seated check-in" }, evidence: { traceText: "we hand every guest a hot towel" } }
+      ],
+      edges: []
+    },
+    graph, "hospitality",
+    { resolveEntities: true, deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: "we hand every guest a hot towel and seat them for check-in" } }
+  );
+  const standards = result.delta.vertices.filter((v) => v.label === "ServiceStandard");
+  const ids = standards.map((v) => v.id).sort();
+  assert.ok(ids.includes("servicestandard:abc123"), "the near-duplicate keeps the existing id, not a fresh hash");
+  assert.equal(standards.length, 2, "the genuinely new standard must not be swallowed");
+  assert.ok(ids.some((id) => /^servicestandard:[0-9a-f]{16}$/.test(id)), "the new concept still gets a content-derived id");
+});
+
+test("two near-duplicates inside one delta collapse onto the first", () => {
+  const result = runGate(
+    {
+      vertices: [
+        { id: "signal:rushed-guest", label: "GuestSignal", properties: { name: "Rushed guest signal" }, evidence: { traceText: "you can tell a rushed guest from the doorway" } },
+        { id: "signal:guest-rushed", label: "GuestSignal", properties: { name: "rushed guest  signals" }, evidence: { traceText: "you can tell a rushed guest from the doorway" } }
+      ],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality",
+    { resolveEntities: true, evidenceContext: { ...CONTEXT, utterance: "you can tell a rushed guest from the doorway every time" } }
+  );
+  assert.equal(result.delta.vertices.filter((v) => v.label === "GuestSignal").length, 1);
+});
+
+test("a superseded vertex is not a resolution target", () => {
+  const graph = {
+    vertices: {
+      "person:expert": { id: "person:expert", label: "Person", properties: { name: "expert" } },
+      "policy:v1": { id: "policy:v1", label: "CheckInPolicy", properties: { standardTime: "3pm" } },
+      "policy:v2": { id: "policy:v2", label: "CheckInPolicy", properties: { standardTime: "2pm" } }
+    },
+    edges: {
+      "policy:v1--supersededBy-->policy:v2": { id: "policy:v1--supersededBy-->policy:v2", label: "supersededBy", out: "policy:v1", in: "policy:v2", properties: {} }
+    }
+  };
+  const result = runGate(
+    { vertices: [{ id: "policy:new", label: "CheckInPolicy", properties: { standardTime: "3pm" }, evidence: { traceText: "check-in is at 3pm sharp" } }], edges: [] },
+    graph, "hospitality",
+    { resolveEntities: true, temporalContradictions: true, evidenceContext: { ...CONTEXT, utterance: "check-in is at 3pm sharp for everyone" } }
+  );
+  assert.ok(
+    !result.delta.vertices.some((v) => v.id === "policy:v1"),
+    "resolution must not resurrect the superseded version"
+  );
+});
+
+
+test("an id the extractor correctly reused is never re-hashed into a fork", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "servicestandard:aaaa1111bbbb2222", label: "ServiceStandard", properties: { name: "Secondary revenue utilization", standardText: "Guests should use the spa and restaurant" } }
+  );
+  const result = runGate(
+    {
+      vertices: [{
+        id: "servicestandard:aaaa1111bbbb2222", label: "ServiceStandard",
+        properties: { name: "Secondary revenue utilization" },
+        evidence: { traceText: "an excellent experience is going to utilize our other services" }
+      }],
+      edges: []
+    },
+    graph, "hospitality",
+    { resolveEntities: true, deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: "having an excellent experience is going to utilize our other services as well" } }
+  );
+  const standard = result.delta.vertices.find((v) => v.label === "ServiceStandard");
+  assert.equal(standard.id, "servicestandard:aaaa1111bbbb2222", "partial-property restatement must merge, not fork");
+});
+
+test("keyText falls back to any string property for labels without a name", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "constraint:seasonality", label: "ContextualConstraint", properties: { constraintType: "seasonality", seasonality: "monsoon slows corporate bookings" } }
+  );
+  const result = runGate(
+    { vertices: [{ id: "constraint:new", label: "ContextualConstraint", properties: { constraintType: "seasonality" }, evidence: { traceText: "monsoon season slows down our corporate bookings" } }], edges: [] },
+    graph, "hospitality",
+    { resolveEntities: true, evidenceContext: { ...CONTEXT, utterance: "the monsoon season slows down our corporate bookings a lot" } }
+  );
+  const constraint = result.delta.vertices.find((v) => v.label === "ContextualConstraint");
+  assert.equal(constraint.id, "constraint:seasonality", "constraintType must be visible to resolution");
+});
+
 // --- frozen replay --------------------------------------------------------
 
 function countFacts(vertices, edges, graph) {

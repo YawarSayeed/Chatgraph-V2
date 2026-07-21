@@ -1,17 +1,20 @@
+import { getDomain } from "./domains";
 import type { ChatSession } from "./types";
 
 export function exportTranscriptTxt(session: ChatSession): void {
+  const userLabel = getDomain(session.domainId).userLabel;
   const lines = session.messages.map((message) => {
-    const speaker = message.role === "assistant" ? "agent" : "patient";
+    const speaker = message.role === "assistant" ? "agent" : userLabel;
     return `${speaker}: ${message.content}`;
   });
   downloadText(`chatgraph-${stamp()}.txt`, lines.join("\n\n"));
 }
 
 export function exportTranscriptJsonl(session: ChatSession): void {
+  const userLabel = getDomain(session.domainId).userLabel;
   const lines = session.messages.map((message) =>
     JSON.stringify({
-      speaker: message.role === "assistant" ? "agent" : "patient",
+      speaker: message.role === "assistant" ? "agent" : userLabel,
       text: message.content,
       ts: new Date(message.createdAt).toISOString()
     })
