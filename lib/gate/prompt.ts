@@ -9,6 +9,7 @@
  */
 
 import { gateContract, type GateContract } from "./contract";
+import { SUPERSEDED_BY } from "./gate";
 
 /** Vertex and edge inventory, with required properties marked by `!`. */
 export function schemaReference(domainId: string): string {
@@ -21,10 +22,11 @@ export function schemaReference(domainId: string): string {
   });
   const vertexSet = new Set(contract.vertexSpecs.keys());
   const edgeLines = [...contract.edgeSpecs.values()]
-    // Provenance edges are omitted: the gate attaches them, the extractor cannot.
-    .filter((spec) => !contract.provenanceEdgeLabels.has(spec.label))
-    .filter((spec) => vertexSet.has(spec.out) && vertexSet.has(spec.in))
-    .map((spec) => `${spec.label}: ${spec.out} -> ${spec.in}`);
+    // Gate-authored edges are omitted: provenance and supersession are attached
+    // by the gate, so offering them would invite the extractor to guess.
+    .filter((spec) => !gateAuthored(contract, spec.label))
+    .filter((spec) => [...spec.out].every((label) => vertexSet.has(label)) && [...spec.in].every((label) => vertexSet.has(label)))
+    .map((spec) => `${spec.label}: ${[...spec.out].join(" | ")} -> ${[...spec.in].join(" | ")}`);
   return `VERTICES\n${vertexLines.join("\n")}\n\nEDGES\n${edgeLines.join("\n")}`;
 }
 
@@ -84,7 +86,7 @@ export function extractionToolSchema(domainId: string): Record<string, unknown> 
             id: { type: "string" },
             label: {
               type: "string",
-              enum: [...contract.edgeSpecs.keys()].filter((label) => !contract.provenanceEdgeLabels.has(label))
+              enum: [...contract.edgeSpecs.keys()].filter((label) => !gateAuthored(contract, label))
             },
             out: { type: "string" },
             in: { type: "string" }
@@ -95,6 +97,11 @@ export function extractionToolSchema(domainId: string): Record<string, unknown> 
     },
     required: ["vertices", "edges"]
   };
+}
+
+/** True for edges only the gate may write. */
+export function gateAuthored(contract: GateContract, edgeLabel: string): boolean {
+  return contract.provenanceEdgeLabels.has(edgeLabel) || edgeLabel === SUPERSEDED_BY;
 }
 
 function evidenceSchema(contract: GateContract): Record<string, unknown> {

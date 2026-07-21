@@ -564,7 +564,12 @@
       "@key": "supportedBy",
       "@value": {
         "label": "supportedBy",
-        "outV": "DecisionRule",
+        "outV": [
+          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "ServiceStandard",
+          "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
+          "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
+          "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+        ],
         "inV": "ProvenanceEvidence"
       }
     },
@@ -572,7 +577,7 @@
       "@key": "principleSupportedBy",
       "@value": {
         "label": "principleSupportedBy",
-        "outV": "GuestExperiencePrinciple",
+        "outV": ["GuestExperiencePrinciple"],
         "inV": "ProvenanceEvidence"
       }
     },
@@ -580,8 +585,27 @@
       "@key": "heuristicSupportedBy",
       "@value": {
         "label": "heuristicSupportedBy",
-        "outV": "OperatingHeuristic",
+        "outV": ["OperatingHeuristic", "TimingRule"],
         "inV": "ProvenanceEvidence"
+      }
+    },
+    {
+      "@key": "supersededBy",
+      "@value": {
+        "label": "supersededBy",
+        "comment": "Points from a fact that is no longer current to the fact that replaced it. Written by the gate, never by the extractor: a correction invalidates its predecessor rather than deleting it, so the earlier claim stays auditable.",
+        "outV": [
+          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "GuestExperiencePrinciple",
+          "ServiceStandard", "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
+          "TimingRule", "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
+          "OperatingHeuristic", "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+        ],
+        "inV": [
+          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "GuestExperiencePrinciple",
+          "ServiceStandard", "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
+          "TimingRule", "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
+          "OperatingHeuristic", "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+        ]
       }
     }
   ]

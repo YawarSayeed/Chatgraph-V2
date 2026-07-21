@@ -17,13 +17,19 @@ type SchemaVertexEntry = {
 type SchemaEdgeEntry = {
   "@key": string;
   "@value": {
-    out?: string;
-    in?: string;
-    outV?: string;
-    inV?: string;
+    out?: string | string[];
+    in?: string | string[];
+    outV?: string | string[];
+    inV?: string | string[];
     properties?: SchemaProperty[];
   };
 };
+
+/** An endpoint declaration is one label or several; normalize to a set. */
+function endpointSet(value: string | string[] | undefined): Set<string> {
+  if (Array.isArray(value)) return new Set(value);
+  return new Set(value ? [value] : []);
+}
 
 export type VertexSpec = {
   label: string;
@@ -33,8 +39,8 @@ export type VertexSpec = {
 
 export type EdgeSpec = {
   label: string;
-  out: string;
-  in: string;
+  out: Set<string>;
+  in: Set<string>;
   properties: Set<string>;
   requiredProperties: Set<string>;
 };
@@ -70,8 +76,8 @@ function schemaRuntime(domain: DomainConfig): SchemaRuntime {
     entry["@key"],
     {
       label: entry["@key"],
-      out: entry["@value"].out ?? entry["@value"].outV ?? "",
-      in: entry["@value"].in ?? entry["@value"].inV ?? "",
+      out: endpointSet(entry["@value"].out ?? entry["@value"].outV),
+      in: endpointSet(entry["@value"].in ?? entry["@value"].inV),
       properties: new Set((entry["@value"].properties ?? []).map((prop) => prop.key)),
       requiredProperties: new Set(
         (entry["@value"].properties ?? [])
@@ -124,7 +130,7 @@ export function schemaReference(domainId = "medical"): string {
         .sort()
         .map((prop) => spec.requiredProperties.has(prop) ? `${prop}!` : prop);
       const suffix = props.length ? ` (${props.join(", ")})` : "";
-      return `${spec.label}: ${spec.out} -> ${spec.in}${suffix}`;
+      return `${spec.label}: ${[...spec.out].join("|")} -> ${[...spec.in].join("|")}${suffix}`;
     })
     .join("\n");
 
@@ -237,8 +243,8 @@ export function sanitizeDelta(input: unknown, graph: GraphState, domainId = "med
     }
     const outLabel = labelsById.get(out);
     const inLabel = labelsById.get(incoming);
-    if (outLabel !== spec.out || inLabel !== spec.in) {
-      warnings.push(`Dropped edge ${label}: expected ${spec.out}->${spec.in}.`);
+    if (!outLabel || !inLabel || !spec.out.has(outLabel) || !spec.in.has(inLabel)) {
+      warnings.push(`Dropped edge ${label}: expected ${[...spec.out].join("|")}->${[...spec.in].join("|")}.`);
       continue;
     }
     const id = stringValue(item.id) || `${out}-${label}->${incoming}`;

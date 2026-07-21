@@ -52,7 +52,10 @@ export async function extractGovernedDelta(
 
     const merged = withScaffold(raw, scaffold);
     const result = runGate(merged, body.graph, domainId, {
-      evidenceContext: { sourceEpisode: scaffold.episodeId, speaker: "expert" }
+      evidenceContext: { sourceEpisode: scaffold.episodeId, speaker: "expert", utterance: latestText },
+      // The deployed configuration is the full gate.
+      deterministicIds: true,
+      temporalContradictions: true
     });
 
     const candidate = {

@@ -32,11 +32,30 @@ export type GateMode = "schema" | "governed";
 export type EvidenceContext = {
   sourceEpisode: string;
   speaker: string;
+  /** The turn being extracted. Evidence is checked for being a span of it. */
+  utterance?: string;
 };
 
 export type GateOptions = {
   mode?: GateMode;
   evidenceContext?: EvidenceContext;
+  /**
+   * Rewrite knowledge-vertex ids to a content hash so the same fact stated twice
+   * merges instead of duplicating. Off leaves extractor-chosen ids intact.
+   */
+  deterministicIds?: boolean;
+  /**
+   * Supersede rather than overwrite: a singleton whose content changed marks the
+   * prior version invalid and keeps it, so corrections stay auditable.
+   */
+  temporalContradictions?: boolean;
+};
+
+/** A prior fact a new one invalidates. */
+export type Supersession = {
+  supersededId: string;
+  supersedingId: string;
+  label: string;
 };
 
 export type GateFinding = {
@@ -52,7 +71,12 @@ export type GateResult = {
   findings: GateFinding[];
   /** Feedback for a bounded retry, or null when nothing hard was rejected. */
   retryFeedback: string | null;
+  /** Prior facts this delta invalidated. Empty unless temporal handling is on. */
+  supersessions: Supersession[];
 };
+
+/** Edges the gate writes itself; the extractor is never offered them. */
+export const SUPERSEDED_BY = "supersededBy";
 
 type Candidate = {
   id: string;
@@ -80,6 +104,7 @@ export function runGate(
 
   const candidates = parseVertices(raw.vertices, findings);
   const rawEdges = Array.isArray(raw.edges) ? raw.edges : [];
+  const supersessions: Supersession[] = [];
 
   // Materialize inline evidence before validation, so the synthesized vertices and
   // edges are held to exactly the same rules as extractor-authored ones.
@@ -111,9 +136,9 @@ export function runGate(
       findings.push(finding("HR001", severityOf(contract, "HR001", "hard"), `${candidate.id} missing required ${missing.join(", ")}`, candidate.id, "dropped"));
       continue;
     }
-    if (governed && !admitEvidenceQuality(candidate.label, properties, contract, findings, candidate.id)) continue;
+    if (governed && !admitEvidenceQuality(candidate.label, properties, contract, findings, candidate.id, options.evidenceContext?.utterance)) continue;
     if (governed && !admitTextQuality(candidate.label, properties, contract, findings, candidate.id)) continue;
-    if (governed && !admitSingleton(candidate, graph, contract, findings)) continue;
+    if (governed && !admitSingleton(candidate, properties, graph, contract, findings, options, supersessions)) continue;
     admittedVertices.push({ id: candidate.id, label: candidate.label, properties });
     labels.set(candidate.id, candidate.label);
   }
@@ -146,8 +171,92 @@ export function runGate(
   // Provenance attachment is checked after admission, on what actually survived.
   if (governed) checkProvenanceAttachment(admittedVertices, admittedEdges, labels, contract, findings);
 
-  const delta: GraphDelta = { vertices: admittedVertices, edges: admittedEdges };
-  return { delta, findings, retryFeedback: buildRetryFeedback(findings, contract) };
+  let delta: GraphDelta = { vertices: admittedVertices, edges: admittedEdges };
+  if (governed && options.deterministicIds) delta = applyDeterministicIds(delta, contract, supersessions);
+  for (const supersession of supersessions) {
+    delta.edges.push({
+      id: `${supersession.supersededId}--${SUPERSEDED_BY}-->${supersession.supersedingId}`,
+      label: SUPERSEDED_BY,
+      out: supersession.supersededId,
+      in: supersession.supersedingId,
+      properties: {}
+    });
+  }
+
+  return { delta, findings, retryFeedback: buildRetryFeedback(findings, contract), supersessions };
+}
+
+/**
+ * Content-derived ids for knowledge vertices: the same fact stated twice lands on
+ * the same id and merges, so duplicates become structurally impossible rather
+ * than something a later deduplication pass has to find.
+ */
+function applyDeterministicIds(
+  delta: GraphDelta,
+  contract: GateContract,
+  supersessions: Supersession[]
+): GraphDelta {
+  const rewritten = new Map<string, string>();
+  for (const vertex of delta.vertices) {
+    if (!contract.knowledgeLabels.has(vertex.label)) continue;
+    rewritten.set(vertex.id, `${vertex.label.toLowerCase()}:${contentHash(vertex.label, vertex.properties)}`);
+  }
+  // Evidence follows the fact it grounds, so identical facts share evidence too.
+  for (const vertex of delta.vertices) {
+    if (vertex.label !== contract.evidenceLabel) continue;
+    for (const [from, to] of rewritten) {
+      if (vertex.id === `evidence:${from}`) rewritten.set(vertex.id, `evidence:${to}`);
+    }
+  }
+  if (rewritten.size === 0) return delta;
+
+  const resolve = (id: string): string => rewritten.get(id) ?? id;
+  const vertices = new Map<string, GraphVertex>();
+  for (const vertex of delta.vertices) {
+    const id = resolve(vertex.id);
+    const existing = vertices.get(id);
+    vertices.set(id, { ...vertex, id, properties: { ...(existing?.properties ?? {}), ...vertex.properties } });
+  }
+  const edges = new Map<string, GraphEdge>();
+  for (const edge of delta.edges) {
+    const out = resolve(edge.out);
+    const incoming = resolve(edge.in);
+    const id = `${out}--${edge.label}-->${incoming}`;
+    edges.set(id, { ...edge, id, out, in: incoming });
+  }
+  for (const supersession of supersessions) {
+    supersession.supersedingId = resolve(supersession.supersedingId);
+  }
+  return { vertices: [...vertices.values()], edges: [...edges.values()] };
+}
+
+/**
+ * Order-independent 128-bit content hash. Deliberately dependency-free and
+ * synchronous so the same id is produced in the browser, on the server, and in
+ * the evaluation harness.
+ */
+function contentHash(label: string, properties: Record<string, JsonValue>): string {
+  const canonical = JSON.stringify([
+    label,
+    Object.entries(properties)
+      .filter(([, value]) => value !== undefined && value !== null && value !== "")
+      .map(([key, value]) => [key, normalizeForHash(value)])
+      .sort((left, right) => (String(left[0]) < String(right[0]) ? -1 : 1))
+  ]);
+  return `${fnv1a(canonical, 0x811c9dc5)}${fnv1a(canonical, 0x01000193)}`;
+}
+
+function normalizeForHash(value: JsonValue): JsonValue {
+  return typeof value === "string" ? value.trim().toLowerCase().replace(/\s+/g, " ") : value;
+}
+
+function fnv1a(text: string, seed: number): string {
+  let hash = seed >>> 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
 }
 
 /**
@@ -202,7 +311,8 @@ function admitEvidenceQuality(
   properties: Record<string, JsonValue>,
   contract: GateContract,
   findings: GateFinding[],
-  id: string
+  id: string,
+  utterance: string | undefined
 ): boolean {
   if (label !== contract.evidenceLabel) return true;
 
@@ -216,13 +326,61 @@ function admitEvidenceQuality(
     findings.push(finding("HR011", severityOf(contract, "HR011", "hard"), `${id} confidence "${confidence}" is outside the allowed vocabulary`, id, "dropped"));
     return false;
   }
-  const trace = asString(properties.traceText).toLowerCase();
+  const traceText = asString(properties.traceText);
+  const trace = traceText.toLowerCase();
   const banned = contract.bannedTracePatterns.find((pattern) => trace === pattern || trace.startsWith(pattern));
   if (banned) {
     findings.push(finding("HR012", severityOf(contract, "HR012", "hard"), `${id} traceText is generic ("${banned}")`, id, "dropped"));
     return false;
   }
+  const specificity = traceSpecificity(traceText, utterance);
+  if (specificity) {
+    findings.push(finding("HR012", severityOf(contract, "HR012", "hard"), `${id} traceText ${specificity}`, id, "dropped"));
+    return false;
+  }
   return true;
+}
+
+/**
+ * Evidence must be a *span* of the utterance, not a restatement of it.
+ *
+ * A token-overlap threshold cannot express this: echoing the whole turn scores a
+ * perfect overlap, so the rule it is supposed to enforce is trivially satisfied by
+ * the laziest possible evidence. These checks test the two things that actually
+ * distinguish a citation from a paraphrase of the topic: the trace must appear in
+ * the utterance, and it must not swallow the whole turn.
+ *
+ * Returns a reason when the trace fails, or null when it is acceptable.
+ */
+function traceSpecificity(traceText: string, utterance: string | undefined): string | null {
+  const trace = normalizeText(traceText);
+  if (!trace) return "is empty";
+  if (countWords(trace) < 4) return "is too short to identify a claim";
+  if (!utterance) return null;
+
+  const source = normalizeText(utterance);
+  if (!source) return null;
+
+  // A quotation is a substring of what was said. Anything else is the model's
+  // own prose, which is what ungrounded-but-plausible facts are made of.
+  if (!source.includes(trace)) return "does not appear in the utterance it cites";
+
+  // Citing the entire turn identifies no particular claim, so it grounds nothing.
+  // Short turns are exempt: when the expert said one thing, the whole turn is the
+  // span. Twenty words is where a turn reliably contains more than one claim.
+  const sourceWords = countWords(source);
+  if (sourceWords >= 20 && countWords(trace) / sourceWords > 0.9) {
+    return "restates the whole utterance instead of the span that licenses the fact";
+  }
+  return null;
+}
+
+function normalizeText(value: string): string {
+  return value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+}
+
+function countWords(value: string): number {
+  return value ? value.split(" ").filter(Boolean).length : 0;
 }
 
 function admitTextQuality(
@@ -245,15 +403,35 @@ function admitTextQuality(
 
 function admitSingleton(
   candidate: Candidate,
+  properties: Record<string, JsonValue>,
   graph: GraphState,
   contract: GateContract,
-  findings: GateFinding[]
+  findings: GateFinding[],
+  options: GateOptions,
+  supersessions: Supersession[]
 ): boolean {
   if (!contract.singletonLabels.has(candidate.label)) return true;
   const existing = Object.values(graph.vertices).find((vertex) => vertex.label === candidate.label);
   if (!existing || existing.id === candidate.id) return true;
-  findings.push(finding("HR009", severityOf(contract, "HR009", "hard"), `${candidate.label} is a session singleton; ${existing.id} already exists`, candidate.id, "dropped"));
-  return false;
+
+  if (!options.temporalContradictions) {
+    findings.push(finding("HR009", severityOf(contract, "HR009", "hard"), `${candidate.label} is a session singleton; ${existing.id} already exists`, candidate.id, "dropped"));
+    return false;
+  }
+
+  // A restated singleton is the expert correcting themselves, not a duplicate.
+  // Identical content is a no-op; changed content supersedes rather than
+  // overwrites, so the superseded claim remains in the graph and auditable.
+  // Compare like with like: the candidate's properties have already been filtered
+  // to the schema, so the stored vertex is filtered the same way before hashing.
+  const declared = contract.vertexSpecs.get(candidate.label)?.properties ?? new Set<string>();
+  if (contentHash(existing.label, pick(existing.properties, declared)) === contentHash(candidate.label, properties)) {
+    findings.push(finding("HR009", "advisory", `${candidate.label} restated unchanged; merged into ${existing.id}`, candidate.id, "repaired"));
+    return false;
+  }
+  supersessions.push({ supersededId: existing.id, supersedingId: candidate.id, label: candidate.label });
+  findings.push(finding("HR009", "advisory", `${candidate.label} changed; ${existing.id} superseded by ${candidate.id}`, candidate.id, "repaired"));
+  return true;
 }
 
 function checkProvenanceAttachment(
@@ -295,17 +473,13 @@ function buildRetryFeedback(findings: GateFinding[], contract: GateContract): st
 function endpointsConform(contract: GateContract, edgeLabel: string, outLabel: string, inLabel: string): boolean {
   const spec = contract.edgeSpecs.get(edgeLabel);
   if (!spec) return false;
-  if (contract.provenanceEdgeLabels.has(edgeLabel)) {
-    return Boolean(contract.provenanceOutLabels.get(edgeLabel)?.has(outLabel)) && inLabel === spec.in;
-  }
-  return outLabel === spec.out && inLabel === spec.in;
+  return spec.out.has(outLabel) && spec.in.has(inLabel);
 }
 
 function expectedEndpoints(contract: GateContract, edgeLabel: string): string {
   const spec = contract.edgeSpecs.get(edgeLabel);
   if (!spec) return "an unknown endpoint pair";
-  const allowed = contract.provenanceOutLabels.get(edgeLabel);
-  return `${allowed ? [...allowed].join("|") : spec.out}->${spec.in}`;
+  return `${[...spec.out].join("|")}->${[...spec.in].join("|")}`;
 }
 
 type ParsedEdge = {

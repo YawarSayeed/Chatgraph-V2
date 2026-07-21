@@ -66,19 +66,26 @@ test("contract binds the governance spec", () => {
   assert.equal(CONTRACT.severities.get("HR012"), "hard");
 });
 
-test("contract reports schema/spec drift instead of hiding it", () => {
-  const ids = CONTRACT.drift.map((item) => item.ruleId).sort();
-  assert.deepEqual(ids, ["HR004", "HR004", "HR015"]);
-  assert.ok(
-    CONTRACT.drift.some((item) => item.ruleId === "HR015" && item.message.includes("heuristicText")),
-    "HR015 targets a property the schema does not declare and must be disabled"
-  );
+test("schema and governance spec agree: zero drift", () => {
+  assert.deepEqual(CONTRACT.drift, [], `schema/spec drift must be zero: ${JSON.stringify(CONTRACT.drift, null, 2)}`);
 });
 
-test("provenance out-labels are the union the spec declares", () => {
-  assert.equal(CONTRACT.provenanceOutLabels.get("supportedBy").size, 16);
-  assert.ok(CONTRACT.provenanceOutLabels.get("supportedBy").has("ServiceStandard"));
-  assert.ok(CONTRACT.provenanceOutLabels.get("heuristicSupportedBy").has("TimingRule"));
+test("every text-quality rule binds to a property the schema declares", () => {
+  const bound = CONTRACT.textQualityRules.map((rule) => `${rule.ruleId}:${rule.label}.${rule.property}`).sort();
+  assert.deepEqual(bound, ["HR014:DecisionRule.ruleText", "HR015:OperatingHeuristic.heuristic"]);
+  for (const rule of CONTRACT.textQualityRules) {
+    assert.ok(CONTRACT.vertexSpecs.get(rule.label).properties.has(rule.property));
+  }
+});
+
+test("the schema itself permits every provenance attachment the spec declares", () => {
+  for (const [label, edgeLabel] of CONTRACT.provenanceEdgeByLabel) {
+    assert.ok(
+      CONTRACT.edgeSpecs.get(edgeLabel).out.has(label),
+      `schema must permit ${label} as a source of ${edgeLabel}`
+    );
+  }
+  assert.equal(CONTRACT.edgeSpecs.get("supportedBy").out.size, 16);
 });
 
 // --- structural provenance ------------------------------------------------
@@ -294,7 +301,7 @@ test("governed extraction scaffolds the episode and grounds the knowledge", asyn
     vertices: [{
       id: "standard:hot-towel", label: "ServiceStandard",
       properties: { name: "Hot towel on arrival" },
-      evidence: { traceText: "We hand every guest a hot towel the moment they walk in.", confidence: "high" }
+      evidence: { traceText: "hand every guest a hot towel", confidence: "high" }
     }],
     edges: []
   });
@@ -313,7 +320,9 @@ test("governed extraction scaffolds the episode and grounds the knowledge", asyn
   assert.ok(evidence, "evidence must be materialized from the inline field");
   assert.equal(evidence.properties.sourceEpisode, episode.id, "evidence must point at the scaffolded episode");
 
-  assert.ok(result.delta.edges.some((e) => e.label === "supportedBy" && e.out === "standard:hot-towel"));
+  const standard = result.delta.vertices.find((v) => v.label === "ServiceStandard");
+  assert.match(standard.id, /^servicestandard:[0-9a-f]{16}$/, "the deployed gate assigns content-derived ids");
+  assert.ok(result.delta.edges.some((e) => e.label === "supportedBy" && e.out === standard.id));
   assert.ok(!result.warnings.some((w) => w.startsWith("HR006")), "a grounded fact must not be flagged unprovenanced");
   assert.equal(stub.calls.length, 1, "a clean delta must not trigger a retry");
 });
@@ -322,14 +331,14 @@ test("hard rejections drive a bounded retry and the best attempt wins", async ()
   const stub = stubOpenAI([
     // First attempt: a dangling edge, which is hard.
     {
-      vertices: [{ id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "We greet every guest by name." } }],
+      vertices: [{ id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "greet every guest by name" } }],
       edges: [{ id: "e:bad", label: "standardEnforces", out: "standard:a", in: "principle:missing" }]
     },
     // Second attempt: corrected.
     {
       vertices: [
-        { id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "We greet every guest by name." } },
-        { id: "principle:warmth", label: "GuestExperiencePrinciple", properties: { name: "Warmth" }, evidence: { traceText: "We greet every guest by name." } }
+        { id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "greet every guest by name" } },
+        { id: "principle:warmth", label: "GuestExperiencePrinciple", properties: { name: "Warmth" }, evidence: { traceText: "greet every guest by name" } }
       ],
       edges: [{ id: "e:good", label: "standardEnforces", out: "standard:a", in: "principle:warmth" }]
     }
@@ -343,8 +352,14 @@ test("hard rejections drive a bounded retry and the best attempt wins", async ()
 
   assert.equal(stub.calls.length, 2, "the hard rejection must trigger exactly one retry");
   assert.ok(stub.calls[1].messages[1].content.includes("HR005"), "the retry must echo the typed error");
-  assert.ok(result.delta.edges.some((e) => e.id === "e:good"));
-  assert.ok(!result.delta.edges.some((e) => e.id === "e:bad"));
+  assert.ok(
+    result.delta.edges.some((e) => e.label === "standardEnforces"),
+    "the corrected edge must survive"
+  );
+  assert.ok(
+    !result.delta.edges.some((e) => e.in === "principle:missing"),
+    "the dangling endpoint must not survive"
+  );
 });
 
 // --- frozen replay --------------------------------------------------------
@@ -400,6 +415,104 @@ test("per-fact admission recovers the facts per-delta rejection discarded", () =
     `    replay: A3 ${a3.admitted}/${a3.proposed} per-fact (published per-delta 29/48)\n` +
     `            A5 ${a5.admitted}/${a5.proposed} per-fact (published per-delta 3/61)\n`
   );
+});
+
+
+// --- constraint classes iv and v ------------------------------------------
+
+const UTTERANCE = "We hand every guest a hot towel the moment they walk in, and we never charge for late checkout before noon.";
+
+function knowledge(id, label, properties, traceText) {
+  return { id, label, properties, evidence: { traceText } };
+}
+
+test("evidence must be a span of the utterance, not the model's own prose", () => {
+  const result = runGate(
+    { vertices: [knowledge("v:1", "ServiceStandard", { name: "Hot towel" }, "The hotel provides a warm welcome amenity to arriving visitors.")], edges: [] },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(
+    result.findings.some((f) => f.ruleId === "HR012" && f.message.includes("does not appear")),
+    "a plausible paraphrase that was never said must be rejected"
+  );
+  assert.ok(!result.delta.vertices.some((v) => v.label === "ProvenanceEvidence"));
+});
+
+test("echoing the whole utterance no longer satisfies the anti-generic rule", () => {
+  const result = runGate(
+    { vertices: [knowledge("v:1", "ServiceStandard", { name: "Hot towel" }, UTTERANCE)], edges: [] },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(
+    result.findings.some((f) => f.ruleId === "HR012" && f.message.includes("restates the whole utterance")),
+    "citing the entire turn identifies no particular claim"
+  );
+});
+
+test("a genuine span is accepted", () => {
+  const result = runGate(
+    { vertices: [knowledge("v:1", "ServiceStandard", { name: "Hot towel" }, "we hand every guest a hot towel the moment they walk in")], edges: [] },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(!result.findings.some((f) => f.ruleId === "HR012"), JSON.stringify(result.findings));
+  assert.ok(result.delta.vertices.some((v) => v.label === "ProvenanceEvidence"));
+});
+
+test("deterministic ids make the same fact idempotent regardless of the id the model picks", () => {
+  const trace = "we hand every guest a hot towel the moment they walk in";
+  const run = (id) => runGate(
+    { vertices: [knowledge(id, "ServiceStandard", { name: "Hot towel on arrival" }, trace)], edges: [] },
+    EMPTY_GRAPH, "hospitality",
+    { deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const first = run("standard:hot-towel");
+  const second = run("standard:towels-on-arrival");
+  const idOf = (r) => r.delta.vertices.find((v) => v.label === "ServiceStandard").id;
+  assert.equal(idOf(first), idOf(second), "identical content must collapse onto one id");
+  assert.match(idOf(first), /^servicestandard:[0-9a-f]{16}$/);
+
+  const different = runGate(
+    { vertices: [knowledge("standard:x", "ServiceStandard", { name: "Late checkout is free before noon" }, "we never charge for late checkout before noon")], edges: [] },
+    EMPTY_GRAPH, "hospitality",
+    { deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.notEqual(idOf(different), idOf(first), "different content must not collide");
+});
+
+test("a changed singleton supersedes its predecessor instead of overwriting it", () => {
+  const graph = graphWith(
+    { id: "policy:checkin:v1", label: "CheckInPolicy", properties: { standardTime: "3pm" } }
+  );
+  const result = runGate(
+    { vertices: [knowledge("policy:checkin:v2", "CheckInPolicy", { standardTime: "2pm" }, "we hand every guest a hot towel")], edges: [] },
+    graph, "hospitality",
+    { temporalContradictions: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.equal(result.supersessions.length, 1);
+  assert.equal(result.supersessions[0].supersededId, "policy:checkin:v1");
+  const edge = result.delta.edges.find((e) => e.label === "supersededBy");
+  assert.ok(edge, "an invalidation edge must be written");
+  assert.equal(edge.out, "policy:checkin:v1", "the old fact points at the new one and is retained");
+  assert.ok(result.delta.vertices.some((v) => v.id === "policy:checkin:v2"));
+});
+
+test("an unchanged singleton is a no-op, not a contradiction", () => {
+  const graph = graphWith(
+    { id: "policy:checkin:v1", label: "CheckInPolicy", properties: { standardTime: "3pm" } }
+  );
+  const result = runGate(
+    { vertices: [knowledge("policy:checkin:restated", "CheckInPolicy", { standardTime: "3pm" }, "we hand every guest a hot towel")], edges: [] },
+    graph, "hospitality",
+    { temporalContradictions: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.equal(result.supersessions.length, 0);
+  assert.ok(!result.delta.edges.some((e) => e.label === "supersededBy"));
+});
+
+test("the extractor is never offered the gate-authored supersession edge", () => {
+  const edgeLabels = extractionToolSchema("hospitality").properties.edges.items.properties.label.enum;
+  assert.ok(!edgeLabels.includes("supersededBy"));
+  assert.ok(!schemaReference("hospitality").includes("supersededBy"));
 });
 
 // --- report ---------------------------------------------------------------

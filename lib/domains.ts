@@ -17,10 +17,12 @@ export type DomainSchema = {
   edges: Array<{
     "@key": string;
     "@value": {
-      out?: string;
-      in?: string;
-      outV?: string;
-      inV?: string;
+      // An endpoint may name several labels: one relation, many legal source
+      // types (provenance attaches to every knowledge class).
+      out?: string | string[];
+      in?: string | string[];
+      outV?: string | string[];
+      inV?: string | string[];
       properties?: Array<{
         key: string;
         value?: unknown;

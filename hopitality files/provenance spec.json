@@ -59,6 +59,9 @@
     "failure_description": "If a knowledge vertex is emitted without a provenance edge, the validator emits a WARNING and writes the vertex anyway. The session is flagged for post-hoc provenance repair. The delta is NOT rejected.",
 
     "edge_label_by_vertex": {
+      "ExpertRole":               "supportedBy",
+      "HospitalityBusiness":      "supportedBy",
+      "OperatingTenure":          "supportedBy",
       "GuestExperiencePrinciple": "principleSupportedBy",
       "ServiceStandard":          "supportedBy",
       "GuestSignal":              "supportedBy",

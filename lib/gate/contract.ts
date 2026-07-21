@@ -26,9 +26,15 @@ export type VertexSpec = {
 
 export type EdgeSpec = {
   label: string;
-  out: string;
-  in: string;
+  /** One relation may accept several source or target labels. */
+  out: Set<string>;
+  in: Set<string>;
 };
+
+function endpointSet(value: string | string[] | undefined): Set<string> {
+  if (Array.isArray(value)) return new Set(value);
+  return new Set(value ? [value] : []);
+}
 
 /** A rule the spec declares but the contract could not bind to the schema. */
 export type DriftFinding = {
@@ -55,14 +61,6 @@ export type GateContract = {
   evidenceLabel: string | null;
   provenanceEdgeByLabel: Map<string, string>;
   provenanceEdgeLabels: Set<string>;
-  /**
-   * Legal source labels per provenance edge. The schema declares a single `out`
-   * for each of these edges while the provenance spec maps many labels onto the
-   * same edge, so the union is taken from the spec and the disagreement is
-   * reported as drift. Without this the schema forbids the provenance the spec
-   * requires — HR004 rejects what HR006 demands.
-   */
-  provenanceOutLabels: Map<string, Set<string>>;
   speakerValues: Set<string>;
   confidenceValues: Set<string>;
   bannedTracePatterns: string[];
@@ -81,6 +79,7 @@ type RawRule = {
   singleton_labels?: unknown;
   knowledge_vertex_labels?: unknown;
   provenance_edge_by_label?: unknown;
+  target_property?: unknown;
 };
 
 const contractCache = new Map<string, GateContract>();
@@ -116,8 +115,8 @@ function buildContract(domainId: string): GateContract {
       entry["@key"],
       {
         label: entry["@key"],
-        out: entry["@value"].out ?? entry["@value"].outV ?? "",
-        in: entry["@value"].in ?? entry["@value"].inV ?? ""
+        out: endpointSet(entry["@value"].out ?? entry["@value"].outV),
+        in: endpointSet(entry["@value"].in ?? entry["@value"].inV)
       }
     ])
   );
@@ -133,7 +132,6 @@ function buildContract(domainId: string): GateContract {
       evidenceLabel: null,
       provenanceEdgeByLabel: new Map(),
       provenanceEdgeLabels: new Set(),
-      provenanceOutLabels: new Map(),
       speakerValues: new Set(),
       confidenceValues: new Set(),
       bannedTracePatterns: [],
@@ -195,30 +193,21 @@ function buildContract(domainId: string): GateContract {
 
   const provenanceEdgeLabels = new Set(provenanceEdgeByLabel.values());
 
-  const provenanceOutLabels = new Map<string, Set<string>>();
+  // The schema is authoritative for endpoints. The spec's label -> edge mapping is
+  // checked against it, so a mapping the schema does not permit is drift rather
+  // than a silent override.
   for (const [label, edgeLabel] of provenanceEdgeByLabel) {
-    let allowed = provenanceOutLabels.get(edgeLabel);
-    if (!allowed) {
-      allowed = new Set<string>();
-      provenanceOutLabels.set(edgeLabel, allowed);
-    }
-    allowed.add(label);
-  }
-  for (const [edgeLabel, allowed] of provenanceOutLabels) {
-    const declaredOut = edgeSpecs.get(edgeLabel)?.out;
-    const extra = [...allowed].filter((label) => label !== declaredOut);
-    if (declaredOut && extra.length > 0) {
+    const declared = edgeSpecs.get(edgeLabel)?.out;
+    if (declared && !declared.has(label)) {
       drift.push({
-        ruleId: "HR004",
-        message:
-          `schema declares ${edgeLabel} out=${declaredOut}, but the provenance spec also maps ` +
-          `${extra.join(", ")} onto it; the spec is taken as authoritative for provenance endpoints`
+        ruleId: "HR007",
+        message: `the spec attaches ${label} via ${edgeLabel}, but the schema does not permit ${label} as a source of ${edgeLabel}`
       });
     }
   }
 
   const evidenceLabel = [...provenanceEdgeLabels]
-    .map((edgeLabel) => edgeSpecs.get(edgeLabel)?.in)
+    .flatMap((edgeLabel) => [...(edgeSpecs.get(edgeLabel)?.in ?? [])])
     .find((label): label is string => Boolean(label)) ?? null;
   if (evidenceLabel && !vertexSpecs.has(evidenceLabel)) {
     drift.push({ ruleId: "HR007", message: `evidence label ${evidenceLabel} is not declared in the schema` });
@@ -228,7 +217,7 @@ function buildContract(domainId: string): GateContract {
   for (const ruleId of ["HR014", "HR015"]) {
     const rule = byId.get(ruleId);
     if (!rule) continue;
-    const target = targetProperty(rule.description);
+    const target = targetProperty(rule);
     if (!target) {
       drift.push({ ruleId, message: "rule does not name a <Label>.<property> target" });
       continue;
@@ -272,7 +261,6 @@ function buildContract(domainId: string): GateContract {
     evidenceLabel,
     provenanceEdgeByLabel,
     provenanceEdgeLabels,
-    provenanceOutLabels,
     speakerValues: new Set(stringArray(byId.get("HR010")?.allowed_values)),
     confidenceValues: new Set(stringArray(byId.get("HR011")?.allowed_values)),
     bannedTracePatterns: stringArray(byId.get("HR012")?.banned_patterns).map((pattern) => pattern.toLowerCase()),
@@ -292,13 +280,15 @@ function governanceFor(domainId: string): { rules: Record<string, unknown>; prov
 }
 
 /**
- * The specs name their target as prose ("DecisionRule.ruleText must be ..."), so
- * the target is parsed from the description rather than restated here. A spec
- * revision adding an explicit target_property field should replace this.
+ * Rules declare their target as `target_property: "<Label>.<property>"`. The
+ * prose description is used only as a fallback for rules written before that
+ * field existed, and a rule naming neither is reported as drift.
  */
-function targetProperty(description: unknown): { label: string; property: string } | null {
-  if (typeof description !== "string") return null;
-  const match = description.match(/\b([A-Z][A-Za-z]+)\.([a-zA-Z][a-zA-Z0-9]*)\b/);
+function targetProperty(rule: RawRule): { label: string; property: string } | null {
+  const explicit = typeof rule.target_property === "string" ? rule.target_property : null;
+  const source = explicit ?? (typeof rule.description === "string" ? rule.description : null);
+  if (!source) return null;
+  const match = source.match(/\b([A-Z][A-Za-z]+)\.([a-zA-Z][a-zA-Z0-9]*)\b/);
   return match ? { label: match[1], property: match[2] } : null;
 }
 
