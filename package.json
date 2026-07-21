@@ -8,11 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
-    "test": "npm run test:gate && npm run test:results",
+    "test": "npm run test:gate && npm run test:results && npm run test:paper",
     "test:gate": "node --import ./scripts/ts-alias-hooks.mjs --no-warnings src/test/js/gate_conformance.mjs",
     "test:results": "node scripts/nesy_results/validate_results.mjs",
     "ablation": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/run_gated_ablation.mjs",
-    "results:build": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/build_results_package.mjs"
+    "results:build": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/build_results_package.mjs",
+    "test:paper": "node scripts/nesy_results/verify_paper_claims.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
