@@ -1,0 +1,206 @@
+/**
+ * Governed extraction: LLM proposes, the symbolic gate disposes.
+ *
+ * Replaces the deterministic keyword extractor that previously served the
+ * hospitality domain. Per turn:
+ *
+ *   1. a deterministic episode scaffold is built (no model involved), so every
+ *      admitted fact has a transcript episode to point at;
+ *   2. the extractor is called with a contract-generated prompt and tool schema;
+ *   3. the gate admits per fact, materializing evidence from the inline field;
+ *   4. hard rejections are echoed back as typed errors for a bounded retry.
+ *
+ * Soft findings surface as warnings and never block: a live interview cannot be
+ * stalled by a governance rule, and the authored spec marks the provenance rules
+ * soft precisely for that reason.
+ */
+
+import OpenAI from "openai";
+import { gateContract } from "@/lib/gate/contract";
+import { runGate, type GateFinding } from "@/lib/gate/gate";
+import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
+import { graphSummary } from "@/lib/schema";
+import { getDomain } from "@/lib/domains";
+import type { ChatRequest, GraphDelta, GraphState } from "@/lib/types";
+
+const DEFAULT_EXTRACTOR_MODEL = "gpt-4o-mini";
+const MAX_ATTEMPTS = 3;
+
+export async function extractGovernedDelta(
+  openai: OpenAI,
+  latestText: string,
+  body: ChatRequest
+): Promise<{ delta: GraphDelta; warnings: string[] }> {
+  const domainId = body.domainId ?? "hospitality";
+  reportDriftOnce(domainId);
+  const scaffold = episodeScaffold(body.graph, latestText);
+
+  let best: { delta: GraphDelta; warnings: string[]; score: number } | null = null;
+  let feedback = "";
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    let raw: unknown;
+    try {
+      raw = await callExtractor(openai, latestText, body, domainId, feedback);
+    } catch {
+      break;
+    }
+    if (raw === null) {
+      feedback = "The previous attempt produced no tool call. Emit the delta using the emit_graph_delta function.";
+      continue;
+    }
+
+    const merged = withScaffold(raw, scaffold);
+    const result = runGate(merged, body.graph, domainId, {
+      evidenceContext: { sourceEpisode: scaffold.episodeId, speaker: "expert" }
+    });
+
+    const candidate = {
+      delta: result.delta,
+      warnings: warningsFrom(result.findings),
+      score: result.delta.vertices.length + result.delta.edges.length
+    };
+    if (!best || candidate.score > best.score) best = candidate;
+
+    if (!result.retryFeedback) break;
+    feedback = `${result.retryFeedback}\n\nSchema:\n${schemaReference(domainId)}`;
+  }
+
+  if (!best) return { delta: { vertices: [], edges: [] }, warnings: ["Graph extraction failed for this turn."] };
+  return { delta: best.delta, warnings: best.warnings };
+}
+
+const driftReported = new Set<string>();
+
+/**
+ * Schema/spec disagreement is an operator concern, not something to put in front
+ * of the interviewee, so it is logged once per process rather than warned per turn.
+ */
+function reportDriftOnce(domainId: string): void {
+  if (driftReported.has(domainId)) return;
+  driftReported.add(domainId);
+  for (const item of gateContract(domainId).drift) {
+    console.warn(`[chatgraph] contract drift (${domainId}) ${item.ruleId}: ${item.message}`);
+  }
+}
+
+/** Only soft and advisory findings reach the user; hard ones were already retried. */
+function warningsFrom(findings: GateFinding[]): string[] {
+  const seen = new Set<string>();
+  const warnings: string[] = [];
+  for (const finding of findings) {
+    if (finding.severity !== "soft") continue;
+    const message = `${finding.ruleId}: ${finding.message}`;
+    if (seen.has(message)) continue;
+    seen.add(message);
+    warnings.push(message);
+  }
+  return warnings;
+}
+
+type Scaffold = {
+  episodeId: string;
+  vertices: GraphDelta["vertices"];
+  edges: GraphDelta["edges"];
+};
+
+/**
+ * The session/section/episode chain is structural, not knowledge, so it is built
+ * deterministically rather than asked of the model.
+ */
+function episodeScaffold(graph: GraphState, latestText: string): Scaffold {
+  const sessionId = Object.values(graph.vertices).find((vertex) => vertex.label === "KnowledgeSession")?.id
+    ?? "session:hospitality:default";
+  const sectionId = `section:${sessionId}:1`;
+  const sequence = String(
+    Object.values(graph.vertices).filter((vertex) => vertex.label === "TranscriptEpisode").length + 1
+  ).padStart(3, "0");
+  const episodeId = `ep:${sessionId}:${sequence}`;
+
+  return {
+    episodeId,
+    vertices: [
+      {
+        id: sectionId,
+        label: "SessionSection",
+        properties: { sectionType: "introduction", title: "Session", order: 1 }
+      },
+      {
+        id: episodeId,
+        label: "TranscriptEpisode",
+        properties: { verbatimText: latestText, speaker: "expert" }
+      }
+    ],
+    edges: [
+      { id: `${sessionId}--hasSection-->${sectionId}`, label: "hasSection", out: sessionId, in: sectionId, properties: {} },
+      { id: `${sectionId}--hasEpisode-->${episodeId}`, label: "hasEpisode", out: sectionId, in: episodeId, properties: {} }
+    ]
+  };
+}
+
+function withScaffold(raw: unknown, scaffold: Scaffold): unknown {
+  const record = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  const vertices = Array.isArray(record.vertices) ? record.vertices : [];
+  const edges = Array.isArray(record.edges) ? record.edges : [];
+  return {
+    vertices: [...scaffold.vertices, ...vertices],
+    edges: [...scaffold.edges, ...edges]
+  };
+}
+
+async function callExtractor(
+  openai: OpenAI,
+  latestText: string,
+  body: ChatRequest,
+  domainId: string,
+  feedback: string
+): Promise<unknown> {
+  const domain = getDomain(domainId);
+  const system = [
+    domain.extractorIntro,
+    provenanceInstructions(domainId),
+    schemaReference(domainId)
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const response = await openai.chat.completions.create({
+    model: process.env.CHATGRAPH_EXTRACTOR_MODEL || DEFAULT_EXTRACTOR_MODEL,
+    max_completion_tokens: 1600,
+    // A governed pipeline should make the same admission decision twice.
+    temperature: 0,
+    messages: [
+      { role: "system", content: system },
+      {
+        role: "user",
+        content:
+          `Latest expert utterance (the only evidence for new facts):\n${latestText}\n\n` +
+          `Conversation window:\n${body.messages
+            .slice(-8)
+            .map((message) => `${message.role}: ${message.content}`)
+            .join("\n")}\n\n` +
+          `Current graph:\n${graphSummary(body.graph)}` +
+          (feedback ? `\n\nCORRECTION REQUIRED:\n${feedback}` : "")
+      }
+    ],
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "emit_graph_delta",
+          description: "Emit the knowledge the latest expert utterance adds, with evidence attached to every knowledge vertex.",
+          parameters: extractionToolSchema(domainId)
+        }
+      }
+    ],
+    tool_choice: { type: "function", function: { name: "emit_graph_delta" } }
+  });
+
+  const call = response.choices[0]?.message?.tool_calls?.[0];
+  if (!call || !("function" in call)) return null;
+  try {
+    return JSON.parse(call.function.arguments);
+  } catch {
+    return null;
+  }
+}

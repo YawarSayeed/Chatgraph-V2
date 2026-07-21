@@ -95,25 +95,23 @@ Ask how location/seasonality/customer mix change the approach, how staffing/trai
 
 Session closure: thank the expert, summarize what was covered, and ask whether they want to add, correct, or expand anything before concluding.`;
 
+// Domain judgement only. The label inventory, edge directions, provenance rules,
+// and vocabularies are generated from the gate contract and appended at call time
+// (lib/gate/prompt.ts) — restating any of them here is how the extractor and the
+// gate drift apart.
 const hospitalityExtractorIntro = `You extract structured property-graph data from the latest expert utterance in a hospitality knowledge-capture interview.
 
-Emit only what the latest expert utterance adds. If the utterance is small talk, filler, a clarification request, or has no substantive hospitality knowledge, emit no new knowledge vertices. Preserve useful transcript/provenance only when the utterance contains extractable knowledge.
+Emit only what the latest expert utterance adds. If the utterance is small talk, filler, a clarification request, or has no substantive hospitality knowledge, emit nothing.
 
 Core conventions:
 - Person root already exists as person:expert. Do not emit another Person unless the expert gives a concrete name; if needed, update person:expert.
-- Role, business type, scale, and tenure answers should use ExpertRole, HospitalityBusiness, and OperatingTenure, connected with hasRole, operatesBusiness, and hasOperatingTenure.
-- KnowledgeSession root already exists as session:hospitality:default and is linked from person:expert. Reuse it.
+- KnowledgeSession root already exists as session:hospitality:default and is linked from person:expert. Reuse it. The session, section, and transcript episode for this turn are created for you — do not emit them.
 - Use lowercase, hyphen-separated, colon-namespaced ids.
 - Do not use the full expert utterance as a knowledge vertex name. Names must be short semantic concepts, such as "hot towel welcome ritual", "rushed guest signal", or "flexible early check-in".
 - Reuse existing GuestPersona, GuestSignal, ServiceStandard, CheckInPolicy, and CheckOutPolicy ids when the current graph already has them.
 - CheckInPolicy and CheckOutPolicy are session singletons. Use ids policy:checkin:session:hospitality:default and policy:checkout:session:hospitality:default.
 - Extract practical, lived-experience hospitality knowledge, not generic business advice.
-- Every extracted knowledge vertex should have a ProvenanceEvidence vertex when there is enough signal, using the expert's specific quote or a faithful paraphrase as traceText.
-- TranscriptEpisode and ProvenanceEvidence are supporting provenance. They must not be the only connected structure when hospitality knowledge is present.
-- Whenever you emit a hospitality knowledge vertex, also emit at least one visible hospitality-semantic edge when the latest utterance supports it: hasRole, operatesBusiness, hasOperatingTenure, businessDifferentiatedBy, experienceDesignedFor, standardEnforces, standardDeliveredTo, signalTriggers, signalIndicates, governs, governsCheckOut, resolvedBy, exceptionAppliesTo, exceptionMadeFor, heuristicExplains, leadsTo, recoveryLeadsTo, shapesLoyalty, drivenBy, loyaltyLeadsTo, modulatedBy, or constraintAffectsPolicy.
-- Infrastructure vertices are Person, KnowledgeSession, SessionSection, TranscriptEpisode, and ProvenanceEvidence.
-- Knowledge vertices include ExpertRole, HospitalityBusiness, OperatingTenure, GuestExperiencePrinciple, ServiceStandard, GuestSignal, GuestPersona, CheckInPolicy, CheckOutPolicy, TimingRule, ServiceFailure, RecoveryAction, ExceptionRule, DecisionRule, OperatingHeuristic, LoyaltyDriver, EmotionalMoment, ContextualConstraint, and Outcome.
-- Use schema labels and edge directions exactly. Never invent labels or edge directions outside the schema reference.
+- Connect what you emit: a knowledge vertex the utterance relates to something else should carry that relationship, using only the edges listed below.
 
 Good extraction choices:
 - A belief about excellent hospitality -> GuestExperiencePrinciple.

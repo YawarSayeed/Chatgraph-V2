@@ -59,6 +59,8 @@ type Candidate = {
   label: string;
   properties: Record<string, JsonValue>;
   evidence: Record<string, JsonValue> | null;
+  /** True for vertices the gate itself materialized rather than the extractor. */
+  synthetic: boolean;
 };
 
 export function runGate(
@@ -91,6 +93,13 @@ export function runGate(
   );
 
   for (const candidate of [...candidates, ...materialized.vertices]) {
+    // Evidence is the gate's to author. An extractor-supplied evidence vertex is
+    // dropped rather than admitted, otherwise the orphan nodes it emits alongside
+    // the materialized ones accumulate as unreferenced clutter.
+    if (governed && !candidate.synthetic && candidate.label === contract.evidenceLabel) {
+      findings.push(finding("HR006", "advisory", `ignored extractor-authored evidence ${candidate.id}; evidence is attached from the inline field`, candidate.id, "dropped"));
+      continue;
+    }
     const spec = contract.vertexSpecs.get(candidate.label);
     if (!spec) {
       findings.push(finding("HR002", severityOf(contract, "HR002", "hard"), `unknown vertex label ${candidate.label}`, candidate.id, "dropped"));
@@ -173,7 +182,8 @@ function materializeEvidence(
         ...candidate.evidence,
         ...(context ? { sourceEpisode: context.sourceEpisode, speaker: context.speaker } : {})
       },
-      evidence: null
+      evidence: null,
+      synthetic: true
     });
     edges.push({
       id: `${candidate.id}--${edgeLabel}-->${evidenceId}`,
@@ -324,7 +334,8 @@ function parseVertices(input: unknown, findings: GateFinding[]): Candidate[] {
       id,
       label,
       properties: jsonRecord(item.properties),
-      evidence: isRecord(item.evidence) ? jsonRecord(item.evidence) : null
+      evidence: isRecord(item.evidence) ? jsonRecord(item.evidence) : null,
+      synthetic: false
     });
   }
   return out;

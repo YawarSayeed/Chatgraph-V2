@@ -16,18 +16,29 @@ import path from "node:path";
 
 import { gateContract } from "@/lib/gate/contract";
 import { runGate } from "@/lib/gate/gate";
+import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
+import { extractGovernedDelta } from "@/lib/server/extract-governed";
 
 const ROOT = process.cwd();
 const CONTRACT = gateContract("hospitality");
 
 let passed = 0;
 const failures = [];
+const pending = [];
+function record(name, error) {
+  if (error) failures.push(`${name}\n    ${error.message.split("\n").join("\n    ")}`);
+  else passed += 1;
+}
 function test(name, fn) {
   try {
-    fn();
-    passed += 1;
+    const result = fn();
+    if (result && typeof result.then === "function") {
+      pending.push(result.then(() => record(name), (error) => record(name, error)));
+      return;
+    }
+    record(name);
   } catch (error) {
-    failures.push(`${name}\n    ${error.message.split("\n").join("\n    ")}`);
+    record(name, error);
   }
 }
 
@@ -143,6 +154,23 @@ test("generic traceText drops the evidence but keeps the knowledge as unprovenan
   assert.ok(result.findings.some((f) => f.ruleId === "HR006" && f.action === "flagged"));
 });
 
+test("extractor-authored evidence vertices are ignored, not accumulated", () => {
+  const result = runGate(
+    {
+      vertices: [
+        { id: "v:1", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "We greet every guest by name at the door." } },
+        { id: "prov:model-authored", label: "ProvenanceEvidence", properties: { traceText: "We greet every guest by name at the door.", sourceEpisode: "ep:x", speaker: "expert" } }
+      ],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: CONTEXT }
+  );
+  const evidence = result.delta.vertices.filter((v) => v.label === "ProvenanceEvidence");
+  assert.equal(evidence.length, 1, "only the gate-materialized evidence should survive");
+  assert.equal(evidence[0].id, "evidence:v:1");
+  assert.ok(result.findings.some((f) => f.subjectId === "prov:model-authored" && f.action === "dropped"));
+});
+
 // --- per-fact admission ---------------------------------------------------
 
 test("a dangling edge drops only that edge", () => {
@@ -195,6 +223,128 @@ test("singleton policies are not duplicated", () => {
   );
   assert.equal(result.delta.vertices.filter((v) => v.label === "CheckInPolicy").length, 0);
   assert.ok(result.findings.some((f) => f.ruleId === "HR009" && f.action === "dropped"));
+});
+
+// --- generated prompt -----------------------------------------------------
+
+test("the extractor is never offered a provenance edge it cannot author", () => {
+  const schema = extractionToolSchema("hospitality");
+  const edgeLabels = schema.properties.edges.items.properties.label.enum;
+  for (const provenanceEdge of CONTRACT.provenanceEdgeLabels) {
+    assert.ok(!edgeLabels.includes(provenanceEdge), `${provenanceEdge} must not be offered to the extractor`);
+  }
+  assert.ok(!schemaReference("hospitality").includes("principleSupportedBy"));
+});
+
+test("the tool schema requires inline evidence on vertices", () => {
+  const vertexItems = extractionToolSchema("hospitality").properties.vertices.items;
+  const vertexProps = vertexItems.properties;
+  assert.ok(vertexProps.evidence, "vertices must carry an evidence field");
+  assert.ok(
+    vertexItems.required.includes("evidence"),
+    "evidence must be required; left optional the model omits it and authors orphan evidence vertices"
+  );
+  assert.deepEqual(vertexProps.evidence.required, ["traceText"]);
+  assert.deepEqual(
+    vertexProps.evidence.properties.confidence.enum.sort(),
+    [...CONTRACT.confidenceValues].sort(),
+    "confidence vocabulary must come from the contract"
+  );
+  assert.deepEqual(
+    vertexProps.label.enum.sort(),
+    [...CONTRACT.vertexSpecs.keys()].sort(),
+    "vertex labels must come from the contract"
+  );
+});
+
+test("provenance instructions restate only what the contract holds", () => {
+  const text = provenanceInstructions("hospitality");
+  for (const label of CONTRACT.knowledgeLabels) assert.ok(text.includes(label), `${label} missing from instructions`);
+  for (const pattern of CONTRACT.bannedTracePatterns) assert.ok(text.includes(pattern), `banned pattern missing: ${pattern}`);
+});
+
+// --- end to end with a stubbed extractor ----------------------------------
+
+function stubOpenAI(toolArguments) {
+  const calls = [];
+  return {
+    calls,
+    client: {
+      chat: {
+        completions: {
+          create: async (request) => {
+            calls.push(request);
+            const payload = Array.isArray(toolArguments) ? toolArguments[calls.length - 1] : toolArguments;
+            return {
+              choices: [{
+                message: {
+                  tool_calls: [{ function: { name: "emit_graph_delta", arguments: JSON.stringify(payload) } }]
+                }
+              }]
+            };
+          }
+        }
+      }
+    }
+  };
+}
+
+test("governed extraction scaffolds the episode and grounds the knowledge", async () => {
+  const stub = stubOpenAI({
+    vertices: [{
+      id: "standard:hot-towel", label: "ServiceStandard",
+      properties: { name: "Hot towel on arrival" },
+      evidence: { traceText: "We hand every guest a hot towel the moment they walk in.", confidence: "high" }
+    }],
+    edges: []
+  });
+  const body = {
+    domainId: "hospitality",
+    messages: [{ id: "m1", role: "user", content: "We hand every guest a hot towel the moment they walk in.", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  };
+  const result = await extractGovernedDelta(stub.client, body.messages[0].content, body);
+
+  const episode = result.delta.vertices.find((v) => v.label === "TranscriptEpisode");
+  assert.ok(episode, "the turn's episode must be scaffolded deterministically");
+  assert.equal(episode.properties.verbatimText, body.messages[0].content);
+
+  const evidence = result.delta.vertices.find((v) => v.label === "ProvenanceEvidence");
+  assert.ok(evidence, "evidence must be materialized from the inline field");
+  assert.equal(evidence.properties.sourceEpisode, episode.id, "evidence must point at the scaffolded episode");
+
+  assert.ok(result.delta.edges.some((e) => e.label === "supportedBy" && e.out === "standard:hot-towel"));
+  assert.ok(!result.warnings.some((w) => w.startsWith("HR006")), "a grounded fact must not be flagged unprovenanced");
+  assert.equal(stub.calls.length, 1, "a clean delta must not trigger a retry");
+});
+
+test("hard rejections drive a bounded retry and the best attempt wins", async () => {
+  const stub = stubOpenAI([
+    // First attempt: a dangling edge, which is hard.
+    {
+      vertices: [{ id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "We greet every guest by name." } }],
+      edges: [{ id: "e:bad", label: "standardEnforces", out: "standard:a", in: "principle:missing" }]
+    },
+    // Second attempt: corrected.
+    {
+      vertices: [
+        { id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "We greet every guest by name." } },
+        { id: "principle:warmth", label: "GuestExperiencePrinciple", properties: { name: "Warmth" }, evidence: { traceText: "We greet every guest by name." } }
+      ],
+      edges: [{ id: "e:good", label: "standardEnforces", out: "standard:a", in: "principle:warmth" }]
+    }
+  ]);
+  const body = {
+    domainId: "hospitality",
+    messages: [{ id: "m1", role: "user", content: "We greet every guest by name.", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  };
+  const result = await extractGovernedDelta(stub.client, body.messages[0].content, body);
+
+  assert.equal(stub.calls.length, 2, "the hard rejection must trigger exactly one retry");
+  assert.ok(stub.calls[1].messages[1].content.includes("HR005"), "the retry must echo the typed error");
+  assert.ok(result.delta.edges.some((e) => e.id === "e:good"));
+  assert.ok(!result.delta.edges.some((e) => e.id === "e:bad"));
 });
 
 // --- frozen replay --------------------------------------------------------
@@ -253,6 +403,8 @@ test("per-fact admission recovers the facts per-delta rejection discarded", () =
 });
 
 // --- report ---------------------------------------------------------------
+
+await Promise.all(pending);
 
 if (failures.length > 0) {
   process.stdout.write(`\nGate conformance: ${passed} passed, ${failures.length} FAILED\n\n`);
