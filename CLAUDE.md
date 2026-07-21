@@ -72,6 +72,13 @@ Three invariants matter more than the code:
   do not edit numbers by hand.
 - Evidential faithfulness is model-adjudicated. Do not describe it as
   human-verified; the blinded sample is unlabelled.
+- **Every methodological iteration gets a numbered file in
+  `results/iterations/`** — date, method, outcome with counts, reasoning,
+  evidence — plus a frozen `iteration-NN-metrics.json` snapshot, *before work
+  moves on*. `results/metrics.json` is the current run and gets overwritten;
+  the numbered snapshots never do. `npm run test:results` fails if the current
+  run is not frozen as the latest snapshot. Negative results, dead ends, and
+  non-replications belong in the record — they are corpus for the paper.
 
 ## Where code lives
 

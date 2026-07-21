@@ -139,6 +139,27 @@ assert.ok(
   "the superseded package must be retained for audit"
 );
 
+// The iteration record: every methodological iteration has a numbered file and a
+// frozen metrics snapshot, and the newest snapshot must equal the current run —
+// a re-measurement without a new iteration entry is an undocumented result.
+const ITERATIONS = path.join(RESULTS, "iterations");
+assert.ok(fs.existsSync(path.join(ITERATIONS, "README.md")), "results/iterations/README.md missing");
+const iterationFiles = fs.readdirSync(ITERATIONS).filter((name) => /^iteration-\d+\.md$/.test(name)).sort();
+assert.ok(iterationFiles.length >= 4, "iteration record must be complete (expected at least iteration-01..04)");
+const readme = fs.readFileSync(path.join(ITERATIONS, "README.md"), "utf8");
+for (const file of iterationFiles) {
+  assert.ok(readme.includes(file.replace(".md", "")), `${file} is not indexed in the iterations README`);
+}
+const snapshots = fs.readdirSync(ITERATIONS).filter((name) => /^iteration-\d+-metrics\.json$/.test(name)).sort();
+assert.ok(snapshots.length >= 1, "no frozen metrics snapshot in results/iterations/");
+const latestSnapshot = JSON.parse(fs.readFileSync(path.join(ITERATIONS, snapshots[snapshots.length - 1]), "utf8"));
+assert.equal(
+  latestSnapshot.generatedAt,
+  metrics.generatedAt,
+  `results/metrics.json (${metrics.generatedAt}) is not frozen as an iteration snapshot — ` +
+  "a new measured run requires a new results/iterations/iteration-NN.md and iteration-NN-metrics.json"
+);
+
 // The narrative must not claim significance the tests do not show.
 const narrative = fs.readFileSync(path.join(RESULTS, "results.md"), "utf8");
 assert.ok(narrative.includes("not statistically significant"), "results.md must state where effects are not significant");
