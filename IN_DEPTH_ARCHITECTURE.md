@@ -7,6 +7,32 @@
 
 > This document distinguishes facts observed in code from design intent and research-only behavior. That distinction is essential. The repository contains multiple implementation eras and several overlapping schema/governance artifacts. A future editor should never assume that a specification file is enforced by the browser application simply because both exist in the same repository.
 
+
+> **AMENDED 2026-07-21 (later the same day).** Sections 12.4 and 18 of this document
+> describe a system that has since been replaced. The changes:
+>
+> - **Hospitality extraction is no longer deterministic keyword matching.** The ~290-line
+>   regex extractor is deleted. Hospitality now runs an LLM extractor behind a symbolic
+>   admission gate (`lib/gate/`) with bounded typed-error retry
+>   (`lib/server/extract-governed.ts`).
+> - **The gate is real, deployed, and generated from one contract.** Five constraint
+>   classes; the extractor prompt, the tool schema, and the gate rules all derive from
+>   `lib/gate/contract.ts`, which binds `src/main/json/hospitality.json` to the authored
+>   specs in `hopitality files/`. Contract drift is zero and asserted by `npm test`.
+> - **The A0-A5 numbers in section 18 are superseded.** That run enforced two rules as
+>   `hard` that the authored specification declares `soft`, and admitted per delta rather
+>   than per fact; its A4 = 0/59 result was an implementation bug reported as a finding.
+>   The package is retained for audit at `results/legacy-2026-07-16/`; current measured
+>   results are in `results/results.md` and `results/metrics.json`.
+> - **The evaluation harness now imports the deployed gate** rather than reimplementing
+>   it, and extraction is stateless so that only the gate varies across conditions.
+> - **Interview content is no longer committed.** `data/`, `results/raw/`,
+>   `results/cache/`, and the audit sample are gitignored; regenerate with
+>   `npm run ablation`.
+>
+> Sections 1-17 and 19-22 remain accurate except where they describe hospitality
+> extraction. Read this amendment before relying on any number below.
+
 ## 1. Executive Summary
 
 Chatgraph is a conversational knowledge-elicitation system. A user speaks or types natural-language answers, an AI interviewer asks the next question, and a second extraction path converts user statements into a typed property graph. The browser shows the conversation and graph side by side and persists each domain session in IndexedDB.
@@ -724,28 +750,27 @@ Consult `src/main/json/hospitality.json` for exact direction and endpoint labels
 
 ### 12.4 Hospitality active extraction path
 
-The browser's hospitality branch currently returns `hospitalityFallbackDelta` immediately. It is deterministic heuristic extraction, not the research ablation extractor and not an OpenAI tool call.
+**Superseded.** Hospitality extraction previously used deterministic keyword rules in
+`lib/server/extract.ts` (`hospitalityFallbackDelta` and its helpers). That code is
+deleted.
 
-For a substantive turn it may create:
+The current path is `lib/server/extract-governed.ts`:
 
-- A `SessionSection`.
-- A `TranscriptEpisode` containing the utterance.
-- A `ProvenanceEvidence` object.
-- Profile concepts such as role, business, and tenure.
-- Generic principles/personas/business concepts.
-- Keyword-triggered decision rules, outcomes, or service standards.
-- Semantic and provenance edges.
+1. A deterministic episode scaffold is built for the turn (session, section,
+   `TranscriptEpisode`) so every admitted fact has an episode to point at. No model is
+   involved.
+2. The extractor is called with a system prompt assembled from the domain intro plus
+   contract-generated grounding instructions and schema reference, and a
+   contract-generated tool schema in which `evidence` is a **required** field on every
+   vertex.
+3. `runGate` admits per fact, materializing each vertex's inline evidence into a
+   `ProvenanceEvidence` vertex plus the correctly-typed provenance edge.
+4. Hard rejections are echoed back as typed errors for a bounded retry (3 attempts);
+   soft findings become warnings and never block.
+5. The deployed configuration enables content-derived ids and temporal supersession.
 
-Important limitations:
-
-- Short or filler utterances are ignored.
-- Section assignment is largely hard-coded to introduction/section 1.
-- The A-G section map is not followed turn by turn.
-- Concepts are inferred by regex/keywords and can be overly generic.
-- Profile extraction returns early and may omit expected provenance bindings.
-- The hospitality fallback is returned without passing through the same `sanitizeDelta` path used for medical model output.
-- It does not execute the 25-rule governance suite.
-- It is therefore inappropriate to describe the live hospitality graph as fully governed or research-equivalent.
+The extractor is never offered provenance or `supersededBy` edges: those are
+gate-authored, and the generated tool schema omits them.
 
 ## 13. Provenance, Grounding, and Governance
 
@@ -996,123 +1021,74 @@ The TinkerGraph properties shown do not configure a persistent graph location/fo
 
 ## 18. Research/Ablation Pipeline
 
-### 18.1 Corpus
+**The numbers previously in this section are superseded.** See the amendment at the top
+of this document. What follows describes the current harness.
 
-The evaluated corpus is one hospitality session:
+### 18.1 Design
 
-- 78 transcript messages.
-- 45 expert/user turns.
-- 32 eligible extraction turns.
-- 13 deterministic navigation/filler exclusions.
+`scripts/nesy_results/run_gated_ablation.mjs` runs seven conditions over the elicitation
+corpus. Two properties make it a controlled experiment rather than a demonstration:
 
-This is a single-session, single-domain study. It cannot establish broad generalization.
+- **It imports the deployed gate** (`lib/gate`). There is no second implementation to
+  drift from the one serving live sessions, so a measured result is a claim about the
+  product. The superseded harness reimplemented the gate, and that copy diverged from
+  both the specification and the shipped code.
+- **Extraction is stateless.** The request depends only on the turn, the attempt, and the
+  correction text — never on the condition. Attempt-1 proposals are therefore identical
+  across A1-A5 and fact-level pairing is valid. The gate is the only stateful component,
+  which is the variable under study.
+
+The harness refuses to run while contract drift is non-zero.
 
 ### 18.2 Conditions
 
-| Condition | Extraction/gate behavior |
+| Condition | Adds |
 |---|---|
-| A0 | Free-form JSON, no schema gate |
-| A1 | Strict tool-shaped output, no admission gate |
-| A2 | Schema validation gate |
-| A3 | Schema gate plus validation-feedback retry |
-| A4 | Schema plus hard provenance admission |
-| A4-soft | Provenance failures warn but do not block all material |
-| A5 | Full governance condition including additional checks and deterministic-ID policy |
+| A0 | free-form JSON, no tool schema, no gate |
+| A1 | contract-generated tool schema, no gate |
+| A2 | + typed-schema gate (per fact, no retry) |
+| A3 | + bounded typed-error retry |
+| A4 | + provenance requirement at the severity the spec declares (soft) |
+| A4-strict | identical to A4 with HR006 escalated to hard |
+| A5 | + confidence vocabulary, content-derived identity, temporal supersession |
 
-The original experiment uses `gpt-4o-mini`, temperature 0, seed 20260716, with `gpt-4o` as grounding judge where cached verdicts exist.
+A4 vs A4-strict is the controlled provenance experiment: one bit differs.
 
-### 18.3 Fact definition
+### 18.3 Metrics
 
-For metrics, one fact is:
+Text2KGBench's OC and SH/OH, plus provenance coverage, citation correctness, evidential
+faithfulness, and a composite **usable+faithful** rate — facts that are both
+schema-conforming and judge-confirmed, as a share of proposals. The composite exists
+because conformance and faithfulness move in opposite directions under constrained
+decoding, so either alone is misleading.
 
-- One knowledge vertex, or
-- One edge whose source and target are both knowledge vertices.
+A fact is one non-infrastructure vertex, or one edge whose endpoints are both
+non-infrastructure vertices.
 
-Infrastructure vertices and provenance edges are not counted as semantic facts. This definition matters when reconciling raw vertex/edge totals with table denominators.
+### 18.4 Current results
 
-### 18.4 Recovery pipeline
+Do not copy figures from this document. The authoritative numbers are
+`results/metrics.json`, narrated in `results/results.md` and tabulated in
+`results/table1.md`. `npm run test:paper` asserts that every figure quoted in the paper
+matches the metrics file.
 
-`recover_measured_results.mjs` exists because raw condition formats and the original A0 parser were not uniform.
+Summary of what was found: ungated extraction converts 2.1% of its proposals into usable
+grounded knowledge and every gated configuration converts 73-80%; constrained decoding
+raises ontology conformance and *lowers* evidential faithfulness; structural provenance
+raises coverage from 0% to 92.7-98.1%; and an independent judge still rejects roughly one
+admitted citation in four.
 
-It:
+### 18.5 Reproduction and data handling
 
-- Parses A0 liberally rather than requiring one strict shape.
-- Normalizes flat properties.
-- Normalizes `source`/`target` into `out`/`in`.
-- Handles occasional type-keyed vertex objects.
-- Infers labels from emitted property signatures where necessary.
-- Replays final cached A4/A5/A4-soft deltas through the repaired provenance endpoint contract.
-- Preserves measured A1-A3 data.
-- Loads cached grounding-judge verdicts.
-- Computes exact counts and Wilson 95% confidence intervals.
-- Regenerates result tables, raw records, and blinded audit artifacts.
+```bash
+npm run ablation        # cached; a re-run costs nothing
+npm run results:build
+npm test
+```
 
-The replay uses the final cached delta. It cannot reconstruct the counterfactual graph that would have existed if a corrected gate had accepted an earlier retry attempt. Original token, latency, and retry totals are retained.
-
-### 18.5 Current measured results
-
-| Cond. | Proposed/admitted | OC | SH | RH | OH | Provenance | Yield | Seconds/fact |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| A0 | 62/62 | 55/62 (88.7%) | 3/16 (18.8%) | 0/16 | 3/16 (18.8%) | 1/46 (2.2%) | 100.0% | 2.40 |
-| A1 | 67/67 | 63/67 (94.0%) | 1/30 (3.3%) | 0/30 | 3/30 (10.0%) | 2/37 (5.4%) | 100.0% | 1.71 |
-| A2 | 40/3 | 3/3 (100%) | 0/1 | 0/1 | 0/1 | 0/2 | 7.5% | 37.11 |
-| A3 | 48/29 | 29/29 (100%) | 0/8 | 0/8 | 1/8 (12.5%) | 1/21 (4.8%) | 60.4% | 10.72 |
-| A4 | 59/0 | UNMEASURED | UNMEASURED | UNMEASURED | UNMEASURED | UNMEASURED | 0.0% | UNMEASURED |
-| A5 | 61/3 | 3/3 (100%) | 0/1 | 0/1 | 0/1 | 2/2 (100%) | 4.9% | 165.72 |
-| A4-soft | 69/53 | 53/53 (100%) | 3/28 (10.7%) | 0/28 | 6/28 (21.4%) | 0/25 | 76.8% | 6.66 |
-
-Never convert `UNMEASURED` to zero. A4 has no admitted denominator, so admitted-fact quality and per-admitted-fact cost are undefined.
-
-### 18.6 Cost and retries
-
-| Condition | Tokens/fact | Retry use |
-|---|---:|---:|
-| A0 | 991 | 0/64 |
-| A1 | 1065 | 0/64 |
-| A2 | 20314 | 0/64 |
-| A3 | 4315 | 25/64 (39.1%) |
-| A4 | UNMEASURED | 50/64 (78.1%) |
-| A5 | 57692 | 50/64 (78.1%) |
-| A4-soft | 2495 | 28/64 (43.8%) |
-
-Proposal counts vary by condition. The experiment therefore changes more than a pure downstream gate: request shape, feedback, retry, and evolving graph state affect proposal volume. Fact-level pairing across conditions is invalid.
-
-### 18.7 Statistical tests and audit
-
-The exact two-sided McNemar tests use 32 paired utterances and the outcome "at least one admitted edge has an unsupported subject or object":
-
-- A0 vs A1: left-only 3, right-only 3, discordant 6, p = 1.
-- A3 vs A4: left-only 1, right-only 0, discordant 1, p = 1.
-- A0 vs A5: left-only 3, right-only 0, discordant 3, p = 0.25.
-
-The blinded audit has 83 rows:
-
-- A0: 40.
-- A1: 40.
-- A4: 0.
-- A5: 3.
-
-Human annotation fields are blank. EF and Cohen's kappa remain `UNMEASURED` until two independent pre-adjudication files and one adjudicated file are completed and ingested.
-
-### 18.8 Main research interpretation
-
-The measured evidence supports a narrow but important conclusion:
-
-> Typed structure does not automatically produce evidence binding.
-
-A1 has high ontology compliance but very low provenance coverage. A3 reaches 100% ontology compliance among admitted facts while provenance remains under 5%. A4 demonstrates that an overly strict or misaligned provenance gate can collapse useful yield to zero. A4-soft recovers yield but does not create provenance merely by allowing warnings.
-
-### 18.9 Threats to validity
-
-- One transcript and one domain.
-- Voice ASR errors can appear as extraction or grounding errors.
-- Provider seed behavior is best effort, not deterministic execution.
-- Grounding uses a model judge rather than completed human labels.
-- A0 recovery infers labels for some nonstandard output shapes.
-- Final-delta replay cannot reproduce early-stop state.
-- Proposal-count variance confounds pure gate comparison.
-- Temporal contradiction checking and downstream QA are unmeasured/out of scope.
-- Confidence intervals are wide for low-count conditions.
+Per-turn rows, the API cache, and the audit sample quote the expert verbatim and are not
+committed. `npm test` degrades gracefully when they are absent, validating the summary
+for internal consistency and reporting that it could not reconcile against evidence.
 
 ## 19. Testing and Verification
 

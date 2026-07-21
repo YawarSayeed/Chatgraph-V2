@@ -7,13 +7,71 @@ domain-specific schema walkthroughs, see `docs/` (e.g.
 
 ## What is chatgraph?
 
-A voice-driven knowledge-elicitation demo. A subject speaks in their
-own words about some topic in a chosen *domain*; an LLM-driven
-assistant conducts an interview in real time; a second LLM extracts a
-typed property graph of what was said, vertex by vertex and edge by
-edge, into a live TinkerPop Gremlin Server. The first shipped domain
-(`medical`) interviews a patient about headache disorders; the
-architecture is domain-neutral.
+A knowledge-elicitation system. A subject speaks or types in their own
+words about a topic in a chosen *domain*; an LLM conducts an interview
+in real time; a second LLM proposes a typed property graph of what was
+said; and a **deterministic symbolic gate** decides, fact by fact, what
+is allowed to persist. Two domains ship: `medical` (headache interview)
+and `hospitality` (expert operating knowledge).
+
+## Read this first: which system is which
+
+The repository contains three systems that share concepts but not an
+execution path. Confusing them is the most common mistake here.
+
+| System | Status | Lives in |
+|---|---|---|
+| **Next.js browser app** | the live product | `app/`, `lib/`, `components/` |
+| **Symbolic gate + evaluation** | the research contribution | `lib/gate/`, `scripts/nesy_results/`, `results/` |
+| **Python voice/Gremlin runtime** | legacy companion, not invoked by the app | `src/main/python/chatgraph/` |
+
+The browser app does **not** import the Python package, HydraPop,
+Deepgram, or Gremlin. Most of the sections below about HydraPop describe
+the legacy runtime only.
+
+## The symbolic gate
+
+For the hospitality domain, nothing enters the graph without a
+deterministic admission decision (`lib/gate/`). Five constraint classes:
+typed-schema conformance, provenance with a specificity rule, confidence
+vocabulary, content-derived identity, and invalidate-not-delete
+supersession.
+
+Three invariants matter more than the code:
+
+1. **One contract, generated.** `lib/gate/contract.ts` derives a single
+   contract from `src/main/json/hospitality.json` plus the authored specs
+   in `hopitality files/`. The extractor's schema reference, its tool
+   parameter schema, and the gate's rules are all generated from it.
+   **Never restate a label, endpoint, severity, or vocabulary in a
+   prompt or in code.** Every drift bug this project has had came from a
+   hand-written copy of something the schema already said. A rule the
+   contract cannot bind is reported as drift and disabled; `npm test`
+   asserts drift is zero.
+2. **Provenance is structural.** The extractor attaches an `evidence`
+   object to a fact; the gate materializes the evidence vertex and picks
+   the provenance edge. Do not ask the model to emit `ProvenanceEvidence`
+   vertices or provenance edges — the gate ignores them by design.
+3. **Severity comes from the spec, not the code.** `hard` rejects and
+   retries, `soft` admits and flags, `advisory` reports. If you find
+   yourself hardcoding a severity, read `validation rules.json` instead.
+
+## Research claims must stay measured
+
+`results/` is a measured evaluation package, not a narrative. Rules:
+
+- Never convert `UNMEASURED` into a number. A missing denominator is not
+  a zero.
+- Every proportion carries exact counts and a Wilson interval.
+- The ablation harness imports the deployed gate. Do not create a second
+  gate implementation for evaluation — that is exactly how the
+  superseded 2026-07-16 run produced a bug it reported as a finding.
+- `npm test` verifies that every figure in the paper matches
+  `results/metrics.json`. If you change a measurement, re-run
+  `npm run ablation && npm run results:build` and update the paper;
+  do not edit numbers by hand.
+- Evidential faithfulness is model-adjudicated. Do not describe it as
+  human-verified; the blinded sample is unlabelled.
 
 ## Where code lives
 
@@ -51,7 +109,23 @@ is the **single source of truth for the graph schema**. Everything that
 needs to know the schema derives from that JSON; nothing maintains a
 parallel copy of it by hand.
 
-The chain is one-directional:
+**The two domains are authored differently, and this matters:**
+
+- `medical.json` is *generated*. Edit
+  `domains/medical/schema_build.py` and regenerate; never hand-edit the
+  JSON. The chain below describes this case.
+- `hospitality.json` is *hand-authored*. It was supplied as JSON, and
+  `domains/hospitality/schema_build.py` only validates that the artifact
+  exists and has the right shape — there is no generator to regenerate
+  from. Edit the JSON directly, then run `npm test` to confirm the gate
+  contract still binds with zero drift.
+
+An endpoint declaration (`outV` / `inV`) may be a single label or an
+array of labels. One relation legitimately accepts many source types:
+`supportedBy` attaches evidence to all 16 knowledge classes that use it.
+Any schema reader must handle both forms.
+
+The chain for generated schemas is one-directional:
 
 1. `domains/<name>/schema_build.py` is a *convenience authoring tool*,
    not a second source of truth and not a runtime dependency. Its only
@@ -125,9 +199,12 @@ These are non-negotiable.
 1. **Never commit secrets.** `.env`, API keys, credentials. The
    gitignore covers `.env`. If you find a secret in the tree, ask the
    user how to scrub it.
-2. **Never commit `transcripts/`.** These can contain real
-   patient-session content (or any other domain's real interview
-   content). Ignored at the repo root.
+2. **Never commit interview content.** `transcripts/`, `data/`,
+   `results/raw/`, `results/cache/`, and `results/human_audit_sample.csv`
+   all carry verbatim subject speech and are gitignored. Before
+   committing anything under `results/`, confirm it contains no verbatim
+   utterances — summary metrics and tables are safe, per-turn rows and
+   cached API bodies are not.
 3. **Never push without explicit user authorization.** Local commits
    are fine; `git push`, `git push --force`, and remote changes
    require the user's go-ahead each time.
@@ -138,6 +215,9 @@ These are non-negotiable.
 5. **Never edit files under `transcripts/`, `.venv/`, `__pycache__/`,
    or any cache directory.** These are either regeneratable or
    per-session output.
+6. **Never hand-edit `results/metrics.json` or the numbers in the
+   paper.** Regenerate them from the harness. A figure that cannot be
+   regenerated is not a result.
 
 ## Working with HydraPop
 

@@ -67,10 +67,13 @@ Runtime stack:
 Useful scripts:
 
 ```bash
-npm run dev
+npm run dev          # start the app
 npm run typecheck
 npm run lint
 npm run build
+npm test             # gate conformance, results integrity, paper-claim verification
+npm run ablation     # re-run the A0-A5 evaluation (API calls are cached)
+npm run results:build
 ```
 
 ## Architecture
@@ -87,9 +90,12 @@ At a high level, chatgraph has five layers:
    `app/api/chat/route.ts` receives the current transcript and selected domain. It calls OpenAI for the assistant's next reply using the selected domain prompt.
 
 4. **Graph extraction**
-   `lib/server/extract.ts` converts user turns into graph deltas. The medical use case uses a schema-aware OpenAI tool call. The hospitality use case uses deterministic extraction rules for the current structured concepts so the graph stays domain-specific and avoids generic transcript nodes.
+   `lib/server/extract.ts` converts user turns into graph deltas. Both domains use a schema-aware OpenAI tool call; hospitality routes through `lib/server/extract-governed.ts`, which pairs the extractor with the symbolic gate and a bounded typed-error retry.
 
-5. **Graph validation, merge, and render**
+5. **The symbolic gate**
+   `lib/gate/` decides what may enter the graph. `contract.ts` derives one contract from the schema JSON plus the authored governance specs; `gate.ts` admits or rejects each proposed fact against it; `prompt.ts` generates the extractor's schema reference and tool schema from the same contract, so prompt and gate cannot disagree. See **The symbolic gate** below.
+
+6. **Graph validation, merge, and render**
    `lib/schema.ts` derives allowed labels, properties, and edge endpoints from the domain JSON schema. It sanitizes extracted deltas, merges them into the existing graph, and passes the result to `components/GraphView.tsx` for rendering.
 
 ## Request Flow
@@ -118,6 +124,62 @@ Fallback speech flow:
 
 - `lib/speech.ts` supports browser speech recognition for single-turn dictation.
 - `/api/tts` can synthesize assistant text when spoken output is enabled outside a full realtime session.
+
+## The Symbolic Gate
+
+For the hospitality domain, nothing enters the graph without a deterministic admission
+decision. The gate lives in `lib/gate/` and enforces five constraint classes:
+
+| Class | What it enforces | Where it comes from |
+|---|---|---|
+| Typed-schema conformance | allowed labels, edge endpoints, required properties | `src/main/json/hospitality.json` |
+| Provenance + specificity | every knowledge vertex carries evidence quoting the expert | `hopitality files/provenance spec.json` |
+| Confidence tier | closed vocabulary `{high, medium, low, inferred}` | `hopitality files/validation rules.json` |
+| Content-derived identity | restating a fact merges instead of duplicating | `lib/gate/gate.ts` |
+| Invalidate-not-delete | a corrected singleton supersedes its predecessor | `supersededBy` edge in the schema |
+
+Three design decisions carry most of the weight:
+
+**Provenance is structural, not remembered.** The extractor attaches an `evidence`
+object to each fact; the gate materializes the evidence vertex, fills in episode and
+speaker from the turn, and picks the correctly-typed provenance edge. An orphan evidence
+node and a mistyped provenance edge are therefore not representable. When evidence was
+instead a separate vertex the model had to remember to link, measured coverage was
+2.2–5.4%; structurally it is 92.7–98.1%.
+
+**Admission is per fact, not per delta.** One dangling edge drops that edge, not the
+turn's knowledge.
+
+**Severity comes from the spec, not the code.** `hard` rejects and retries, `soft`
+admits and flags, `advisory` reports. A live interview cannot be stalled by a governance
+rule, which is why the authored spec marks the provenance rules soft.
+
+### One contract, no drift
+
+`lib/gate/contract.ts` builds a single contract from the schema and the governance specs.
+The extractor's schema reference, its tool parameter schema, and the gate's rules are all
+generated from it. A rule the contract cannot bind to the schema is reported as **drift**
+and disabled rather than silently reinterpreted, and the evaluation harness refuses to run
+while drift is non-zero. `npm test` asserts drift is zero.
+
+## Evaluation
+
+`results/` holds a measured staged ablation (A0–A5) of the gate over a real elicitation
+session. The harness imports the deployed gate, so a result is a claim about the shipped
+system, and extraction is stateless so that only the gate varies across conditions.
+
+Headline: ungated extraction converts **2.1%** of what it proposes into knowledge that is
+both schema-conforming and judge-confirmed; every gated configuration converts **73–80%**.
+Constrained decoding raises ontology conformance from 2.1% to 95.6% while *lowering*
+evidential faithfulness from 95.8% to 82.2% — structure is not grounding.
+
+See `results/results.md` for the full narrative, `results/table1.md` for the table, and
+`NeSy2026_Paper_DRAFT_LaTeX_preview.md` for the write-up. `npm test` verifies that every
+figure in the paper matches `results/metrics.json`.
+
+Per-turn rows, the API cache, and the audit sample quote the expert verbatim and are
+**not committed**; regenerate them locally with `npm run ablation`.
+
 
 ## Graph Model
 
@@ -248,14 +310,38 @@ lib/
   prompts.ts                   Shared prompt helpers
   realtime.ts                  OpenAI Realtime WebRTC client
   schema.ts                    Schema parsing, validation, merge logic
-  server/extract.ts            Domain-specific graph extraction
   speech.ts                    Browser speech recognition and TTS helper
   storage.ts                   IndexedDB session persistence
   types.ts                     Shared app types
+  gate/
+    contract.ts                One contract derived from schema + governance specs
+    gate.ts                    Per-fact admission: the five constraint classes
+    prompt.ts                  Extractor prompt and tool schema, generated
+  server/
+    extract.ts                 Medical extraction; dispatches hospitality to the gate
+    extract-governed.ts        Gated extraction: propose, gate, bounded retry
 
 src/main/json/
   medical.json                 Headache graph schema
-  hospitality.json             Hospitality graph schema
+  hospitality.json             Hospitality graph schema (source of truth for the gate)
+
+hopitality files/
+  validation rules.json        Authored rules and severities the gate reads
+  provenance spec.json         Provenance attachment contract the gate reads
+
+src/test/js/
+  gate_conformance.mjs         Gate behaviour and contract-drift tests
+
+scripts/
+  ts-alias-hooks.mjs           Lets plain node run the app's TypeScript
+  nesy_results/
+    run_gated_ablation.mjs     A0-A5 ablation against the deployed gate
+    build_results_package.mjs  Metrics, tables, narrative, blinded audit sample
+    validate_results.mjs       Results-package integrity check
+    verify_paper_claims.mjs    Every paper figure must match metrics.json
+    legacy/                    Superseded 2026-07-16 harness, retained for audit
+
+results/                       Measured evaluation package (raw rows not committed)
 
 src/main/python/chatgraph/
   domains/                     Schema-authoring and legacy companion modules
@@ -305,7 +391,19 @@ Run these before committing or deploying:
 npm run typecheck
 npm run lint
 npm run build
+npm test
 ```
+
+`npm test` runs three independent checks:
+
+- **`test:gate`** — gate conformance: the five constraint classes behave as specified,
+  the contract binds to the schema with zero drift, and the extractor is never offered
+  an edge only the gate may write.
+- **`test:results`** — results-package integrity: every reported proportion carries exact
+  counts and a Wilson interval, the summary reconciles against the raw rows, and the audit
+  sample is genuinely blinded.
+- **`test:paper`** — every figure quoted in the paper matches `results/metrics.json`, the
+  significance claims match the paired tests, and no human-verification claim is made.
 
 ## Deployment
 
@@ -328,11 +426,11 @@ To add a new parallel use case:
 2. Add the domain entry in `lib/domains.ts`.
 3. Provide a domain opening line and assistant prompt.
 4. Add graph display configuration for important labels and any hidden infrastructure labels.
-5. Add extraction logic in `lib/server/extract.ts`.
-6. Confirm extracted edge labels and endpoint labels match the schema.
+5. Add extraction logic in `lib/server/extract.ts`, or route the domain through the gate as hospitality does.
+6. To govern the domain, add a validation-rules and provenance spec and register them in `lib/gate/contract.ts`; the gate, the prompt, and the tool schema then derive from them.
 7. Test typed chat, voice chat, export, reset, and graph rendering.
 
-The most important rule is that the extractor and the schema must agree. If the extractor emits generic labels or relationships that are not in the schema, `sanitizeDelta` will reject them or the graph will become less useful.
+The most important rule is that the extractor and the schema must agree. Do not restate schema facts in a prompt: generate them from the contract. Every drift bug this project has had came from a hand-written copy of something the schema already said.
 
 ## Known Limitations
 
@@ -341,7 +439,9 @@ The most important rule is that the extractor and the schema must agree. If the 
 - There is no authentication or server-side user management.
 - The graph layout can become visually dense as the graph grows.
 - Voice behavior depends on browser permissions, microphone quality, and OpenAI Realtime availability.
-- The hospitality extractor currently favors deterministic domain rules for reliability. Expanding it with schema-constrained LLM extraction would make it broader, but needs careful validation to avoid generic or noisy graph facts.
+- Citation quality lags citation coverage: an independent judge rejects roughly one admitted citation in four as not actually licensing its fact. Coverage alone overstates grounding.
+- The published evaluation covers one session in one domain. Confidence intervals are wide and most cross-condition differences are compatible with noise.
+- Evidential faithfulness is adjudicated by a model, not by human annotators. A blinded audit sample is generated but unlabelled.
 - The medical workflow is a demo interview and must not be treated as diagnosis or medical advice.
 
 ## License
