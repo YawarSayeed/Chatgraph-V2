@@ -56,6 +56,13 @@ const EMPTY_GRAPH = graphWith(
 
 const CONTEXT = { sourceEpisode: "ep:test:001", speaker: "expert" };
 
+const UTTERANCE = "We hand every guest a hot towel the moment they walk in, and we never charge for late checkout before noon.";
+
+function knowledge(id, label, properties, traceText) {
+  return { id, label, properties, evidence: { traceText } };
+}
+
+
 // --- contract -------------------------------------------------------------
 
 test("contract binds the governance spec", () => {
@@ -485,6 +492,113 @@ test("keyText falls back to any string property for labels without a name", () =
   assert.equal(constraint.id, "constraint:seasonality", "constraintType must be visible to resolution");
 });
 
+
+// --- edge grounding (iteration 05) ----------------------------------------
+
+test("a relationship claim carries its evidence on the edge itself", () => {
+  const result = runGate(
+    {
+      vertices: [
+        knowledge("standard:hot-towel", "ServiceStandard", { name: "Hot towel on arrival" }, "we hand every guest a hot towel the moment they walk in"),
+        knowledge("principle:warm-welcome", "GuestExperiencePrinciple", { name: "Warm welcome" }, "we hand every guest a hot towel the moment they walk in")
+      ],
+      edges: [{
+        id: "e:1", label: "standardEnforces", out: "standard:hot-towel", in: "principle:warm-welcome",
+        evidence: { traceText: "we hand every guest a hot towel the moment they walk in", confidence: "high" }
+      }]
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const edge = result.delta.edges.find((e) => e.label === "standardEnforces");
+  assert.ok(edge, "the semantic edge must be admitted");
+  assert.equal(edge.properties.traceText, "we hand every guest a hot towel the moment they walk in");
+  assert.equal(edge.properties.confidence, "high");
+});
+
+test("edge evidence that is not a span is flagged and dropped from the edge, not the graph", () => {
+  const result = runGate(
+    {
+      vertices: [
+        knowledge("standard:a", "ServiceStandard", { name: "Hot towel" }, "we hand every guest a hot towel"),
+        knowledge("principle:b", "GuestExperiencePrinciple", { name: "Warmth" }, "we hand every guest a hot towel")
+      ],
+      edges: [{
+        id: "e:1", label: "standardEnforces", out: "standard:a", in: "principle:b",
+        evidence: { traceText: "The hotel believes warmth is enforced through amenities." }
+      }]
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const edge = result.delta.edges.find((e) => e.label === "standardEnforces");
+  assert.ok(edge, "the edge itself survives; only its bad evidence is refused");
+  assert.equal(edge.properties.traceText, undefined);
+  assert.ok(result.findings.some((f) => f.subjectId === "e:1" && f.message.includes("does not appear")));
+});
+
+test("edge properties are filtered to the schema like vertex properties", () => {
+  const result = runGate(
+    {
+      vertices: [
+        knowledge("standard:a", "ServiceStandard", { name: "Hot towel" }, "we hand every guest a hot towel"),
+        knowledge("principle:b", "GuestExperiencePrinciple", { name: "Warmth" }, "we hand every guest a hot towel")
+      ],
+      edges: [{
+        id: "e:1", label: "standardEnforces", out: "standard:a", in: "principle:b",
+        properties: { madeUpField: "should not survive" }
+      }]
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const edge = result.delta.edges.find((e) => e.label === "standardEnforces");
+  assert.equal(edge.properties.madeUpField, undefined);
+});
+
+test("inferred evidence may synthesise across turns without being a span of this one", () => {
+  const result = runGate(
+    {
+      vertices: [{
+        id: "heuristic:pattern", label: "OperatingHeuristic",
+        properties: { name: "Corporate guests forgive delays when informed early" },
+        evidence: { traceText: "Across the conversation: corporate guests accept delays when told in advance and given a plan.", confidence: "inferred" }
+      }],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const evidence = result.delta.vertices.find((v) => v.label === "ProvenanceEvidence");
+  assert.ok(evidence, "inferred synthesis must be admissible");
+  assert.equal(evidence.properties.confidence, "inferred");
+  assert.ok(result.findings.some((f) => f.ruleId === "HR013" && f.action === "flagged"), "and flagged for audit");
+});
+
+test("non-inferred evidence still hard-fails the span rule", () => {
+  const result = runGate(
+    {
+      vertices: [{
+        id: "standard:x", label: "ServiceStandard", properties: { name: "Hot towel" },
+        evidence: { traceText: "The expert has a strong belief in towel service quality.", confidence: "high" }
+      }],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(!result.delta.vertices.some((v) => v.label === "ProvenanceEvidence"));
+  assert.ok(result.findings.some((f) => f.ruleId === "HR012" && f.action === "dropped"));
+});
+
+test("retry feedback forbids inventing new facts during correction", () => {
+  const result = runGate(
+    { vertices: [{ id: "v:1", label: "NotALabel", properties: {} }], edges: [] },
+    EMPTY_GRAPH, "hospitality", { evidenceContext: CONTEXT }
+  );
+  assert.ok(result.retryFeedback.includes("Do NOT add any fact"), "corrections must correct, not expand");
+});
+
+test("the tool schema offers evidence on edges", () => {
+  const edgeItems = extractionToolSchema("hospitality").properties.edges.items;
+  assert.ok(edgeItems.properties.evidence, "edges must accept inline evidence");
+});
+
 // --- frozen replay --------------------------------------------------------
 
 function countFacts(vertices, edges, graph) {
@@ -550,11 +664,6 @@ test("per-fact admission recovers the facts per-delta rejection discarded", () =
 
 // --- constraint classes iv and v ------------------------------------------
 
-const UTTERANCE = "We hand every guest a hot towel the moment they walk in, and we never charge for late checkout before noon.";
-
-function knowledge(id, label, properties, traceText) {
-  return { id, label, properties, evidence: { traceText } };
-}
 
 test("evidence must be a span of the utterance, not the model's own prose", () => {
   const result = runGate(

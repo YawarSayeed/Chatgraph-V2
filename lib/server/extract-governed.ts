@@ -32,7 +32,10 @@ export async function extractGovernedDelta(
 ): Promise<{ delta: GraphDelta; warnings: string[] }> {
   const domainId = body.domainId ?? "hospitality";
   reportDriftOnce(domainId);
-  const scaffold = episodeScaffold(body.graph, latestText);
+  const previousQuestion = [...body.messages].reverse().find(
+    (message) => message.role === "assistant"
+  )?.content ?? "";
+  const scaffold = episodeScaffold(domainId, body.graph, latestText, previousQuestion);
 
   let best: { delta: GraphDelta; warnings: string[]; score: number } | null = null;
   let feedback = "";
@@ -109,12 +112,22 @@ type Scaffold = {
 
 /**
  * The session/section/episode chain is structural, not knowledge, so it is built
- * deterministically rather than asked of the model.
+ * deterministically rather than asked of the model. The section is classified
+ * from the interviewer's question by keyword match against the domain's declared
+ * interview structure; a question that matches nothing stays in the furthest
+ * section the interview has already reached (interviews move forward). The
+ * attachment is therefore reproducible from the transcript alone.
  */
-function episodeScaffold(graph: GraphState, latestText: string): Scaffold {
+function episodeScaffold(
+  domainId: string,
+  graph: GraphState,
+  latestText: string,
+  previousQuestion: string
+): Scaffold {
   const sessionId = Object.values(graph.vertices).find((vertex) => vertex.label === "KnowledgeSession")?.id
     ?? "session:hospitality:default";
-  const sectionId = `section:${sessionId}:1`;
+  const section = classifySection(domainId, graph, previousQuestion);
+  const sectionId = `section:${sessionId}:${section.order}`;
   const sequence = String(
     Object.values(graph.vertices).filter((vertex) => vertex.label === "TranscriptEpisode").length + 1
   ).padStart(3, "0");
@@ -126,7 +139,7 @@ function episodeScaffold(graph: GraphState, latestText: string): Scaffold {
       {
         id: sectionId,
         label: "SessionSection",
-        properties: { sectionType: "introduction", title: "Session", order: 1 }
+        properties: { sectionType: section.key, title: section.title, order: section.order }
       },
       {
         id: episodeId,
@@ -139,6 +152,35 @@ function episodeScaffold(graph: GraphState, latestText: string): Scaffold {
       { id: `${sectionId}--hasEpisode-->${episodeId}`, label: "hasEpisode", out: sectionId, in: episodeId, properties: {} }
     ]
   };
+}
+
+function classifySection(
+  domainId: string,
+  graph: GraphState,
+  previousQuestion: string
+): { key: string; title: string; order: number } {
+  const sections = getDomain(domainId).interviewSections;
+  if (!sections || sections.length === 0) return { key: "session", title: "Session", order: 1 };
+
+  const question = previousQuestion.toLowerCase();
+  let best: { section: (typeof sections)[number]; hits: number } | null = null;
+  for (const section of sections) {
+    const hits = section.keywords.filter((keyword) => question.includes(keyword)).length;
+    if (hits > 0 && (!best || hits > best.hits)) best = { section, hits };
+  }
+
+  // Interviews move forward: an unmatched question stays in the furthest
+  // section already reached rather than snapping back to the introduction.
+  const reached = Math.max(
+    1,
+    ...Object.values(graph.vertices)
+      .filter((vertex) => vertex.label === "SessionSection")
+      .map((vertex) => (typeof vertex.properties.order === "number" ? vertex.properties.order : 1))
+  );
+  const chosen = best && best.section.order >= reached
+    ? best.section
+    : sections.find((section) => section.order === reached) ?? sections[0];
+  return { key: chosen.key, title: chosen.title, order: chosen.order };
 }
 
 function withScaffold(raw: unknown, scaffold: Scaffold): unknown {

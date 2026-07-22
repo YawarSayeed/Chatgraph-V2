@@ -1,6 +1,6 @@
 Proceedings of Machine Learning Research -:1-6, 2026 NeSy 2026 Industry Track
 
-# Structure Is Not Grounding: A Symbolic Admission Gate for Expert-Elicited Knowledge Graphs
+# Provenance by Construction: A Symbolic Admission Gate for Knowledge Graphs from Live Expert Elicitation
 
 **Anonymous Author(s)** [anonymous@example.com](mailto:anonymous@example.com)
 
@@ -17,27 +17,28 @@ _Affiliation withheld for double-blind review_
 
 Institutions increasingly convert expert interviews into typed knowledge graphs with
 large language models, but for tacit expertise there is no reference graph to check
-the result against. Constrained decoding already guarantees structural validity, and
-that is widely treated as sufficient. It is not — but the failure is subtler than a
-faithfulness drop. Ungated free-form extraction scores well on per-fact evidential
-faithfulness (87.5% here) while converting only **4.2%** of its proposals into
-knowledge that is both schema-conforming and judge-confirmed, because it invents its
-own vocabulary turn by turn; every gated configuration converts **60–84%**. We
-therefore argue for a composite metric — usable *and* faithful — and show that the
-per-fact faithfulness comparison between ungated and constrained extraction is
-prompt-sensitive: a significant drop in one run of our harness vanished (exact
-p = 1) under a revised extractor prompt, while the composite gap was stable across
-both. We describe a deterministic symbolic gate — typed schema, structural
-provenance with a span rule, calibrated confidence, entity resolution,
-content-derived identity, invalidate-not-delete corrections — deployed in a live
-elicitation product, and a staged ablation whose harness executes the deployed gate
-itself. Making provenance *structural* rather than remembered raises evidence
-coverage from 0% to 84.5–100%; escalating the provenance rule from soft to hard buys
-full coverage but no measurable faithfulness (p = 1) at a 12-point cost in usable
-yield; typed-error retry nearly doubles admitted volume but, in this run, the
-recovered facts are measurably less grounded (exact p = 0.0156). An independent
-judge still rejects roughly one admitted citation in five, so provenance coverage
-alone overstates grounding.
+the result against: ground truth must be manufactured at capture time, by binding
+every admitted fact to the utterance that licensed it. We describe a deterministic
+symbolic gate — typed schema, structural provenance with a span rule, calibrated
+confidence, entity resolution with content-derived identity, invalidate-not-delete
+corrections — deployed in a live elicitation product, and a staged ablation whose
+harness executes the deployed gate itself. Our central engineering result is
+representational: carrying evidence *inline on each proposed fact*, with the gate
+materializing the evidence node and selecting the typed edge, raises provenance
+coverage from the 2–5% we measured when evidence was a separate structure the model
+had to remember, to 84.8–100% — and extends to relationship claims, where edges
+carry their own citations (65–100% coverage). Per interview turn, the full gate
+yields 1.69 usable grounded facts versus 1.28 for constrained decoding alone (+32%),
+at 100% ontology conformance, zero duplicates, and full auditability. We report
+costs and failures as measured: citation *quality* lags coverage (69% of vertex and
+46% of edge citations are confirmed by an independent judge); a previously invisible
+hallucination channel — the extractor padding optional properties with unstated
+elaboration — was exposed by the citation audit and closed, moving evidential
+faithfulness up 7–9 points; per-fact faithfulness contrasts between conditions
+proved prompt-sensitive across three controlled runs on the same corpus, and none
+of this run's paired contrasts reach significance on 32 turns. Provenance can be
+guaranteed by construction; whether the citation *supports* the claim remains the
+open, measurable frontier.
 
 **Keywords:** neurosymbolic validation, knowledge graphs, hallucination, provenance,
 expert elicitation
@@ -61,17 +62,19 @@ We contribute:
 
 1. a deterministic symbolic gate that admits, rejects, or repairs LLM-proposed
    knowledge at the ingestion boundary, deployed in a live elicitation product;
-2. **structural provenance** — evidence carried inline on each proposed fact, with the
-   gate materializing the evidence node and selecting the correctly-typed edge — which
-   makes the orphan-evidence failure mode unrepresentable rather than merely detected;
-3. a staged ablation in which the evaluation harness *imports the deployed gate*, so a
-   measured result is a claim about the shipped system;
-4. a composite metric (schema-conforming **and** judge-confirmed, over proposals) under
-   which the value of gating is stable across runs, together with the measurement that
-   the per-fact faithfulness contrast between ungated and constrained extraction is
-   prompt-sensitive — significant in one run of the same harness, absent in the next;
-5. an honest accounting of which constraints bought nothing on our corpus, including a
-   non-replication of our own earlier headline.
+2. **provenance by construction** — evidence carried inline on each proposed fact
+   *and each proposed relationship*, with the gate materializing evidence nodes,
+   selecting typed edges, and storing edge citations — making the orphan-evidence
+   failure mode unrepresentable rather than merely detected;
+3. a staged ablation in which the evaluation harness *imports the deployed gate*,
+   so a measured result is a claim about the shipped system, with the interview
+   turn as the cross-condition denominator;
+4. the identification, via citation auditing, of **property padding** as a
+   hallucination channel that per-fact faithfulness metrics under-detect, and its
+   closure by a grounding rule worth +7–9 EF points;
+5. an honest accounting across three controlled runs: which constraints bought
+   nothing, which effects are prompt-sensitive, and a non-replication of our own
+   earlier headline finding.
 
 ## 2. Related Work
 
@@ -113,12 +116,17 @@ constraint classes:
 
 - **(i) Typed-schema conformance.** Allowed labels, edge endpoint types, required
   properties, from a human-authored, version-controlled schema.
-- **(ii) Provenance with a specificity rule.** Every knowledge vertex must carry
-  traceable evidence. Crucially, the extractor does not *build* provenance: it attaches
-  an `evidence` object to the fact, and the gate materializes the evidence vertex,
-  supplies episode and speaker from the turn, and selects the provenance edge from the
-  contract. The specificity rule requires the trace to be a **span of the utterance**
-  and to not restate the whole turn.
+- **(ii) Provenance with a specificity rule — on facts and on relationships.**
+  Every knowledge vertex must carry traceable evidence, and every knowledge-to-
+  knowledge edge may carry its own: the extractor attaches an `evidence` object to
+  the fact or edge, and the gate materializes the evidence vertex (or stores the
+  citation on the edge), supplies episode and speaker from the turn, and selects
+  the provenance edge from the contract. The specificity rule requires the trace to
+  be a **span of the utterance** and to not restate the whole turn; the `inferred`
+  confidence tier relaxes the span requirement to an audit flag, since cross-turn
+  synthesis is by definition not a span of the current turn. Property values must
+  be grounded too: optional properties are omitted rather than filled with
+  elaboration the evidence cannot support.
 - **(iii) Confidence tier** from a closed vocabulary {high, medium, low, inferred},
   with `inferred` marking cross-episode synthesis that no single quote supports.
 - **(iv) Identity: resolution, then content-derived ids.** A proposed fact whose label
@@ -183,112 +191,114 @@ sees the condition. Human EF is UNMEASURED; a blinded, condition-stratified samp
 
 ## 5. Results
 
-Table 1: Staged ablation; only the gate varies across A1–A5. Exact counts and Wilson
-95% intervals in `results/metrics.json`.
+Table 1: Staged ablation; only the gate varies across A1–A5. UF/turn = facts both
+schema-conforming and judge-confirmed, per eligible interview turn. Exact counts and
+Wilson 95% intervals in `results/metrics.json`.
 
-| Cond. | OC ↑ | Prov. Cov. ↑ | Cite ↑ | EF ↑ | Usable+faithful ↑ | Yield | tok/fact |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| A0 ungated | 4.2% | 0.0% | — | 87.5% | 4.2% | 100.0% | 519 |
-| A1 constrained | 91.1% | 0.0% | — | 93.3% | 84.4% | 100.0% | 1550 |
-| A2 +schema | 100.0% | 0.0% | — | 92.7% | 84.4% | 91.1% | 1701 |
-| A3 +retry | 100.0% | 0.0% | — | 74.3% | 70.5% | 94.9% | 2054 |
-| A4 +provenance | 100.0% | 87.5% | 79.6% | 76.1% | 72.0% | 94.7% | 2285 |
-| A4-strict | 100.0% | 100.0% | 79.6% | 75.4% | 59.7% | 79.2% | 2774 |
-| A5 full gate | 100.0% | 84.5% | 81.6% | 76.0% | 76.0% | 100.0% | 2230 |
+| Cond. | UF/turn ↑ | UF-rate ↑ | EF ↑ | OC ↑ | Prov. ↑ | Edge Prov. ↑ | Cite ↑ | Edge Cite ↑ | Yield |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A0 ungated | 0.00 | 0.0% | 92.3% | 0.0% | 0% | — | — | — | 100.0% |
+| A1 constrained | 1.28 | 82.0% | 82.0% | 90.0% | 0% | — | — | — | 100.0% |
+| A2 +schema | 1.28 | 82.0% | 91.1% | 100.0% | 0% | — | — | — | 90.0% |
+| A3 +retry | 1.75 | 83.6% | 86.2% | 100.0% | 0% | — | — | — | 97.0% |
+| A4 +provenance | 1.53 | 76.6% | 83.1% | 100.0% | 83.7% | 68.8% | 63.9% | 54.5% | 92.2% |
+| A4-strict | 1.41 | 68.2% | 84.9% | 100.0% | 100.0% | 100.0% | 67.5% | 46.2% | 80.3% |
+| A5 full gate | 1.69 | 81.8% | 81.8% | 100.0% | 84.8% | 65.0% | 69.2% | 46.2% | 100.0% |
 
-**Ungated extraction produces almost no usable typed knowledge.** A0 converts 4.2%
-(2/48; CI 1.2–14) of its proposals into facts that are both schema-conforming and
-judge-confirmed; A1–A5 convert 59.7–84.4%. A0's per-fact EF of 87.5% (42/48) is the
-precision of vagueness: labels such as "eye twitch signal" and relations such as
-"appreciates" restate the transcript in an ad-hoc vocabulary no query or governance
-rule can reach. The composite, not the EF column, is the comparison that matters —
-and it is the comparison that is stable. Whether constrained decoding also *costs*
-per-fact faithfulness is prompt-sensitive: an earlier run of this same harness
-measured a significant A0→A1 EF drop (95.8%→82.2%, exact p = 0.031); under the
-current revised prompt the contrast is discordant on 3 utterances, exact p = 1, with
-EF *higher* under constraint. We report the non-replication rather than choosing the
-run that flatters the thesis.
+**The denominator is the experiment's quiet decision.** Retry inflates proposals, so
+per-proposal rates penalize the mechanism that recovers knowledge; the denominator
+constant across conditions is the interview itself. Per eligible turn, usable
+grounded knowledge goes 1.28 (A1) → 1.69 (A5): 41 → 54 facts, **+32%**, at 100%
+conformance and 100% yield (66/66). Ungated extraction converts nothing this run —
+0 of 52 proposals are both typed and confirmed (OC 0.0%) — a baseline we report as
+context, not contribution, since free-form output is scored against a schema it was
+never given.
 
-**Structural provenance: coverage is architectural.** Coverage is 84.5–100% where
-evidence is required and 0% elsewhere. The archived 2026-07-16 package measured
-2.2–5.4% under identical intent, when evidence was a free-standing vertex plus an
-edge the extractor had to remember: it emitted 41 evidence nodes and only 7
-provenance edges. Inline evidence materialized by the gate moved coverage ~90 points
-by changing the representation, not the model.
+**Provenance by construction, now on relationships too.** Vertex coverage is
+83.7–100% where required and 0% elsewhere; when evidence was a free-standing vertex
+the extractor had to remember, the archived measurement was 2.2–5.4%. Edge
+citations — new in this iteration — reach 65.0–100% coverage. The instrumentation
+lesson repeated itself: the first sub-run measured 0/N edge coverage across every
+condition, which was a harness bug (the normalizer silently stripped edge
+evidence), not a model failure.
 
-**Escalating provenance to hard buys coverage, and only coverage.** A4 vs A4-strict
-differ in one bit. Coverage rises 87.5% → 100%; yield falls 94.7% → 79.2%;
-usable+faithful falls 72.0% → 59.7%; per-fact EF is unchanged within its interval
-(76.1% → 75.4%, discordant 1, exact p = 1). Severity escalation purchases a
-reporting metric at the price of knowledge kept. The specification's soft severity
-is the right live default.
+**Property padding: a hallucination channel citation audits expose.** Mid-iteration,
+vertex citation correctness fell to 56–67% and the refusals showed why: 34 of 41
+grounded A5 facts carried optional properties filled with the model's own
+elaboration — a persona cited by "our primary demographic consists of corporate
+travelers" carrying `description: "…seeking efficiency and reliability"`, unstated
+by the expert, riding inside an admitted "grounded" fact. Per-fact EF under-detects
+this (the core claim *is* supported). Forbidding padded properties moved EF up
+7.7–9.1 points across governed conditions (A4 75.4→83.1, A4-strict 77.4→84.9,
+A5 72.7→81.8) and vertex citations to 69.2%.
 
-**Typed-error retry buys volume at a measurable grounding cost — in this run.**
-Retry lifts admitted facts 41 → 74 at 1701 → 2054 tokens per fact, and the recovered
-volume is less grounded: EF 92.7% → 74.3%, and per utterance the contamination
-increase is significant (discordant 7, exact p = 0.0156). The previous run measured
-no such cost. Two runs, two directions: the volume gain is robust, the faithfulness
-effect is not, and a deployment enabling retry should monitor EF rather than assume
-recovery is free.
+**What retry and the gate each buy.** Retry alone (A3) matches the full gate's
+volume (1.75 vs 1.69 UF/turn) with none of its governance: no provenance, no
+deterministic identity, no supersession. The gate's value over retry is not volume
+— it is that the same volume arrives *audited*: quoted, typed, deduplicated
+(0/54), supersession-tracked (2 corrections kept, not overwritten). Enforcing the
+provenance rule hard (A4-strict) remains a coverage purchase: 100% on both vertex
+and edge coverage, at −0.28 UF/turn against A5 and EF unchanged within intervals.
 
-**The full deployed gate.** A5 admits 100% (75/75) of proposals with OC 100%,
-duplicate rate 0% (0/57), the highest usable+faithful among retry-bearing conditions
-(76.0%, CI 65.2–84.2), citation correctness 81.6%, and 2 temporal supersessions the
-other conditions would have overwritten silently. Against ungated extraction the
-per-utterance contamination test is discordant 5, exact p = 0.0625 — suggestive, not
-significant, on 32 turns.
+**Nothing is significant on 32 turns — and we say so.** Every paired contrast in
+this run is not statistically significant: A0 vs A5 p = 0.125, A1 vs A5 p = 1,
+A2 vs A3 p = 0.625 (exact McNemar, contamination outcome).
+Iteration 04's significant retry contamination (p = 0.0156) did not recur after the
+anti-invention rule; with n = 32 we do not attribute the disappearance. Across
+three controlled runs on this corpus, per-fact EF contrasts between conditions have
+been prompt-sensitive in both directions; the per-turn composite ordering
+(gated ≫ ungated; A5 > A1) held in every run.
 
-**Coverage is not quality.** The judge rejects 20.4% of A4/A4-strict citations and
-18.4% of A5 citations as not licensing the fact that cites them, even after the
-span-based specificity rule. Provenance coverage alone overstates grounding; both
-numbers must be reported.
+**Citation quality is the frontier.** An independent judge confirms 69.2% of vertex
+citations and 46.2% of edge citations. Coverage can be guaranteed by construction;
+*support* cannot — it is where this pipeline's measurable error now concentrates.
 
 ## 6. Lessons, Limitations, and Outlook
 
-**(1) Generate the contract; do not restate it.** Schema drift was our dominant failure
-mode, and it was self-inflicted three times over: the committed schema forbade the very
-provenance edges the specification required; a rule targeted a property the schema did
-not declare; and a hand-written prompt instructed the extractor to author evidence the
-gate would then discard. Removing that last contradiction alone moved live provenance
-coverage from 60% to 100%. The contract is now generated, and both the harness and the
-test suite refuse to run while drift is non-zero.
+**(1) Make provenance structural, and extend it to every claim surface.** An
+evidence field the extractor cannot omit beats an evidence node it must remember to
+link, by ~90 points of coverage — and the same move applies to relationships, which
+were an ungrounded claim surface until edges carried their own citations. The
+residual surface is properties, where padding was caught by audit rather than by
+construction; property-level grounding is the next constraint class.
 
-**(2) Make constraints structural, not remembered.** The strongest engineering result
-here is a representation, not a rule: an evidence field the extractor cannot omit beats
-an evidence node it must remember to link, by ~90 points of coverage.
+**(2) Audit the citations, not just the coverage.** Coverage is purchasable by
+construction; support is not. The citation audit is what exposed property padding —
+a hallucination channel that per-fact faithfulness under-detects because the core
+claim is genuinely supported while elaboration rides along.
 
-**(3) Identity needs resolution before hashing.** Content-derived ids only merge exact
-restatements. Live sessions produce paraphrase families ("guest-centered service",
-"guest-centred experience"), and without deterministic resolution the pilot graph held
-22 near-duplicate principle vertices; with it, 5. Duplicate rate under the full gate is
-0% (0/57).
+**(3) Choose the denominator before reading the table.** Per proposal, the gate
+looks like a regression next to plain constrained decoding; per interview turn it is
++32%. Both are true; only one answers the question a deployer asks. Retry inflates
+proposals, so any per-proposal rate silently penalizes recovery.
 
-**(4) Read severity from the specification — and expect severity to buy less than it
-promises.** Our earlier harness enforced as *hard* two rules the specification declares
-*soft* and reported the resulting 0/59 admission as a finding about provenance. With
-severities read from the specification, escalating the evidence rule to hard buys
-coverage (100%) and nothing else we can measure, at a 12-point cost in usable yield.
+**(4) Generate the contract; read severities from the spec; run the deployed gate
+in the harness.** Every drift bug this project had came from a hand-written copy of
+something already derivable — including the evaluation harness that once enforced
+soft rules as hard and reported the resulting zero-yield as a finding about
+provenance, and the normalizer that silently zeroed edge coverage. Zeros are
+instrumentation until proven otherwise.
 
-**(5) Re-run before you believe.** Two runs of the same controlled harness on the same
-corpus, differing only in extractor prompt, disagreed about whether constrained decoding
-costs per-fact faithfulness and about whether retry is free. The composite metric and
-the structural-provenance result survived both runs; the per-fact EF contrasts did not.
-Single-run ablations at this scale over-claim by construction — which is why every
-significance statement in this paper is computed from the paired tests of the run it
-describes.
+**(5) Re-run before you believe.** Three controlled runs on one corpus disagreed
+about per-fact EF contrasts in both directions; the per-turn composite ordering held
+in all three. Single-run ablations at n = 32 over-claim by construction, which is
+why every significance statement in this paper is computed from the paired tests of
+the run it describes, and why the iteration record (`results/iterations/`) preserves
+every run, including the unflattering ones.
 
-**Limitations.** One session, one domain, one expert, 32 eligible turns: intervals are
-wide, and A2-vs-A3 is the only significant cross-condition contrast in the current run.
-EF and citation correctness are model-adjudicated, and judge and extractor share a model
-family, so shared blind spots are plausible; human labels remain UNMEASURED with a
-blinded 119-row sample prepared. A0's facts have no ontology and are not the same
-objects as typed facts; the composite metric exists for exactly that reason. The corpus
-is ASR output. Downstream question-answering utility is out of scope.
+**Limitations.** One session, one domain, one expert, 32 eligible turns; **no paired
+contrast in the current run reaches significance**, and intervals are wide. EF and
+citation correctness are model-adjudicated (judge and extractor share a model
+family); human labels remain UNMEASURED with a blinded 119-row sample prepared. A0's
+facts have no ontology and are not the same objects as typed facts; its baseline is
+context, not contribution. Edge-citation counts are small (n = 11–13). The corpus is
+ASR output. Downstream question-answering utility is out of scope.
 
-**Outlook.** The gate generalises along two unevaluated axes: *time* — bi-temporal
-validity extending admission to knowledge evolution — and *consent* — the same machinery
-enforcing permitted use and propagating revocation. Symbolic gating as knowledge
-governance.
+**Outlook.** Two constraint surfaces are specified but unevaluated: *property-level
+grounding* (the padding rule is currently prompt-enforced; the gate could check it)
+and *time* — bi-temporal validity extending supersession to knowledge evolution.
+The same machinery extends to *consent*: permitted-use enforcement and revocation
+propagation. Symbolic gating as knowledge governance.
 
 ## Reproducibility
 

@@ -22,44 +22,54 @@ const at = (pathExpression) =>
 
 /** [claim as it appears in the paper, path in metrics.json] */
 const CLAIMS = [
-  ["4.2%", "conditions.A0.OC.value"],
-  ["87.5%", "conditions.A0.EF.value"],
-  ["4.2%", "conditions.A0.usableFaithfulYield.value"],
+  ["0.0%", "conditions.A0.OC.value"],
+  ["92.3%", "conditions.A0.EF.value"],
+  ["0.0%", "conditions.A0.usableFaithfulYield.value"],
   ["0.0%", "conditions.A0.provenanceCoverage.value"],
   ["100.0%", "conditions.A0.yield.value"],
-  ["91.1%", "conditions.A1.OC.value"],
-  ["93.3%", "conditions.A1.EF.value"],
-  ["84.4%", "conditions.A1.usableFaithfulYield.value"],
+  ["0.0%", "conditions.A0.edgeProvenanceCoverage.value"],
+  ["90.0%", "conditions.A1.OC.value"],
+  ["82.0%", "conditions.A1.EF.value"],
+  ["82.0%", "conditions.A1.usableFaithfulYield.value"],
   ["0.0%", "conditions.A1.provenanceCoverage.value"],
   ["100.0%", "conditions.A1.yield.value"],
+  ["0.0%", "conditions.A1.edgeProvenanceCoverage.value"],
   ["100.0%", "conditions.A2.OC.value"],
-  ["92.7%", "conditions.A2.EF.value"],
-  ["84.4%", "conditions.A2.usableFaithfulYield.value"],
+  ["91.1%", "conditions.A2.EF.value"],
+  ["82.0%", "conditions.A2.usableFaithfulYield.value"],
   ["0.0%", "conditions.A2.provenanceCoverage.value"],
-  ["91.1%", "conditions.A2.yield.value"],
+  ["90.0%", "conditions.A2.yield.value"],
+  ["0.0%", "conditions.A2.edgeProvenanceCoverage.value"],
   ["100.0%", "conditions.A3.OC.value"],
-  ["74.3%", "conditions.A3.EF.value"],
-  ["70.5%", "conditions.A3.usableFaithfulYield.value"],
+  ["86.2%", "conditions.A3.EF.value"],
+  ["83.6%", "conditions.A3.usableFaithfulYield.value"],
   ["0.0%", "conditions.A3.provenanceCoverage.value"],
-  ["94.9%", "conditions.A3.yield.value"],
+  ["97.0%", "conditions.A3.yield.value"],
+  ["0.0%", "conditions.A3.edgeProvenanceCoverage.value"],
   ["100.0%", "conditions.A4.OC.value"],
-  ["76.1%", "conditions.A4.EF.value"],
-  ["72.0%", "conditions.A4.usableFaithfulYield.value"],
-  ["87.5%", "conditions.A4.provenanceCoverage.value"],
-  ["79.6%", "conditions.A4.citationCorrectness.value"],
-  ["94.7%", "conditions.A4.yield.value"],
+  ["83.1%", "conditions.A4.EF.value"],
+  ["76.6%", "conditions.A4.usableFaithfulYield.value"],
+  ["83.7%", "conditions.A4.provenanceCoverage.value"],
+  ["63.9%", "conditions.A4.citationCorrectness.value"],
+  ["92.2%", "conditions.A4.yield.value"],
+  ["68.8%", "conditions.A4.edgeProvenanceCoverage.value"],
+  ["54.5%", "conditions.A4.edgeCitationCorrectness.value"],
   ["100.0%", "conditions.A4-strict.OC.value"],
-  ["75.4%", "conditions.A4-strict.EF.value"],
-  ["59.7%", "conditions.A4-strict.usableFaithfulYield.value"],
+  ["84.9%", "conditions.A4-strict.EF.value"],
+  ["68.2%", "conditions.A4-strict.usableFaithfulYield.value"],
   ["100.0%", "conditions.A4-strict.provenanceCoverage.value"],
-  ["79.6%", "conditions.A4-strict.citationCorrectness.value"],
-  ["79.2%", "conditions.A4-strict.yield.value"],
+  ["67.5%", "conditions.A4-strict.citationCorrectness.value"],
+  ["80.3%", "conditions.A4-strict.yield.value"],
+  ["100.0%", "conditions.A4-strict.edgeProvenanceCoverage.value"],
+  ["46.2%", "conditions.A4-strict.edgeCitationCorrectness.value"],
   ["100.0%", "conditions.A5.OC.value"],
-  ["76.0%", "conditions.A5.EF.value"],
-  ["76.0%", "conditions.A5.usableFaithfulYield.value"],
-  ["84.5%", "conditions.A5.provenanceCoverage.value"],
-  ["81.6%", "conditions.A5.citationCorrectness.value"],
-  ["100.0%", "conditions.A5.yield.value"]
+  ["81.8%", "conditions.A5.EF.value"],
+  ["81.8%", "conditions.A5.usableFaithfulYield.value"],
+  ["84.8%", "conditions.A5.provenanceCoverage.value"],
+  ["69.2%", "conditions.A5.citationCorrectness.value"],
+  ["100.0%", "conditions.A5.yield.value"],
+  ["65.0%", "conditions.A5.edgeProvenanceCoverage.value"],
+  ["46.2%", "conditions.A5.edgeCitationCorrectness.value"]
 ];
 
 const failures = [];
@@ -81,13 +91,11 @@ for (const [claim, pathExpression] of CLAIMS) {
 
 // Token costs and counts quoted in prose.
 const COUNTS = [
-  ["519", "conditions.A0.tokensPerFact"],
-  ["1550", "conditions.A1.tokensPerFact"],
-  ["1701", "conditions.A2.tokensPerFact"],
-  ["2054", "conditions.A3.tokensPerFact"],
-  ["2285", "conditions.A4.tokensPerFact"],
-  ["2774", "conditions.A4-strict.tokensPerFact"],
-  ["2230", "conditions.A5.tokensPerFact"]
+  ["1.28", "conditions.A1.usableFaithfulPerTurn"],
+  ["1.75", "conditions.A3.usableFaithfulPerTurn"],
+  ["1.53", "conditions.A4.usableFaithfulPerTurn"],
+  ["1.41", "conditions.A4-strict.usableFaithfulPerTurn"],
+  ["1.69", "conditions.A5.usableFaithfulPerTurn"]
 ];
 for (const [claim, pathExpression] of COUNTS) {
   const actual = String(at(pathExpression));
@@ -97,10 +105,9 @@ for (const [claim, pathExpression] of COUNTS) {
 
 // Significance claims must match the tests actually run.
 const TESTS = {
-  "A2 vs A3": { p: "0.0156", discordant: 7 },
-  "A4 vs A4-strict": { p: "1", discordant: 1 },
-  "A0 vs A5": { p: "0.0625", discordant: 5 },
-  "A0 vs A1": { p: "1", discordant: 3 }
+  "A2 vs A3": { p: "0.625", discordant: 4 },
+  "A0 vs A5": { p: "0.125", discordant: 4 },
+  "A1 vs A5": { p: "1", discordant: 4 }
 };
 for (const [name, expected] of Object.entries(TESTS)) {
   const actual = at(`pairedTests.${name}`);

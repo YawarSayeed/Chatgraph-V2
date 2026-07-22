@@ -4,9 +4,17 @@
       "@key": "Person",
       "@value": {
         "label": "Person",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name", "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -14,10 +22,24 @@
       "@key": "ExpertRole",
       "@value": {
         "label": "ExpertRole",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "title",       "value": { "string": {} }, "required": true  },
-          { "key": "description", "value": { "string": {} }, "required": false }
+          {
+            "key": "title",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -25,12 +47,38 @@
       "@key": "HospitalityBusiness",
       "@value": {
         "label": "HospitalityBusiness",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",          "value": { "string": {} }, "required": true  },
-          { "key": "businessType",  "value": { "string": {} }, "required": false },
-          { "key": "scale",         "value": { "string": {} }, "required": false },
-          { "key": "description",   "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "businessType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "scale",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -38,10 +86,24 @@
       "@key": "OperatingTenure",
       "@value": {
         "label": "OperatingTenure",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "duration",    "value": { "string": {} }, "required": true  },
-          { "key": "description", "value": { "string": {} }, "required": false }
+          {
+            "key": "duration",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -49,14 +111,52 @@
       "@key": "KnowledgeSession",
       "@value": {
         "label": "KnowledgeSession",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "domain",               "value": { "string": {} }, "required": true  },
-          { "key": "expertName",           "value": { "string": {} }, "required": false },
-          { "key": "expertRole",           "value": { "string": {} }, "required": false },
-          { "key": "date",                 "value": { "string": {} }, "required": false },
-          { "key": "objective",            "value": { "string": {} }, "required": false },
-          { "key": "confidentialityLevel", "value": { "string": {} }, "required": false }
+          {
+            "key": "domain",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "expertName",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "expertRole",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "date",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "objective",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "confidentialityLevel",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -64,12 +164,40 @@
       "@key": "SessionSection",
       "@value": {
         "label": "SessionSection",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "sectionType", "value": { "string": {} },               "required": true  },
-          { "key": "title",       "value": { "string": {} },               "required": false },
-          { "key": "order",       "value": { "integer": { "int32": {} } }, "required": true  },
-          { "key": "purpose",     "value": { "string": {} },               "required": false }
+          {
+            "key": "sectionType",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "title",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "order",
+            "value": {
+              "integer": {
+                "int32": {}
+              }
+            },
+            "required": true
+          },
+          {
+            "key": "purpose",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -77,13 +205,45 @@
       "@key": "TranscriptEpisode",
       "@value": {
         "label": "TranscriptEpisode",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "verbatimText", "value": { "string": {} }, "required": true  },
-          { "key": "speaker",      "value": { "string": {} }, "required": false },
-          { "key": "startTime",    "value": { "string": {} }, "required": false },
-          { "key": "endTime",      "value": { "string": {} }, "required": false },
-          { "key": "confidence",   "value": { "string": {} }, "required": false }
+          {
+            "key": "verbatimText",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "speaker",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "startTime",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "endTime",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -91,13 +251,45 @@
       "@key": "ProvenanceEvidence",
       "@value": {
         "label": "ProvenanceEvidence",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "traceText",     "value": { "string": {} }, "required": true  },
-          { "key": "sourceEpisode", "value": { "string": {} }, "required": true  },
-          { "key": "speaker",       "value": { "string": {} }, "required": true  },
-          { "key": "timestamp",     "value": { "string": {} }, "required": false },
-          { "key": "confidence",    "value": { "string": {} }, "required": false }
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "sourceEpisode",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "speaker",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "timestamp",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -105,12 +297,38 @@
       "@key": "GuestExperiencePrinciple",
       "@value": {
         "label": "GuestExperiencePrinciple",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",            "value": { "string": {} }, "required": true  },
-          { "key": "description",     "value": { "string": {} }, "required": false },
-          { "key": "type",            "value": { "string": {} }, "required": false },
-          { "key": "neverCompromise", "value": { "boolean": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "type",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "neverCompromise",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -118,12 +336,38 @@
       "@key": "ServiceStandard",
       "@value": {
         "label": "ServiceStandard",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",             "value": { "string": {} }, "required": true  },
-          { "key": "standardText",     "value": { "string": {} }, "required": false },
-          { "key": "nonNegotiable",    "value": { "boolean": {} }, "required": false },
-          { "key": "appliesToSegment", "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "standardText",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "nonNegotiable",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "appliesToSegment",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -131,13 +375,45 @@
       "@key": "GuestSignal",
       "@value": {
         "label": "GuestSignal",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",             "value": { "string": {} }, "required": true  },
-          { "key": "signalType",       "value": { "string": {} }, "required": false },
-          { "key": "interpretation",   "value": { "string": {} }, "required": false },
-          { "key": "highValueIndicator","value": { "boolean": {} }, "required": false },
-          { "key": "returnLikelihood", "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "signalType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "interpretation",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "highValueIndicator",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "returnLikelihood",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -145,13 +421,45 @@
       "@key": "GuestPersona",
       "@value": {
         "label": "GuestPersona",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",           "value": { "string": {} }, "required": true  },
-          { "key": "description",    "value": { "string": {} }, "required": false },
-          { "key": "primaryNeed",    "value": { "string": {} }, "required": false },
-          { "key": "valueDriver",    "value": { "string": {} }, "required": false },
-          { "key": "repeatGuest",    "value": { "boolean": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "primaryNeed",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "valueDriver",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "repeatGuest",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -159,14 +467,52 @@
       "@key": "CheckInPolicy",
       "@value": {
         "label": "CheckInPolicy",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "standardTime",    "value": { "string": {} }, "required": false },
-          { "key": "earlyCheckIn",    "value": { "boolean": {} }, "required": false },
-          { "key": "earlyCheckInFee", "value": { "boolean": {} }, "required": false },
-          { "key": "sweetSpotTime",   "value": { "string": {} }, "required": false },
-          { "key": "earlyArrivalHandling", "value": { "string": {} }, "required": false },
-          { "key": "rationale",       "value": { "string": {} }, "required": false }
+          {
+            "key": "standardTime",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "earlyCheckIn",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "earlyCheckInFee",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "sweetSpotTime",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "earlyArrivalHandling",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "rationale",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -174,13 +520,45 @@
       "@key": "CheckOutPolicy",
       "@value": {
         "label": "CheckOutPolicy",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "standardTime",      "value": { "string": {} }, "required": false },
-          { "key": "lateCheckOut",      "value": { "boolean": {} }, "required": false },
-          { "key": "lateCheckOutFee",   "value": { "boolean": {} }, "required": false },
-          { "key": "lateHandlingApproach", "value": { "string": {} }, "required": false },
-          { "key": "rationale",         "value": { "string": {} }, "required": false }
+          {
+            "key": "standardTime",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "lateCheckOut",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "lateCheckOutFee",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "lateHandlingApproach",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "rationale",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -188,14 +566,52 @@
       "@key": "TimingRule",
       "@value": {
         "label": "TimingRule",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "ruleText",       "value": { "string": {} }, "required": true  },
-          { "key": "ruleType",       "value": { "string": {} }, "required": false },
-          { "key": "ifCondition",    "value": { "string": {} }, "required": false },
-          { "key": "thenAction",     "value": { "string": {} }, "required": false },
-          { "key": "exception",      "value": { "string": {} }, "required": false },
-          { "key": "refinedThroughExperience", "value": { "boolean": {} }, "required": false }
+          {
+            "key": "ruleText",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "ruleType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "ifCondition",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "thenAction",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "exception",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "refinedThroughExperience",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -203,12 +619,38 @@
       "@key": "ServiceFailure",
       "@value": {
         "label": "ServiceFailure",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",        "value": { "string": {} }, "required": true  },
-          { "key": "frequency",   "value": { "string": {} }, "required": false },
-          { "key": "description", "value": { "string": {} }, "required": false },
-          { "key": "severity",    "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "frequency",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "severity",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -216,13 +658,45 @@
       "@key": "RecoveryAction",
       "@value": {
         "label": "RecoveryAction",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",               "value": { "string": {} }, "required": true  },
-          { "key": "actionType",         "value": { "string": {} }, "required": false },
-          { "key": "description",        "value": { "string": {} }, "required": false },
-          { "key": "leadsToLoyalty",     "value": { "boolean": {} }, "required": false },
-          { "key": "commonMistake",      "value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "actionType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "leadsToLoyalty",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "commonMistake",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -230,13 +704,45 @@
       "@key": "ExceptionRule",
       "@value": {
         "label": "ExceptionRule",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "ruleText",          "value": { "string": {} }, "required": true  },
-          { "key": "triggerCondition",  "value": { "string": {} }, "required": false },
-          { "key": "paidOff",           "value": { "boolean": {} }, "required": false },
-          { "key": "guestSegment",      "value": { "string": {} }, "required": false },
-          { "key": "frequency",         "value": { "string": {} }, "required": false }
+          {
+            "key": "ruleText",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "triggerCondition",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "paidOff",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "guestSegment",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "frequency",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -244,14 +750,52 @@
       "@key": "DecisionRule",
       "@value": {
         "label": "DecisionRule",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "ruleText",     "value": { "string": {} }, "required": true  },
-          { "key": "ifCondition",  "value": { "string": {} }, "required": false },
-          { "key": "thenAction",   "value": { "string": {} }, "required": false },
-          { "key": "exception",    "value": { "string": {} }, "required": false },
-          { "key": "priority",     "value": { "string": {} }, "required": false },
-          { "key": "intuitionBased","value": { "boolean": {} }, "required": false }
+          {
+            "key": "ruleText",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "ifCondition",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "thenAction",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "exception",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "priority",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "intuitionBased",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -259,12 +803,38 @@
       "@key": "OperatingHeuristic",
       "@value": {
         "label": "OperatingHeuristic",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",        "value": { "string": {} }, "required": true  },
-          { "key": "heuristic",   "value": { "string": {} }, "required": false },
-          { "key": "whenUsed",    "value": { "string": {} }, "required": false },
-          { "key": "learnedThrough","value": { "string": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "heuristic",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "whenUsed",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "learnedThrough",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -272,13 +842,45 @@
       "@key": "LoyaltyDriver",
       "@value": {
         "label": "LoyaltyDriver",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",            "value": { "string": {} }, "required": true  },
-          { "key": "description",     "value": { "string": {} }, "required": false },
-          { "key": "driverType",      "value": { "string": {} }, "required": false },
-          { "key": "turnsAdvocate",   "value": { "boolean": {} }, "required": false },
-          { "key": "destroysTrust",   "value": { "boolean": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "driverType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "turnsAdvocate",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "destroysTrust",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -286,13 +888,45 @@
       "@key": "EmotionalMoment",
       "@value": {
         "label": "EmotionalMoment",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "name",          "value": { "string": {} }, "required": true  },
-          { "key": "description",   "value": { "string": {} }, "required": false },
-          { "key": "momentType",    "value": { "string": {} }, "required": false },
-          { "key": "gestureScale",  "value": { "string": {} }, "required": false },
-          { "key": "outsizedImpact","value": { "boolean": {} }, "required": false }
+          {
+            "key": "name",
+            "value": {
+              "string": {}
+            },
+            "required": true
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "momentType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "gestureScale",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "outsizedImpact",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -300,14 +934,52 @@
       "@key": "ContextualConstraint",
       "@value": {
         "label": "ContextualConstraint",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "constraintType",    "value": { "string": {} }, "required": false },
-          { "key": "seasonality",       "value": { "string": {} }, "required": false },
-          { "key": "location",          "value": { "string": {} }, "required": false },
-          { "key": "staffingFactor",    "value": { "string": {} }, "required": false },
-          { "key": "customerMix",       "value": { "string": {} }, "required": false },
-          { "key": "operationalBottleneck","value": { "string": {} }, "required": false }
+          {
+            "key": "constraintType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "seasonality",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "location",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "staffingFactor",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "customerMix",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "operationalBottleneck",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     },
@@ -315,18 +987,49 @@
       "@key": "Outcome",
       "@value": {
         "label": "Outcome",
-        "id": { "string": {} },
+        "id": {
+          "string": {}
+        },
         "properties": [
-          { "key": "outcomeType",     "value": { "string": {} }, "required": false },
-          { "key": "description",     "value": { "string": {} }, "required": false },
-          { "key": "guestRetained",   "value": { "boolean": {} }, "required": false },
-          { "key": "loyaltyAchieved", "value": { "boolean": {} }, "required": false },
-          { "key": "revenueImpact",   "value": { "string": {} }, "required": false }
+          {
+            "key": "outcomeType",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "description",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          },
+          {
+            "key": "guestRetained",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "loyaltyAchieved",
+            "value": {
+              "boolean": {}
+            },
+            "required": false
+          },
+          {
+            "key": "revenueImpact",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
         ]
       }
     }
   ],
-
   "edges": [
     {
       "@key": "hasSession",
@@ -341,7 +1044,24 @@
       "@value": {
         "label": "hasRole",
         "outV": "Person",
-        "inV": "ExpertRole"
+        "inV": "ExpertRole",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -349,7 +1069,24 @@
       "@value": {
         "label": "operatesBusiness",
         "outV": "Person",
-        "inV": "HospitalityBusiness"
+        "inV": "HospitalityBusiness",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -357,7 +1094,24 @@
       "@value": {
         "label": "hasOperatingTenure",
         "outV": "HospitalityBusiness",
-        "inV": "OperatingTenure"
+        "inV": "OperatingTenure",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -413,7 +1167,24 @@
       "@value": {
         "label": "experienceDesignedFor",
         "outV": "GuestExperiencePrinciple",
-        "inV": "GuestPersona"
+        "inV": "GuestPersona",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -421,7 +1192,24 @@
       "@value": {
         "label": "businessDifferentiatedBy",
         "outV": "HospitalityBusiness",
-        "inV": "GuestExperiencePrinciple"
+        "inV": "GuestExperiencePrinciple",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -429,7 +1217,24 @@
       "@value": {
         "label": "standardDeliveredTo",
         "outV": "ServiceStandard",
-        "inV": "GuestPersona"
+        "inV": "GuestPersona",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -437,7 +1242,24 @@
       "@value": {
         "label": "standardEnforces",
         "outV": "ServiceStandard",
-        "inV": "GuestExperiencePrinciple"
+        "inV": "GuestExperiencePrinciple",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -445,7 +1267,24 @@
       "@value": {
         "label": "signalTriggers",
         "outV": "GuestSignal",
-        "inV": "DecisionRule"
+        "inV": "DecisionRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -453,7 +1292,24 @@
       "@value": {
         "label": "signalIndicates",
         "outV": "GuestSignal",
-        "inV": "GuestPersona"
+        "inV": "GuestPersona",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -461,7 +1317,24 @@
       "@value": {
         "label": "governs",
         "outV": "CheckInPolicy",
-        "inV": "TimingRule"
+        "inV": "TimingRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -469,7 +1342,24 @@
       "@value": {
         "label": "governsCheckOut",
         "outV": "CheckOutPolicy",
-        "inV": "TimingRule"
+        "inV": "TimingRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -477,7 +1367,24 @@
       "@value": {
         "label": "resolvedBy",
         "outV": "ServiceFailure",
-        "inV": "RecoveryAction"
+        "inV": "RecoveryAction",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -485,7 +1392,24 @@
       "@value": {
         "label": "exceptionAppliesTo",
         "outV": "ExceptionRule",
-        "inV": "DecisionRule"
+        "inV": "DecisionRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -493,7 +1417,24 @@
       "@value": {
         "label": "exceptionMadeFor",
         "outV": "ExceptionRule",
-        "inV": "GuestPersona"
+        "inV": "GuestPersona",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -501,7 +1442,24 @@
       "@value": {
         "label": "heuristicExplains",
         "outV": "OperatingHeuristic",
-        "inV": "DecisionRule"
+        "inV": "DecisionRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -509,7 +1467,24 @@
       "@value": {
         "label": "leadsTo",
         "outV": "DecisionRule",
-        "inV": "Outcome"
+        "inV": "Outcome",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -517,7 +1492,24 @@
       "@value": {
         "label": "recoveryLeadsTo",
         "outV": "RecoveryAction",
-        "inV": "Outcome"
+        "inV": "Outcome",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -525,7 +1517,24 @@
       "@value": {
         "label": "shapesLoyalty",
         "outV": "EmotionalMoment",
-        "inV": "LoyaltyDriver"
+        "inV": "LoyaltyDriver",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -533,7 +1542,24 @@
       "@value": {
         "label": "drivenBy",
         "outV": "LoyaltyDriver",
-        "inV": "GuestPersona"
+        "inV": "GuestPersona",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -541,7 +1567,24 @@
       "@value": {
         "label": "loyaltyLeadsTo",
         "outV": "LoyaltyDriver",
-        "inV": "Outcome"
+        "inV": "Outcome",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -549,7 +1592,24 @@
       "@value": {
         "label": "modulatedBy",
         "outV": "ContextualConstraint",
-        "inV": "DecisionRule"
+        "inV": "DecisionRule",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -557,7 +1617,24 @@
       "@value": {
         "label": "constraintAffectsPolicy",
         "outV": "ContextualConstraint",
-        "inV": "CheckInPolicy"
+        "inV": "CheckInPolicy",
+        "properties": [
+          {
+            "key": "traceText",
+            "value": {
+              "string": {}
+            },
+            "required": false,
+            "comment": "Verbatim span of the utterance that licenses this relationship. Written by the gate from the edge's inline evidence; a relationship claim is a fact and is grounded like one."
+          },
+          {
+            "key": "confidence",
+            "value": {
+              "string": {}
+            },
+            "required": false
+          }
+        ]
       }
     },
     {
@@ -565,10 +1642,22 @@
       "@value": {
         "label": "supportedBy",
         "outV": [
-          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "ServiceStandard",
-          "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
-          "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
-          "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+          "ExpertRole",
+          "HospitalityBusiness",
+          "OperatingTenure",
+          "ServiceStandard",
+          "GuestSignal",
+          "GuestPersona",
+          "CheckInPolicy",
+          "CheckOutPolicy",
+          "ServiceFailure",
+          "RecoveryAction",
+          "ExceptionRule",
+          "DecisionRule",
+          "LoyaltyDriver",
+          "EmotionalMoment",
+          "ContextualConstraint",
+          "Outcome"
         ],
         "inV": "ProvenanceEvidence"
       }
@@ -577,7 +1666,9 @@
       "@key": "principleSupportedBy",
       "@value": {
         "label": "principleSupportedBy",
-        "outV": ["GuestExperiencePrinciple"],
+        "outV": [
+          "GuestExperiencePrinciple"
+        ],
         "inV": "ProvenanceEvidence"
       }
     },
@@ -585,7 +1676,10 @@
       "@key": "heuristicSupportedBy",
       "@value": {
         "label": "heuristicSupportedBy",
-        "outV": ["OperatingHeuristic", "TimingRule"],
+        "outV": [
+          "OperatingHeuristic",
+          "TimingRule"
+        ],
         "inV": "ProvenanceEvidence"
       }
     },
@@ -595,16 +1689,46 @@
         "label": "supersededBy",
         "comment": "Points from a fact that is no longer current to the fact that replaced it. Written by the gate, never by the extractor: a correction invalidates its predecessor rather than deleting it, so the earlier claim stays auditable.",
         "outV": [
-          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "GuestExperiencePrinciple",
-          "ServiceStandard", "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
-          "TimingRule", "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
-          "OperatingHeuristic", "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+          "ExpertRole",
+          "HospitalityBusiness",
+          "OperatingTenure",
+          "GuestExperiencePrinciple",
+          "ServiceStandard",
+          "GuestSignal",
+          "GuestPersona",
+          "CheckInPolicy",
+          "CheckOutPolicy",
+          "TimingRule",
+          "ServiceFailure",
+          "RecoveryAction",
+          "ExceptionRule",
+          "DecisionRule",
+          "OperatingHeuristic",
+          "LoyaltyDriver",
+          "EmotionalMoment",
+          "ContextualConstraint",
+          "Outcome"
         ],
         "inV": [
-          "ExpertRole", "HospitalityBusiness", "OperatingTenure", "GuestExperiencePrinciple",
-          "ServiceStandard", "GuestSignal", "GuestPersona", "CheckInPolicy", "CheckOutPolicy",
-          "TimingRule", "ServiceFailure", "RecoveryAction", "ExceptionRule", "DecisionRule",
-          "OperatingHeuristic", "LoyaltyDriver", "EmotionalMoment", "ContextualConstraint", "Outcome"
+          "ExpertRole",
+          "HospitalityBusiness",
+          "OperatingTenure",
+          "GuestExperiencePrinciple",
+          "ServiceStandard",
+          "GuestSignal",
+          "GuestPersona",
+          "CheckInPolicy",
+          "CheckOutPolicy",
+          "TimingRule",
+          "ServiceFailure",
+          "RecoveryAction",
+          "ExceptionRule",
+          "DecisionRule",
+          "OperatingHeuristic",
+          "LoyaltyDriver",
+          "EmotionalMoment",
+          "ContextualConstraint",
+          "Outcome"
         ]
       }
     }

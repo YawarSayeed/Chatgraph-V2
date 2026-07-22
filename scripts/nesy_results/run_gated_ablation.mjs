@@ -225,7 +225,10 @@ function normalizeFreeForm(raw) {
       id: String(item.id ?? ""),
       label: String(item.label ?? item.type ?? ""),
       out: String(item.out ?? item.outV ?? item.source ?? item.from ?? ""),
-      in: String(item.in ?? item.inV ?? item.target ?? item.to ?? "")
+      in: String(item.in ?? item.inV ?? item.target ?? item.to ?? ""),
+      // The edge's inline evidence is the input to relationship grounding;
+      // dropping it here silently zeroed edge provenance coverage.
+      ...(item.evidence && typeof item.evidence === "object" ? { evidence: item.evidence } : {})
     };
   }).filter(Boolean);
   return { vertices, edges };
@@ -440,6 +443,7 @@ async function runCondition(openai, condition, turns) {
       proposed_fact_count: proposed.length, admitted_fact_count: admitted.length,
       proposed_facts: proposed, admitted_facts: admitted,
       provenance: provenanceOf(finalDelta),
+      edge_provenance: edgeProvenanceOf(finalDelta, graph),
       findings: findings.map((f) => ({ ruleId: f.ruleId, severity: f.severity, action: f.action, message: f.message })),
       supersessions, attempts_used: attempts, tokens, latency_ms: latency,
       delta: finalDelta
@@ -464,6 +468,28 @@ function provenanceOf(delta) {
       grounded: Boolean(evidence),
       traceText: evidence ? String(evidence.properties?.traceText ?? "") : null,
       confidence: evidence ? (evidence.properties?.confidence ?? null) : null
+    });
+  }
+  return out;
+}
+
+/**
+ * Which admitted knowledge-to-knowledge edges carry their own evidence. A
+ * relationship claim is a fact; iteration 05 grounds it on the edge itself.
+ */
+function edgeProvenanceOf(delta, graph) {
+  const labels = new Map(Object.values(graph.vertices).map((v) => [v.id, v.label]));
+  for (const vertex of delta.vertices) labels.set(vertex.id, vertex.label);
+  const out = [];
+  for (const edge of delta.edges) {
+    if (!CONTRACT.knowledgeLabels.has(labels.get(edge.out)) || !CONTRACT.knowledgeLabels.has(labels.get(edge.in))) continue;
+    const trace = typeof edge.properties?.traceText === "string" ? edge.properties.traceText : null;
+    out.push({
+      edgeId: edge.id,
+      label: edge.label,
+      grounded: Boolean(trace),
+      traceText: trace,
+      relation: `${edge.out} --${edge.label}--> ${edge.in}`
     });
   }
   return out;
@@ -530,6 +556,13 @@ async function judgeCitations(openai, rows) {
       if (!items.has(key)) {
         const vertex = row.delta.vertices.find((v) => v.id === entry.vertexId);
         items.set(key, { key, fact: `${entry.label}: ${JSON.stringify(vertex?.properties ?? {})}`, citation: entry.traceText });
+      }
+    }
+    for (const entry of row.edge_provenance ?? []) {
+      if (!entry.grounded || !entry.traceText) continue;
+      const key = sha(`edge|${entry.relation}|${entry.traceText}`);
+      if (!items.has(key)) {
+        items.set(key, { key, fact: `relationship: ${entry.relation}`, citation: entry.traceText });
       }
     }
   }
@@ -646,6 +679,17 @@ function summarize(condition, rows, efVerdicts, citationVerdicts, finalGraph) {
     if (verdict.supports === true) citationsGood += 1;
   }
 
+  const edgeEntries = active.flatMap((row) => row.edge_provenance ?? []);
+  const edgesGrounded = edgeEntries.filter((entry) => entry.grounded);
+  let edgeCitationsChecked = 0;
+  let edgeCitationsGood = 0;
+  for (const entry of edgesGrounded) {
+    const verdict = citationVerdicts.get(sha(`edge|${entry.relation}|${entry.traceText}`));
+    if (!verdict) continue;
+    edgeCitationsChecked += 1;
+    if (verdict.supports === true) edgeCitationsGood += 1;
+  }
+
   // Redundancy in the graph the condition actually produced: content-identical
   // knowledge vertices that were nevertheless stored under different ids.
   const knowledgeVertices = Object.values(finalGraph.vertices).filter((v) => CONTRACT.knowledgeLabels.has(v.label));
@@ -672,8 +716,13 @@ function summarize(condition, rows, efVerdicts, citationVerdicts, finalGraph) {
     faithfulFacts: judged - unsupported,
     usableFaithfulFacts: usableFaithful,
     usableFaithfulYield: proportion(usableFaithful, proposed),
+    // The headline productivity number: proposals are inflated by retry, so the
+    // denominator that holds across conditions is the interview itself.
+    usableFaithfulPerTurn: active.length ? Number((usableFaithful / active.length).toFixed(2)) : null,
     provenanceCoverage: proportion(grounded.length, provenanceEntries.length),
     citationCorrectness: proportion(citationsGood, citationsChecked),
+    edgeProvenanceCoverage: proportion(edgesGrounded.length, edgeEntries.length),
+    edgeCitationCorrectness: proportion(edgeCitationsGood, edgeCitationsChecked),
     yield: proportion(admitted.length, proposed),
     duplicateRate: proportion(duplicates, knowledgeVertices.length),
     retryBudgetConsumed: proportion(attemptsBeyondFirst, retryCapacity),
@@ -741,7 +790,7 @@ async function main() {
   const outcomes = Object.fromEntries(
     CONDITIONS.map((condition) => [condition.id, utteranceOutcomes(rowsByCondition[condition.id], efVerdicts)])
   );
-  const pairs = [["A0", "A1"], ["A1", "A2"], ["A2", "A3"], ["A3", "A4"], ["A4", "A4-strict"], ["A4", "A5"], ["A0", "A5"]];
+  const pairs = [["A0", "A1"], ["A1", "A2"], ["A2", "A3"], ["A3", "A4"], ["A4", "A4-strict"], ["A4", "A5"], ["A0", "A5"], ["A1", "A5"]];
   const tests = {};
   for (const [left, right] of pairs) {
     let leftOnly = 0;

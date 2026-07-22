@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-21T22:58:50.638Z",
+  "generatedAt": "2026-07-21T23:55:03.384Z",
   "status": "MEASURED_GATED_ABLATION",
   "harness": {
     "note": "Conditions call the deployed gate in lib/gate; there is no separate evaluation implementation.",
@@ -10,7 +10,7 @@
     "temperature": 0,
     "seed": 20260721,
     "maxAttempts": 3,
-    "promptHash": "dd62d951b0145838e1df13128282de561570b8d309c98ba03928d866f0d46f6a"
+    "promptHash": "ed3e8123e241ddb46512af398eea79e4715b49010786409f07bff414c368fc15"
   },
   "schema": {
     "vertexClasses": 24,
@@ -31,78 +31,79 @@
       "condition": "A0",
       "label": "ungated free-form",
       "eligibleTurns": 32,
-      "proposedFacts": 48,
-      "admittedFacts": 48,
+      "proposedFacts": 52,
+      "admittedFacts": 52,
       "OC": {
-        "value": "4.2%",
-        "numerator": 2,
-        "denominator": 48,
-        "count": "2/48",
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 52,
+        "count": "0/52",
         "ci95": {
-          "low": 1.2,
-          "high": 14
+          "low": 0,
+          "high": 6.9
         }
       },
       "SH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 12,
-        "count": "0/12",
+        "denominator": 15,
+        "count": "0/15",
         "ci95": {
           "low": 0,
-          "high": 24.2
+          "high": 20.4
         }
       },
       "RH": {
         "value": "100.0%",
-        "numerator": 12,
-        "denominator": 12,
-        "count": "12/12",
+        "numerator": 15,
+        "denominator": 15,
+        "count": "15/15",
         "ci95": {
-          "low": 75.8,
+          "low": 79.6,
           "high": 100
         }
       },
       "OH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 12,
-        "count": "0/12",
+        "denominator": 15,
+        "count": "0/15",
         "ci95": {
           "low": 0,
-          "high": 24.2
+          "high": 20.4
         }
       },
       "EF": {
-        "value": "87.5%",
-        "numerator": 42,
-        "denominator": 48,
-        "count": "42/48",
+        "value": "92.3%",
+        "numerator": 48,
+        "denominator": 52,
+        "count": "48/52",
         "ci95": {
-          "low": 75.3,
-          "high": 94.1
+          "low": 81.8,
+          "high": 97
         }
       },
-      "faithfulFacts": 42,
-      "usableFaithfulFacts": 2,
+      "faithfulFacts": 48,
+      "usableFaithfulFacts": 0,
       "usableFaithfulYield": {
-        "value": "4.2%",
-        "numerator": 2,
-        "denominator": 48,
-        "count": "2/48",
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 52,
+        "count": "0/52",
         "ci95": {
-          "low": 1.2,
-          "high": 14
+          "low": 0,
+          "high": 6.9
         }
       },
+      "usableFaithfulPerTurn": 0,
       "provenanceCoverage": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 11,
-        "count": "0/11",
+        "denominator": 6,
+        "count": "0/6",
         "ci95": {
           "low": 0,
-          "high": 25.9
+          "high": 39
         }
       },
       "citationCorrectness": {
@@ -111,24 +112,40 @@
         "numerator": 0,
         "denominator": 0
       },
+      "edgeProvenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 6,
+        "count": "0/6",
+        "ci95": {
+          "low": 0,
+          "high": 39
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
       "yield": {
         "value": "100.0%",
-        "numerator": 48,
-        "denominator": 48,
-        "count": "48/48",
+        "numerator": 52,
+        "denominator": 52,
+        "count": "52/52",
         "ci95": {
-          "low": 92.6,
+          "low": 93.1,
           "high": 100
         }
       },
       "duplicateRate": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 11,
-        "count": "0/11",
+        "denominator": 6,
+        "count": "0/6",
         "ci95": {
           "low": 0,
-          "high": 25.9
+          "high": 39
         }
       },
       "retryBudgetConsumed": {
@@ -152,89 +169,90 @@
         }
       },
       "temporalContradictions": 0,
-      "tokensPerFact": 519,
-      "secondsPerFact": 1.22,
-      "totalTokens": 24914,
-      "totalLatencyMs": 58434,
-      "judgedFacts": 48,
+      "tokensPerFact": 518,
+      "secondsPerFact": 1.06,
+      "totalTokens": 26955,
+      "totalLatencyMs": 55041,
+      "judgedFacts": 52,
       "evidence": "results/raw/A0.jsonl"
     },
     "A1": {
       "condition": "A1",
       "label": "constrained decoding",
       "eligibleTurns": 32,
-      "proposedFacts": 45,
-      "admittedFacts": 45,
+      "proposedFacts": 50,
+      "admittedFacts": 50,
       "OC": {
-        "value": "91.1%",
-        "numerator": 41,
-        "denominator": 45,
-        "count": "41/45",
+        "value": "90.0%",
+        "numerator": 45,
+        "denominator": 50,
+        "count": "45/50",
         "ci95": {
-          "low": 79.3,
-          "high": 96.5
+          "low": 78.6,
+          "high": 95.7
         }
       },
       "SH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 6,
-        "count": "0/6",
+        "denominator": 12,
+        "count": "0/12",
         "ci95": {
           "low": 0,
-          "high": 39
+          "high": 24.2
         }
       },
       "RH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 6,
-        "count": "0/6",
+        "denominator": 12,
+        "count": "0/12",
         "ci95": {
           "low": 0,
-          "high": 39
+          "high": 24.2
         }
       },
       "OH": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 6,
-        "count": "0/6",
+        "value": "8.3%",
+        "numerator": 1,
+        "denominator": 12,
+        "count": "1/12",
         "ci95": {
-          "low": 0,
-          "high": 39
+          "low": 1.5,
+          "high": 35.4
         }
       },
       "EF": {
-        "value": "93.3%",
-        "numerator": 42,
-        "denominator": 45,
-        "count": "42/45",
+        "value": "82.0%",
+        "numerator": 41,
+        "denominator": 50,
+        "count": "41/50",
         "ci95": {
-          "low": 82.1,
-          "high": 97.7
+          "low": 69.2,
+          "high": 90.2
         }
       },
-      "faithfulFacts": 42,
-      "usableFaithfulFacts": 38,
+      "faithfulFacts": 41,
+      "usableFaithfulFacts": 41,
       "usableFaithfulYield": {
-        "value": "84.4%",
-        "numerator": 38,
-        "denominator": 45,
-        "count": "38/45",
+        "value": "82.0%",
+        "numerator": 41,
+        "denominator": 50,
+        "count": "41/50",
         "ci95": {
-          "low": 71.2,
-          "high": 92.3
+          "low": 69.2,
+          "high": 90.2
         }
       },
+      "usableFaithfulPerTurn": 1.28,
       "provenanceCoverage": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 39,
-        "count": "0/39",
+        "denominator": 38,
+        "count": "0/38",
         "ci95": {
           "low": 0,
-          "high": 9
+          "high": 9.2
         }
       },
       "citationCorrectness": {
@@ -243,7 +261,77 @@
         "numerator": 0,
         "denominator": 0
       },
+      "edgeProvenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 12,
+        "count": "0/12",
+        "ci95": {
+          "low": 0,
+          "high": 24.2
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
       "yield": {
+        "value": "100.0%",
+        "numerator": 50,
+        "denominator": 50,
+        "count": "50/50",
+        "ci95": {
+          "low": 92.9,
+          "high": 100
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 37,
+        "count": "0/37",
+        "ci95": {
+          "low": 0,
+          "high": 9.4
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 64,
+        "count": "0/64",
+        "ci95": {
+          "low": 0,
+          "high": 5.7
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 1499,
+      "secondsPerFact": 1.3,
+      "totalTokens": 74944,
+      "totalLatencyMs": 64857,
+      "judgedFacts": 50,
+      "evidence": "results/raw/A1.jsonl"
+    },
+    "A2": {
+      "condition": "A2",
+      "label": "+ typed-schema gate",
+      "eligibleTurns": 32,
+      "proposedFacts": 50,
+      "admittedFacts": 45,
+      "OC": {
         "value": "100.0%",
         "numerator": 45,
         "denominator": 45,
@@ -253,129 +341,37 @@
           "high": 100
         }
       },
-      "duplicateRate": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 38,
-        "count": "0/38",
-        "ci95": {
-          "low": 0,
-          "high": 9.2
-        }
-      },
-      "retryBudgetConsumed": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 64,
-        "count": "0/64",
-        "ci95": {
-          "low": 0,
-          "high": 5.7
-        }
-      },
-      "unparseableRate": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 32,
-        "count": "0/32",
-        "ci95": {
-          "low": 0,
-          "high": 10.7
-        }
-      },
-      "temporalContradictions": 0,
-      "tokensPerFact": 1550,
-      "secondsPerFact": 1.25,
-      "totalTokens": 69752,
-      "totalLatencyMs": 56343,
-      "judgedFacts": 45,
-      "evidence": "results/raw/A1.jsonl"
-    },
-    "A2": {
-      "condition": "A2",
-      "label": "+ typed-schema gate",
-      "eligibleTurns": 32,
-      "proposedFacts": 45,
-      "admittedFacts": 41,
-      "OC": {
-        "value": "100.0%",
-        "numerator": 41,
-        "denominator": 41,
-        "count": "41/41",
-        "ci95": {
-          "low": 91.4,
-          "high": 100
-        }
-      },
       "SH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 2,
-        "count": "0/2",
+        "denominator": 7,
+        "count": "0/7",
         "ci95": {
           "low": 0,
-          "high": 65.8
+          "high": 35.4
         }
       },
       "RH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 2,
-        "count": "0/2",
+        "denominator": 7,
+        "count": "0/7",
         "ci95": {
           "low": 0,
-          "high": 65.8
+          "high": 35.4
         }
       },
       "OH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 2,
-        "count": "0/2",
+        "denominator": 7,
+        "count": "0/7",
         "ci95": {
           "low": 0,
-          "high": 65.8
+          "high": 35.4
         }
       },
       "EF": {
-        "value": "92.7%",
-        "numerator": 38,
-        "denominator": 41,
-        "count": "38/41",
-        "ci95": {
-          "low": 80.6,
-          "high": 97.5
-        }
-      },
-      "faithfulFacts": 38,
-      "usableFaithfulFacts": 38,
-      "usableFaithfulYield": {
-        "value": "84.4%",
-        "numerator": 38,
-        "denominator": 45,
-        "count": "38/45",
-        "ci95": {
-          "low": 71.2,
-          "high": 92.3
-        }
-      },
-      "provenanceCoverage": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 39,
-        "count": "0/39",
-        "ci95": {
-          "low": 0,
-          "high": 9
-        }
-      },
-      "citationCorrectness": {
-        "value": "UNMEASURED",
-        "reason": "no denominator",
-        "numerator": 0,
-        "denominator": 0
-      },
-      "yield": {
         "value": "91.1%",
         "numerator": 41,
         "denominator": 45,
@@ -385,7 +381,20 @@
           "high": 96.5
         }
       },
-      "duplicateRate": {
+      "faithfulFacts": 41,
+      "usableFaithfulFacts": 41,
+      "usableFaithfulYield": {
+        "value": "82.0%",
+        "numerator": 41,
+        "denominator": 50,
+        "count": "41/50",
+        "ci95": {
+          "low": 69.2,
+          "high": 90.2
+        }
+      },
+      "usableFaithfulPerTurn": 1.28,
+      "provenanceCoverage": {
         "value": "0.0%",
         "numerator": 0,
         "denominator": 38,
@@ -393,6 +402,48 @@
         "ci95": {
           "low": 0,
           "high": 9.2
+        }
+      },
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "edgeProvenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 7,
+        "count": "0/7",
+        "ci95": {
+          "low": 0,
+          "high": 35.4
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "90.0%",
+        "numerator": 45,
+        "denominator": 50,
+        "count": "45/50",
+        "ci95": {
+          "low": 78.6,
+          "high": 95.7
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 37,
+        "count": "0/37",
+        "ci95": {
+          "low": 0,
+          "high": 9.4
         }
       },
       "retryBudgetConsumed": {
@@ -416,37 +467,37 @@
         }
       },
       "temporalContradictions": 0,
-      "tokensPerFact": 1701,
-      "secondsPerFact": 1.37,
-      "totalTokens": 69752,
-      "totalLatencyMs": 56343,
-      "judgedFacts": 41,
+      "tokensPerFact": 1665,
+      "secondsPerFact": 1.44,
+      "totalTokens": 74944,
+      "totalLatencyMs": 64857,
+      "judgedFacts": 45,
       "evidence": "results/raw/A2.jsonl"
     },
     "A3": {
       "condition": "A3",
       "label": "+ typed-error retry",
       "eligibleTurns": 32,
-      "proposedFacts": 78,
-      "admittedFacts": 74,
+      "proposedFacts": 67,
+      "admittedFacts": 65,
       "OC": {
         "value": "100.0%",
-        "numerator": 74,
-        "denominator": 74,
-        "count": "74/74",
+        "numerator": 65,
+        "denominator": 65,
+        "count": "65/65",
         "ci95": {
-          "low": 95.1,
+          "low": 94.4,
           "high": 100
         }
       },
       "SH": {
-        "value": "16.7%",
-        "numerator": 3,
+        "value": "5.6%",
+        "numerator": 1,
         "denominator": 18,
-        "count": "3/18",
+        "count": "1/18",
         "ci95": {
-          "low": 5.8,
-          "high": 39.2
+          "low": 1,
+          "high": 25.8
         }
       },
       "RH": {
@@ -460,336 +511,39 @@
         }
       },
       "OH": {
-        "value": "33.3%",
-        "numerator": 6,
+        "value": "11.1%",
+        "numerator": 2,
         "denominator": 18,
-        "count": "6/18",
+        "count": "2/18",
         "ci95": {
-          "low": 16.3,
-          "high": 56.3
+          "low": 3.1,
+          "high": 32.8
         }
       },
       "EF": {
-        "value": "74.3%",
-        "numerator": 55,
-        "denominator": 74,
-        "count": "55/74",
+        "value": "86.2%",
+        "numerator": 56,
+        "denominator": 65,
+        "count": "56/65",
         "ci95": {
-          "low": 63.3,
-          "high": 82.9
+          "low": 75.7,
+          "high": 92.5
         }
       },
-      "faithfulFacts": 55,
-      "usableFaithfulFacts": 55,
+      "faithfulFacts": 56,
+      "usableFaithfulFacts": 56,
       "usableFaithfulYield": {
-        "value": "70.5%",
-        "numerator": 55,
-        "denominator": 78,
-        "count": "55/78",
+        "value": "83.6%",
+        "numerator": 56,
+        "denominator": 67,
+        "count": "56/67",
         "ci95": {
-          "low": 59.6,
-          "high": 79.5
+          "low": 72.9,
+          "high": 90.6
         }
       },
+      "usableFaithfulPerTurn": 1.75,
       "provenanceCoverage": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 56,
-        "count": "0/56",
-        "ci95": {
-          "low": 0,
-          "high": 6.4
-        }
-      },
-      "citationCorrectness": {
-        "value": "UNMEASURED",
-        "reason": "no denominator",
-        "numerator": 0,
-        "denominator": 0
-      },
-      "yield": {
-        "value": "94.9%",
-        "numerator": 74,
-        "denominator": 78,
-        "count": "74/78",
-        "ci95": {
-          "low": 87.5,
-          "high": 98
-        }
-      },
-      "duplicateRate": {
-        "value": "1.9%",
-        "numerator": 1,
-        "denominator": 53,
-        "count": "1/53",
-        "ci95": {
-          "low": 0.3,
-          "high": 9.9
-        }
-      },
-      "retryBudgetConsumed": {
-        "value": "53.1%",
-        "numerator": 34,
-        "denominator": 64,
-        "count": "34/64",
-        "ci95": {
-          "low": 41.1,
-          "high": 64.8
-        }
-      },
-      "unparseableRate": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 32,
-        "count": "0/32",
-        "ci95": {
-          "low": 0,
-          "high": 10.7
-        }
-      },
-      "temporalContradictions": 0,
-      "tokensPerFact": 2054,
-      "secondsPerFact": 2.19,
-      "totalTokens": 151970,
-      "totalLatencyMs": 162154,
-      "judgedFacts": 74,
-      "evidence": "results/raw/A3.jsonl"
-    },
-    "A4": {
-      "condition": "A4",
-      "label": "+ provenance requirement",
-      "eligibleTurns": 32,
-      "proposedFacts": 75,
-      "admittedFacts": 71,
-      "OC": {
-        "value": "100.0%",
-        "numerator": 71,
-        "denominator": 71,
-        "count": "71/71",
-        "ci95": {
-          "low": 94.9,
-          "high": 100
-        }
-      },
-      "SH": {
-        "value": "13.3%",
-        "numerator": 2,
-        "denominator": 15,
-        "count": "2/15",
-        "ci95": {
-          "low": 3.7,
-          "high": 37.9
-        }
-      },
-      "RH": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 15,
-        "count": "0/15",
-        "ci95": {
-          "low": 0,
-          "high": 20.4
-        }
-      },
-      "OH": {
-        "value": "40.0%",
-        "numerator": 6,
-        "denominator": 15,
-        "count": "6/15",
-        "ci95": {
-          "low": 19.8,
-          "high": 64.3
-        }
-      },
-      "EF": {
-        "value": "76.1%",
-        "numerator": 54,
-        "denominator": 71,
-        "count": "54/71",
-        "ci95": {
-          "low": 65,
-          "high": 84.5
-        }
-      },
-      "faithfulFacts": 54,
-      "usableFaithfulFacts": 54,
-      "usableFaithfulYield": {
-        "value": "72.0%",
-        "numerator": 54,
-        "denominator": 75,
-        "count": "54/75",
-        "ci95": {
-          "low": 61,
-          "high": 80.9
-        }
-      },
-      "provenanceCoverage": {
-        "value": "87.5%",
-        "numerator": 49,
-        "denominator": 56,
-        "count": "49/56",
-        "ci95": {
-          "low": 76.4,
-          "high": 93.8
-        }
-      },
-      "citationCorrectness": {
-        "value": "79.6%",
-        "numerator": 39,
-        "denominator": 49,
-        "count": "39/49",
-        "ci95": {
-          "low": 66.4,
-          "high": 88.5
-        }
-      },
-      "yield": {
-        "value": "94.7%",
-        "numerator": 71,
-        "denominator": 75,
-        "count": "71/75",
-        "ci95": {
-          "low": 87.1,
-          "high": 97.9
-        }
-      },
-      "duplicateRate": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 54,
-        "count": "0/54",
-        "ci95": {
-          "low": 0,
-          "high": 6.6
-        }
-      },
-      "retryBudgetConsumed": {
-        "value": "59.4%",
-        "numerator": 38,
-        "denominator": 64,
-        "count": "38/64",
-        "ci95": {
-          "low": 47.1,
-          "high": 70.5
-        }
-      },
-      "unparseableRate": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 32,
-        "count": "0/32",
-        "ci95": {
-          "low": 0,
-          "high": 10.7
-        }
-      },
-      "temporalContradictions": 0,
-      "tokensPerFact": 2285,
-      "secondsPerFact": 2.52,
-      "totalTokens": 162243,
-      "totalLatencyMs": 178681,
-      "judgedFacts": 71,
-      "evidence": "results/raw/A4.jsonl"
-    },
-    "A4-strict": {
-      "condition": "A4-strict",
-      "label": "+ provenance enforced hard",
-      "eligibleTurns": 32,
-      "proposedFacts": 77,
-      "admittedFacts": 61,
-      "OC": {
-        "value": "100.0%",
-        "numerator": 61,
-        "denominator": 61,
-        "count": "61/61",
-        "ci95": {
-          "low": 94.1,
-          "high": 100
-        }
-      },
-      "SH": {
-        "value": "16.7%",
-        "numerator": 2,
-        "denominator": 12,
-        "count": "2/12",
-        "ci95": {
-          "low": 4.7,
-          "high": 44.8
-        }
-      },
-      "RH": {
-        "value": "0.0%",
-        "numerator": 0,
-        "denominator": 12,
-        "count": "0/12",
-        "ci95": {
-          "low": 0,
-          "high": 24.2
-        }
-      },
-      "OH": {
-        "value": "33.3%",
-        "numerator": 4,
-        "denominator": 12,
-        "count": "4/12",
-        "ci95": {
-          "low": 13.8,
-          "high": 60.9
-        }
-      },
-      "EF": {
-        "value": "75.4%",
-        "numerator": 46,
-        "denominator": 61,
-        "count": "46/61",
-        "ci95": {
-          "low": 63.3,
-          "high": 84.5
-        }
-      },
-      "faithfulFacts": 46,
-      "usableFaithfulFacts": 46,
-      "usableFaithfulYield": {
-        "value": "59.7%",
-        "numerator": 46,
-        "denominator": 77,
-        "count": "46/77",
-        "ci95": {
-          "low": 48.6,
-          "high": 70
-        }
-      },
-      "provenanceCoverage": {
-        "value": "100.0%",
-        "numerator": 49,
-        "denominator": 49,
-        "count": "49/49",
-        "ci95": {
-          "low": 92.7,
-          "high": 100
-        }
-      },
-      "citationCorrectness": {
-        "value": "79.6%",
-        "numerator": 39,
-        "denominator": 49,
-        "count": "39/49",
-        "ci95": {
-          "low": 66.4,
-          "high": 88.5
-        }
-      },
-      "yield": {
-        "value": "79.2%",
-        "numerator": 61,
-        "denominator": 77,
-        "count": "61/77",
-        "ci95": {
-          "low": 68.9,
-          "high": 86.8
-        }
-      },
-      "duplicateRate": {
         "value": "0.0%",
         "numerator": 0,
         "denominator": 47,
@@ -799,14 +553,56 @@
           "high": 7.6
         }
       },
-      "retryBudgetConsumed": {
-        "value": "64.1%",
-        "numerator": 41,
-        "denominator": 64,
-        "count": "41/64",
+      "citationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "edgeProvenanceCoverage": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 18,
+        "count": "0/18",
         "ci95": {
-          "low": 51.8,
-          "high": 74.7
+          "low": 0,
+          "high": 17.6
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "UNMEASURED",
+        "reason": "no denominator",
+        "numerator": 0,
+        "denominator": 0
+      },
+      "yield": {
+        "value": "97.0%",
+        "numerator": 65,
+        "denominator": 67,
+        "count": "65/67",
+        "ci95": {
+          "low": 89.8,
+          "high": 99.2
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 46,
+        "count": "0/46",
+        "ci95": {
+          "low": 0,
+          "high": 7.7
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "34.4%",
+        "numerator": 22,
+        "denominator": 64,
+        "count": "22/64",
+        "ci95": {
+          "low": 23.9,
+          "high": 46.6
         }
       },
       "unparseableRate": {
@@ -820,129 +616,464 @@
         }
       },
       "temporalContradictions": 0,
-      "tokensPerFact": 2774,
+      "tokensPerFact": 2045,
+      "secondsPerFact": 2.16,
+      "totalTokens": 132943,
+      "totalLatencyMs": 140179,
+      "judgedFacts": 65,
+      "evidence": "results/raw/A3.jsonl"
+    },
+    "A4": {
+      "condition": "A4",
+      "label": "+ provenance requirement",
+      "eligibleTurns": 32,
+      "proposedFacts": 64,
+      "admittedFacts": 59,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 59,
+        "denominator": 59,
+        "count": "59/59",
+        "ci95": {
+          "low": 93.9,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 16,
+        "count": "0/16",
+        "ci95": {
+          "low": 0,
+          "high": 19.4
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 16,
+        "count": "0/16",
+        "ci95": {
+          "low": 0,
+          "high": 19.4
+        }
+      },
+      "OH": {
+        "value": "18.8%",
+        "numerator": 3,
+        "denominator": 16,
+        "count": "3/16",
+        "ci95": {
+          "low": 6.6,
+          "high": 43
+        }
+      },
+      "EF": {
+        "value": "83.1%",
+        "numerator": 49,
+        "denominator": 59,
+        "count": "49/59",
+        "ci95": {
+          "low": 71.5,
+          "high": 90.5
+        }
+      },
+      "faithfulFacts": 49,
+      "usableFaithfulFacts": 49,
+      "usableFaithfulYield": {
+        "value": "76.6%",
+        "numerator": 49,
+        "denominator": 64,
+        "count": "49/64",
+        "ci95": {
+          "low": 64.9,
+          "high": 85.3
+        }
+      },
+      "usableFaithfulPerTurn": 1.53,
+      "provenanceCoverage": {
+        "value": "83.7%",
+        "numerator": 36,
+        "denominator": 43,
+        "count": "36/43",
+        "ci95": {
+          "low": 70,
+          "high": 91.9
+        }
+      },
+      "citationCorrectness": {
+        "value": "63.9%",
+        "numerator": 23,
+        "denominator": 36,
+        "count": "23/36",
+        "ci95": {
+          "low": 47.6,
+          "high": 77.5
+        }
+      },
+      "edgeProvenanceCoverage": {
+        "value": "68.8%",
+        "numerator": 11,
+        "denominator": 16,
+        "count": "11/16",
+        "ci95": {
+          "low": 44.4,
+          "high": 85.8
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "54.5%",
+        "numerator": 6,
+        "denominator": 11,
+        "count": "6/11",
+        "ci95": {
+          "low": 28,
+          "high": 78.7
+        }
+      },
+      "yield": {
+        "value": "92.2%",
+        "numerator": 59,
+        "denominator": 64,
+        "count": "59/64",
+        "ci95": {
+          "low": 83,
+          "high": 96.6
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 43,
+        "count": "0/43",
+        "ci95": {
+          "low": 0,
+          "high": 8.2
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "42.2%",
+        "numerator": 27,
+        "denominator": 64,
+        "count": "27/64",
+        "ci95": {
+          "low": 30.9,
+          "high": 54.4
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 2490,
+      "secondsPerFact": 2.73,
+      "totalTokens": 146887,
+      "totalLatencyMs": 161074,
+      "judgedFacts": 59,
+      "evidence": "results/raw/A4.jsonl"
+    },
+    "A4-strict": {
+      "condition": "A4-strict",
+      "label": "+ provenance enforced hard",
+      "eligibleTurns": 32,
+      "proposedFacts": 66,
+      "admittedFacts": 53,
+      "OC": {
+        "value": "100.0%",
+        "numerator": 53,
+        "denominator": 53,
+        "count": "53/53",
+        "ci95": {
+          "low": 93.2,
+          "high": 100
+        }
+      },
+      "SH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 13,
+        "count": "0/13",
+        "ci95": {
+          "low": 0,
+          "high": 22.8
+        }
+      },
+      "RH": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 13,
+        "count": "0/13",
+        "ci95": {
+          "low": 0,
+          "high": 22.8
+        }
+      },
+      "OH": {
+        "value": "7.7%",
+        "numerator": 1,
+        "denominator": 13,
+        "count": "1/13",
+        "ci95": {
+          "low": 1.4,
+          "high": 33.3
+        }
+      },
+      "EF": {
+        "value": "84.9%",
+        "numerator": 45,
+        "denominator": 53,
+        "count": "45/53",
+        "ci95": {
+          "low": 72.9,
+          "high": 92.1
+        }
+      },
+      "faithfulFacts": 45,
+      "usableFaithfulFacts": 45,
+      "usableFaithfulYield": {
+        "value": "68.2%",
+        "numerator": 45,
+        "denominator": 66,
+        "count": "45/66",
+        "ci95": {
+          "low": 56.2,
+          "high": 78.2
+        }
+      },
+      "usableFaithfulPerTurn": 1.41,
+      "provenanceCoverage": {
+        "value": "100.0%",
+        "numerator": 40,
+        "denominator": 40,
+        "count": "40/40",
+        "ci95": {
+          "low": 91.2,
+          "high": 100
+        }
+      },
+      "citationCorrectness": {
+        "value": "67.5%",
+        "numerator": 27,
+        "denominator": 40,
+        "count": "27/40",
+        "ci95": {
+          "low": 52,
+          "high": 79.9
+        }
+      },
+      "edgeProvenanceCoverage": {
+        "value": "100.0%",
+        "numerator": 13,
+        "denominator": 13,
+        "count": "13/13",
+        "ci95": {
+          "low": 77.2,
+          "high": 100
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "46.2%",
+        "numerator": 6,
+        "denominator": 13,
+        "count": "6/13",
+        "ci95": {
+          "low": 23.2,
+          "high": 70.9
+        }
+      },
+      "yield": {
+        "value": "80.3%",
+        "numerator": 53,
+        "denominator": 66,
+        "count": "53/66",
+        "ci95": {
+          "low": 69.2,
+          "high": 88.1
+        }
+      },
+      "duplicateRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 39,
+        "count": "0/39",
+        "ci95": {
+          "low": 0,
+          "high": 9
+        }
+      },
+      "retryBudgetConsumed": {
+        "value": "40.6%",
+        "numerator": 26,
+        "denominator": 64,
+        "count": "26/64",
+        "ci95": {
+          "low": 29.5,
+          "high": 52.9
+        }
+      },
+      "unparseableRate": {
+        "value": "0.0%",
+        "numerator": 0,
+        "denominator": 32,
+        "count": "0/32",
+        "ci95": {
+          "low": 0,
+          "high": 10.7
+        }
+      },
+      "temporalContradictions": 0,
+      "tokensPerFact": 2725,
       "secondsPerFact": 2.98,
-      "totalTokens": 169205,
-      "totalLatencyMs": 181528,
-      "judgedFacts": 61,
+      "totalTokens": 144413,
+      "totalLatencyMs": 157864,
+      "judgedFacts": 53,
       "evidence": "results/raw/A4-strict.jsonl"
     },
     "A5": {
       "condition": "A5",
       "label": "full deployed gate",
       "eligibleTurns": 32,
-      "proposedFacts": 75,
-      "admittedFacts": 75,
+      "proposedFacts": 66,
+      "admittedFacts": 66,
       "OC": {
         "value": "100.0%",
-        "numerator": 75,
-        "denominator": 75,
-        "count": "75/75",
+        "numerator": 66,
+        "denominator": 66,
+        "count": "66/66",
         "ci95": {
-          "low": 95.1,
+          "low": 94.5,
           "high": 100
         }
       },
       "SH": {
-        "value": "23.5%",
-        "numerator": 4,
-        "denominator": 17,
-        "count": "4/17",
+        "value": "10.0%",
+        "numerator": 2,
+        "denominator": 20,
+        "count": "2/20",
         "ci95": {
-          "low": 9.6,
-          "high": 47.3
+          "low": 2.8,
+          "high": 30.1
         }
       },
       "RH": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 17,
-        "count": "0/17",
+        "denominator": 20,
+        "count": "0/20",
         "ci95": {
           "low": 0,
-          "high": 18.4
+          "high": 16.1
         }
       },
       "OH": {
-        "value": "29.4%",
+        "value": "25.0%",
         "numerator": 5,
-        "denominator": 17,
-        "count": "5/17",
+        "denominator": 20,
+        "count": "5/20",
         "ci95": {
-          "low": 13.3,
-          "high": 53.1
+          "low": 11.2,
+          "high": 46.9
         }
       },
       "EF": {
-        "value": "76.0%",
-        "numerator": 57,
-        "denominator": 75,
-        "count": "57/75",
+        "value": "81.8%",
+        "numerator": 54,
+        "denominator": 66,
+        "count": "54/66",
         "ci95": {
-          "low": 65.2,
-          "high": 84.2
+          "low": 70.9,
+          "high": 89.3
         }
       },
-      "faithfulFacts": 57,
-      "usableFaithfulFacts": 57,
+      "faithfulFacts": 54,
+      "usableFaithfulFacts": 54,
       "usableFaithfulYield": {
-        "value": "76.0%",
-        "numerator": 57,
-        "denominator": 75,
-        "count": "57/75",
+        "value": "81.8%",
+        "numerator": 54,
+        "denominator": 66,
+        "count": "54/66",
         "ci95": {
-          "low": 65.2,
-          "high": 84.2
+          "low": 70.9,
+          "high": 89.3
         }
       },
+      "usableFaithfulPerTurn": 1.69,
       "provenanceCoverage": {
-        "value": "84.5%",
-        "numerator": 49,
-        "denominator": 58,
-        "count": "49/58",
+        "value": "84.8%",
+        "numerator": 39,
+        "denominator": 46,
+        "count": "39/46",
         "ci95": {
-          "low": 73.1,
-          "high": 91.6
+          "low": 71.8,
+          "high": 92.4
         }
       },
       "citationCorrectness": {
-        "value": "81.6%",
-        "numerator": 40,
-        "denominator": 49,
-        "count": "40/49",
+        "value": "69.2%",
+        "numerator": 27,
+        "denominator": 39,
+        "count": "27/39",
         "ci95": {
-          "low": 68.6,
-          "high": 90
+          "low": 53.6,
+          "high": 81.4
+        }
+      },
+      "edgeProvenanceCoverage": {
+        "value": "65.0%",
+        "numerator": 13,
+        "denominator": 20,
+        "count": "13/20",
+        "ci95": {
+          "low": 43.3,
+          "high": 81.9
+        }
+      },
+      "edgeCitationCorrectness": {
+        "value": "46.2%",
+        "numerator": 6,
+        "denominator": 13,
+        "count": "6/13",
+        "ci95": {
+          "low": 23.2,
+          "high": 70.9
         }
       },
       "yield": {
         "value": "100.0%",
-        "numerator": 75,
-        "denominator": 75,
-        "count": "75/75",
+        "numerator": 66,
+        "denominator": 66,
+        "count": "66/66",
         "ci95": {
-          "low": 95.1,
+          "low": 94.5,
           "high": 100
         }
       },
       "duplicateRate": {
         "value": "0.0%",
         "numerator": 0,
-        "denominator": 57,
-        "count": "0/57",
+        "denominator": 46,
+        "count": "0/46",
         "ci95": {
           "low": 0,
-          "high": 6.3
+          "high": 7.7
         }
       },
       "retryBudgetConsumed": {
-        "value": "62.5%",
-        "numerator": 40,
+        "value": "40.6%",
+        "numerator": 26,
         "denominator": 64,
-        "count": "40/64",
+        "count": "26/64",
         "ci95": {
-          "low": 50.3,
-          "high": 73.3
+          "low": 29.5,
+          "high": 52.9
         }
       },
       "unparseableRate": {
@@ -956,56 +1087,62 @@
         }
       },
       "temporalContradictions": 2,
-      "tokensPerFact": 2230,
-      "secondsPerFact": 2.47,
-      "totalTokens": 167247,
-      "totalLatencyMs": 185117,
-      "judgedFacts": 75,
+      "tokensPerFact": 2188,
+      "secondsPerFact": 2.4,
+      "totalTokens": 144380,
+      "totalLatencyMs": 158387,
+      "judgedFacts": 66,
       "evidence": "results/raw/A5.jsonl"
     }
   },
   "pairedTests": {
     "A0 vs A1": {
-      "leftOnly": 2,
-      "rightOnly": 1,
-      "discordant": 3,
-      "p": 1
+      "leftOnly": 0,
+      "rightOnly": 4,
+      "discordant": 4,
+      "p": 0.125
     },
     "A1 vs A2": {
-      "leftOnly": 0,
+      "leftOnly": 4,
       "rightOnly": 0,
-      "discordant": 0,
-      "p": 1
+      "discordant": 4,
+      "p": 0.125
     },
     "A2 vs A3": {
-      "leftOnly": 0,
-      "rightOnly": 7,
-      "discordant": 7,
-      "p": 0.0156
+      "leftOnly": 1,
+      "rightOnly": 3,
+      "discordant": 4,
+      "p": 0.625
     },
     "A3 vs A4": {
-      "leftOnly": 1,
-      "rightOnly": 0,
-      "discordant": 1,
-      "p": 1
-    },
-    "A4 vs A4-strict": {
-      "leftOnly": 1,
-      "rightOnly": 0,
-      "discordant": 1,
-      "p": 1
-    },
-    "A4 vs A5": {
       "leftOnly": 1,
       "rightOnly": 1,
       "discordant": 2,
       "p": 1
     },
+    "A4 vs A4-strict": {
+      "leftOnly": 1,
+      "rightOnly": 1,
+      "discordant": 2,
+      "p": 1
+    },
+    "A4 vs A5": {
+      "leftOnly": 0,
+      "rightOnly": 2,
+      "discordant": 2,
+      "p": 0.5
+    },
     "A0 vs A5": {
       "leftOnly": 0,
-      "rightOnly": 5,
-      "discordant": 5,
-      "p": 0.0625
+      "rightOnly": 4,
+      "discordant": 4,
+      "p": 0.125
+    },
+    "A1 vs A5": {
+      "leftOnly": 2,
+      "rightOnly": 2,
+      "discordant": 4,
+      "p": 1
     }
   },
   "humanAudit": {

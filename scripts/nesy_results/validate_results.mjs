@@ -34,7 +34,8 @@ const FORBIDDEN = [
 
 const PROPORTIONS = [
   "OC", "SH", "RH", "OH", "EF", "provenanceCoverage", "citationCorrectness",
-  "yield", "duplicateRate", "retryBudgetConsumed", "unparseableRate", "usableFaithfulYield"
+  "yield", "duplicateRate", "retryBudgetConsumed", "unparseableRate", "usableFaithfulYield",
+  "edgeProvenanceCoverage", "edgeCitationCorrectness"
 ];
 
 for (const name of REQUIRED) {

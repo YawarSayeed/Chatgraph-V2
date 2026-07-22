@@ -44,6 +44,7 @@ export function provenanceInstructions(domainId: string): string {
     'Set evidence.traceText to the expert\'s own words from the latest utterance — the specific span that licenses this fact, not a summary of the topic and not the whole turn.',
     confidence ? `Set evidence.confidence to one of: ${confidence}. Use "inferred" only for a fact synthesised across turns that no single quote states.` : "",
     banned ? `These traceText values are rejected: ${banned}.` : "",
+    "A relationship between two knowledge entities is itself a claim: give each such edge an evidence object too, quoting the span that states the relationship, not just its endpoints.",
     "Do not emit evidence vertices or provenance edges yourself; they are attached for you from the evidence object.",
     "If the utterance does not support a fact, omit the fact rather than grounding it in something the expert did not say."
   ]
@@ -90,7 +91,9 @@ export function extractionToolSchema(domainId: string): Record<string, unknown> 
               enum: [...contract.edgeSpecs.keys()].filter((label) => !gateAuthored(contract, label))
             },
             out: { type: "string" },
-            in: { type: "string" }
+            in: { type: "string" },
+            // A relationship claim is grounded exactly like a vertex claim.
+            ...(contract.governed && contract.evidenceLabel ? { evidence: evidenceSchema(contract) } : {})
           },
           required: ["label", "out", "in"]
         }

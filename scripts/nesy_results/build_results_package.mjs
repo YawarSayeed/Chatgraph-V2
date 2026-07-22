@@ -37,11 +37,11 @@ function rowsFor(condition) {
 // --- table 1 --------------------------------------------------------------
 
 function table1() {
-  const header = "| Cond. | OC ↑ | SH ↓ | OH ↓ | Prov. Cov. ↑ | Cite ↑ | EF ↑ | Usable+faithful ↑ | Yield | s/fact |";
-  const rule = "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|";
+  const header = "| Cond. | UF/turn ↑ | EF ↑ | OC ↑ | Prov. Cov. ↑ | Edge Prov. ↑ | Cite ↑ | Edge Cite ↑ | UF-rate | Yield | s/fact |";
+  const rule = "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|";
   const lines = ORDER.map((id) => {
     const c = metrics.conditions[id];
-    return `| ${id} ${c.label} | ${show(c.OC)} | ${show(c.SH)} | ${show(c.OH)} | ${show(c.provenanceCoverage)} | ${show(c.citationCorrectness)} | ${show(c.EF)} | ${show(c.usableFaithfulYield)} | ${show(c.yield)} | ${c.secondsPerFact ?? "UNMEASURED"} |`;
+    return `| ${id} ${c.label} | ${c.usableFaithfulPerTurn ?? "UNMEASURED"} | ${show(c.EF)} | ${show(c.OC)} | ${show(c.provenanceCoverage)} | ${show(c.edgeProvenanceCoverage)} | ${show(c.citationCorrectness)} | ${show(c.edgeCitationCorrectness)} | ${show(c.usableFaithfulYield)} | ${show(c.yield)} | ${c.secondsPerFact ?? "UNMEASURED"} |`;
   });
   return [
     "# Table 1 — staged ablation of the symbolic gate",
@@ -52,7 +52,7 @@ function table1() {
     "",
     "OC = ontology conformance. SH/OH = subject/object hallucination over admitted knowledge-to-knowledge edges.",
     "Prov. Cov. = admitted knowledge vertices carrying evidence. Cite = citations an independent judge confirms license their fact.",
-    "EF = admitted facts the judge confirms the utterance supports. Usable+faithful = admitted facts that are both schema-conforming and judge-confirmed, as a share of proposed.",
+    "EF = admitted facts the judge confirms the utterance supports. UF/turn = usable+faithful facts (schema-conforming AND judge-confirmed) per eligible interview turn — the headline productivity metric; its denominator is the interview, which unlike proposals is constant across conditions. UF-rate divides the same numerator by proposals and reads as precision. Edge Prov. = admitted knowledge-to-knowledge edges carrying their own evidence.",
     "",
     "Exact counts and Wilson 95% intervals for every proportion are in `results/metrics.json`."
   ].join("\n");
@@ -125,28 +125,33 @@ volume is measurably less grounded: ${describeTest("A2 vs A3")}, EF ${show(c.A2.
 The earlier run measured no such cost, so the effect is not stable across prompts either — but a
 deployment enabling retry should watch EF, not assume recovery is free.`);
 
-  parts.push(`### 5. The full deployed gate
+  parts.push(`### 5. The full deployed gate, on the denominator that matters
 
-A5 (schema + soft provenance + confidence vocabulary + entity resolution + content-derived
-identity + supersession) admits ${withCount(c.A5.yield)} of proposals with OC ${show(c.A5.OC)},
-duplicates ${show(c.A5.duplicateRate)} (${c.A5.duplicateRate.count}), usable+faithful
-${withCount(c.A5.usableFaithfulYield)} — the highest composite among the retry-bearing
-conditions — and ${c.A5.temporalContradictions} temporal supersessions that the other conditions
-would have overwritten silently. Against ungated extraction the per-utterance contamination test
-is ${describeTest("A0 vs A5")}.`);
+Proposals are inflated by retry, so per-proposal rates penalize the mechanism that
+recovers knowledge; the denominator held constant across conditions is the interview
+itself. Per eligible turn, usable+faithful facts go ${c.A1.usableFaithfulPerTurn} (A1, structure
+only) → ${c.A5.usableFaithfulPerTurn} (A5, full gate) — ${c.A1.usableFaithfulFacts} → ${c.A5.usableFaithfulFacts} facts —
+with OC ${show(c.A5.OC)}, vertex provenance ${show(c.A5.provenanceCoverage)}, edge provenance
+${show(c.A5.edgeProvenanceCoverage)} (a metric A1 cannot have at all), duplicates
+${show(c.A5.duplicateRate)} (${c.A5.duplicateRate.count}), and ${c.A5.temporalContradictions} temporal supersessions the other
+conditions would have overwritten silently. The per-utterance contamination contrasts:
+${describeTest("A1 vs A5")}; ${describeTest("A0 vs A5")}.`);
 
-  parts.push(`### 6. Coverage is not quality
+  parts.push(`### 6. Coverage is not quality — and edge grounding is young
 
-An independent judge confirms only ${withCount(c.A4.citationCorrectness)} (A4) to
-${withCount(c.A5.citationCorrectness)} (A5) of admitted citations actually license the fact that
-cites them, even after the span-based specificity rule. Roughly one citation in five is a quote
-that does not support its claim. Provenance coverage alone overstates grounding; report both.`);
+An independent judge confirms ${withCount(c.A4.citationCorrectness)} (A4) to
+${withCount(c.A5.citationCorrectness)} (A5) of admitted vertex citations, and only
+${withCount(c["A4-strict"].edgeCitationCorrectness)}–${withCount(c.A4.edgeCitationCorrectness)} of edge citations, as actually
+licensing the fact that cites them — after the span-based specificity rule. Coverage alone
+overstates grounding; both numbers must be reported. Citation quality, not coverage, is now the
+weakest measured link in the pipeline. One driver was identified and fixed mid-iteration: the
+extractor padded optional properties with unstated elaboration, which the citation judge rightly
+refused to credit; forbidding padding moved EF up ~7 points across governed conditions.`);
 
   return parts.join("\n\n");
 }
 
 function resultsMarkdown() {
-  const c = metrics.conditions;
   const tests = metrics.pairedTests;
   return `# Measured results — gated elicitation ablation
 

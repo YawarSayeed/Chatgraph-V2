@@ -41,6 +41,14 @@ export type GraphDisplayConfig = {
   hiddenTextPatterns?: string[];
 };
 
+export type InterviewSection = {
+  key: string;
+  title: string;
+  order: number;
+  /** Words that identify an interviewer question as belonging to this section. */
+  keywords: string[];
+};
+
 export type DomainConfig = {
   id: DomainId;
   label: string;
@@ -54,6 +62,13 @@ export type DomainConfig = {
   initialVertices: GraphVertex[];
   initialEdges?: GraphEdge[];
   graphDisplay?: GraphDisplayConfig;
+  /**
+   * The interview's section structure, mirrored from the agent prompt. Used to
+   * attach each transcript episode to the section actually being discussed,
+   * deterministically (keyword match on the interviewer's question) — no model
+   * involved, so the attachment is reproducible from the transcript alone.
+   */
+  interviewSections?: InterviewSection[];
 };
 
 const hospitalityOpeningLine =
@@ -113,6 +128,7 @@ Core conventions:
 - Use lowercase, hyphen-separated, colon-namespaced ids.
 - Do not use the full expert utterance as a knowledge vertex name. Names must be short semantic concepts, such as "hot towel welcome ritual", "rushed guest signal", or "flexible early check-in".
 - ruleText, heuristic, and description values must be concise normalized statements in third person ("Early check-in granted only when a room is ready and the guest informed in advance"), never verbatim quotes — the quote belongs in evidence.traceText, the distilled rule in the property.
+- Every property value must be grounded in what the expert actually said. Never pad optional properties with your own elaboration: if the expert did not state a description, a primaryNeed, a severity, or any other optional value, OMIT that property entirely rather than inventing plausible content for it. A property the evidence quote cannot support is a hallucination.
 - Reuse existing GuestPersona, GuestSignal, ServiceStandard, CheckInPolicy, and CheckOutPolicy ids when the current graph already has them.
 - CheckInPolicy and CheckOutPolicy are session singletons. Use ids policy:checkin:session:hospitality:default and policy:checkout:session:hospitality:default.
 - Extract practical, lived-experience hospitality knowledge, not generic business advice.
@@ -130,6 +146,23 @@ Good extraction choices:
 - Flexibility rule or exception -> ExceptionRule.
 - Loyalty psychology -> LoyaltyDriver or EmotionalMoment.
 - Seasonality/location/staffing/business model limit -> ContextualConstraint.`;
+
+const hospitalitySections: InterviewSection[] = [
+  { key: "A", title: "Introduction", order: 1,
+    keywords: ["role", "business type", "operated", "operating", "successful", "pacing", "knowledge capture", "confirm"] },
+  { key: "B", title: "Guest Experience Principles", order: 2,
+    keywords: ["guests love", "satisfaction", "subtle signs", "repeat customers", "never-compromise", "excellent hospitality", "remember after", "small details"] },
+  { key: "C", title: "Arrival, Check-In, and Timing", order: 3,
+    keywords: ["check-in", "check in", "checkout", "check-out", "early", "arrival", "room readiness", "sweet spot", "sweet-spot", "late fee", "waiver", "timing"] },
+  { key: "D", title: "Service Recovery and Flexibility", order: 4,
+    keywords: ["recover", "recovery", "failures", "goes wrong", "flexibility", "exception", "apologize", "compensate", "mistakes"] },
+  { key: "E", title: "Operating Heuristics and Decision Rules", order: 5,
+    keywords: ["if-then", "rules", "return-likelihood", "high-value", "habits", "patterns", "intuition", "workload", "profitability", "heuristic"] },
+  { key: "F", title: "Customer Psychology and Loyalty", order: 6,
+    keywords: ["cared for", "emotional", "loyalty", "first-time", "gestures", "goodwill", "advocates", "trust", "psychology"] },
+  { key: "G", title: "Context, Business Model, and System Factors", order: 7,
+    keywords: ["location", "seasonality", "customer mix", "staffing", "training", "coordination", "bottleneck", "shifts", "consistency", "system-level", "smarter"] }
+];
 
 export const domains: Record<DomainId, DomainConfig> = {
   medical: {
@@ -179,6 +212,7 @@ export const domains: Record<DomainId, DomainConfig> = {
     agentPrompt: hospitalityAgentPrompt,
     extractorIntro: hospitalityExtractorIntro,
     schema: hospitalitySchemaRaw as DomainSchema,
+    interviewSections: hospitalitySections,
     initialVertices: [
       {
         id: "person:expert",

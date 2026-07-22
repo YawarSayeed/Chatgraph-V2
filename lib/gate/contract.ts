@@ -29,6 +29,7 @@ export type EdgeSpec = {
   /** One relation may accept several source or target labels. */
   out: Set<string>;
   in: Set<string>;
+  properties: Set<string>;
 };
 
 function endpointSet(value: string | string[] | undefined): Set<string> {
@@ -118,7 +119,8 @@ function buildContract(domainId: string): GateContract {
       {
         label: entry["@key"],
         out: endpointSet(entry["@value"].out ?? entry["@value"].outV),
-        in: endpointSet(entry["@value"].in ?? entry["@value"].inV)
+        in: endpointSet(entry["@value"].in ?? entry["@value"].inV),
+        properties: new Set((entry["@value"].properties ?? []).map((prop) => prop.key))
       }
     ])
   );

@@ -29,3 +29,5 @@ part of the record as the final table.
 | [02](iteration-02.md) | 2026-07-21 | Contract-derived gate built; replay probes isolate three mechanical causes of the collapse |
 | [03](iteration-03.md) | 2026-07-21 | Five constraint classes, stateless harness, first controlled run: structure-vs-grounding tension measured |
 | [04](iteration-04.md) | 2026-07-21 | Entity resolution + context discipline; re-measured: iteration-03's headline EF contrast does not replicate |
+| [04-audit](iteration-04-claims-audit.md) | 2026-07-21 | Claims-vs-measurements audit: dead title, wrong denominator, missing A1-vs-A5 test |
+| [05](iteration-05.md) | 2026-07-21 | Edge grounding + per-turn framing; property padding discovered as a hallucination channel and fixed |

@@ -258,6 +258,7 @@ h2 {
 }
 
 .graph-canvas {
+  position: relative; /* anchors the evidence panel */
   width: 100%;
   min-height: 520px;
   border: 1px solid var(--line);

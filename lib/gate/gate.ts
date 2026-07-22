@@ -216,7 +216,24 @@ export function runGate(
     const id = item.id || `${item.out}--${item.label}-->${item.in}`;
     if (seenEdgeIds.has(id)) continue;
     seenEdgeIds.add(id);
-    admittedEdges.push({ id, label: item.label, out: item.out, in: item.in, properties: item.properties });
+    // Edge properties are held to the schema exactly as vertex properties are.
+    const properties = pick(item.properties, spec.properties);
+    // A relationship between knowledge vertices is a fact; its inline evidence is
+    // validated with the same span rule and stored on the edge itself. Failure is
+    // advisory: the edge is admitted ungrounded and flagged, mirroring the spec's
+    // soft severity for vertex provenance.
+    if (governed && item.evidence && spec.properties.has("traceText")) {
+      const trace = asString(item.evidence.traceText);
+      const problem = edgeTraceProblem(trace, contract, options);
+      if (problem) {
+        findings.push(finding("HR012", "advisory", `${id} edge evidence ${problem}`, id, "flagged"));
+      } else {
+        properties.traceText = trace;
+        const confidence = asString(item.evidence.confidence);
+        if (confidence && contract.confidenceValues.has(confidence)) properties.confidence = confidence;
+      }
+    }
+    admittedEdges.push({ id, label: item.label, out: item.out, in: item.in, properties });
   }
 
   // Provenance attachment is checked after admission, on what actually survived.
@@ -504,7 +521,8 @@ function materializeEvidence(
       label: edgeLabel,
       out: candidate.id,
       in: evidenceId,
-      properties: {}
+      properties: {},
+      evidence: null
     });
     findings.push(finding("HR006", "advisory", `materialized evidence for ${candidate.id} as ${edgeLabel}`, candidate.id, "repaired"));
   }
@@ -541,6 +559,18 @@ function admitEvidenceQuality(
   }
   const specificity = traceSpecificity(traceText, utterance);
   if (specificity) {
+    // `inferred` marks knowledge synthesised across turns that no single quote
+    // supports (spec HR013). Requiring its trace to be a span of the *current*
+    // utterance would make the tier unusable by construction, so for inferred
+    // evidence a span failure is recorded for audit instead of rejected — but
+    // only the span failure: an inferred trace must still be substantive and
+    // non-generic.
+    const isInferred = confidence === "inferred";
+    const isSpanFailure = specificity.includes("does not appear");
+    if (isInferred && isSpanFailure) {
+      findings.push(finding("HR013", "advisory", `${id} is inferred cross-turn synthesis; trace is not a span of this utterance`, id, "flagged"));
+      return true;
+    }
     findings.push(finding("HR012", severityOf(contract, "HR012", "hard", options), `${id} traceText ${specificity}`, id, "dropped"));
     return false;
   }
@@ -587,6 +617,18 @@ function normalizeText(value: string): string {
 
 function countWords(value: string): number {
   return value ? value.split(" ").filter(Boolean).length : 0;
+}
+
+function edgeTraceProblem(
+  trace: string,
+  contract: GateContract,
+  options: GateOptions
+): string | null {
+  const lower = trace.toLowerCase();
+  if (!lower.trim()) return "is empty";
+  const banned = contract.bannedTracePatterns.find((pattern) => lower === pattern || lower.startsWith(pattern));
+  if (banned) return `is generic ("${banned}")`;
+  return traceSpecificity(trace, options.evidenceContext?.utterance);
 }
 
 function admitTextQuality(
@@ -678,8 +720,8 @@ function buildRetryFeedback(findings: GateFinding[], contract: GateContract): st
   if (hard.length === 0) return null;
   const lines = hard.map((item) => `${item.ruleId}: ${item.message}`);
   const guidance = contract.governed
-    ? "Re-emit the complete corrected delta. Every edge endpoint must be a vertex you emit in this same delta or one already in the graph. Attach evidence to each knowledge vertex with its inline evidence field, quoting the expert's own words."
-    : "Re-emit the complete corrected delta using only schema labels and edge directions.";
+    ? "Re-emit the complete corrected delta. Every edge endpoint must be a vertex you emit in this same delta or one already in the graph. Attach evidence to each knowledge vertex with its inline evidence field, quoting the expert's own words. Do NOT add any fact that was not in your previous attempt: a correction fixes what was rejected, it never introduces new claims. Drop anything you cannot support with the expert's words rather than repairing it with invented evidence."
+    : "Re-emit the complete corrected delta using only schema labels and edge directions. Do not add facts that were not in your previous attempt.";
   return `${lines.join("\n")}\n\n${guidance}`;
 }
 
@@ -701,6 +743,7 @@ type ParsedEdge = {
   out: string;
   in: string;
   properties: Record<string, JsonValue>;
+  evidence: Record<string, JsonValue> | null;
 };
 
 function parseVertices(input: unknown, findings: GateFinding[]): Candidate[] {
@@ -734,7 +777,14 @@ function parseEdge(item: unknown): ParsedEdge | null {
   const out = asString(item.out).trim();
   const incoming = asString(item.in).trim();
   if (!label || !out || !incoming) return null;
-  return { id: asString(item.id).trim(), label, out, in: incoming, properties: jsonRecord(item.properties) };
+  return {
+    id: asString(item.id).trim(),
+    label,
+    out,
+    in: incoming,
+    properties: jsonRecord(item.properties),
+    evidence: isRecord(item.evidence) ? jsonRecord(item.evidence) : null
+  };
 }
 
 function finding(

@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-07-21T22:58:50.638Z",
+  "generatedAt": "2026-07-21T23:55:03.384Z",
   "metrics": {
     "results/gated_ablation_metrics.json": {
-      "sha256": "5be5ed402482b57ea2d69fa042bd850e490baab7d917b7a69c0728848be2c2ba"
+      "sha256": "61016ae48926fba0053e914afe61ee071d5ac3b2d762fbdf9642ccb84779e5bc"
     }
   },
   "raw": {
     "results/raw/A0.jsonl": {
-      "sha256": "b551eab1a5a77137187742ed7e83e3ad4a0077d8428b45aa4827527015dcc564",
+      "sha256": "a04b10ff3d0d0444fc49265d7d6c23953ba2b7decfe5dfd80fffda098cd36310",
       "rows": 45
     },
     "results/raw/A1.jsonl": {
-      "sha256": "c01aed424d108e0037f75a577c57ea31992ec1baf651078d63136f29f85dc593",
+      "sha256": "f5bbe8be112eccc2d27fd52307a82638681457e44328462bca19c06bf5745971",
       "rows": 45
     },
     "results/raw/A2.jsonl": {
-      "sha256": "5b1ee2d28190e669c6c2463abe396a844e84692131bda1fd49fe27084f141b0e",
+      "sha256": "0257c865d4b59cc2206d6e7c6edea9107f518b1d2b34cadf25c2aa12882c30bd",
       "rows": 45
     },
     "results/raw/A3.jsonl": {
-      "sha256": "e008e30f7545104240ea65bdf3d72b5f05e688c09d0c6a33cbcbe35dd1935f8d",
+      "sha256": "b8898dc5382297b174aa52a364e1f0e6ea98839af56959cd0574067d1b3848f8",
       "rows": 45
     },
     "results/raw/A4.jsonl": {
-      "sha256": "176a89f90ade060e5bc5e37b67f3b0bdc2728c78885aaa1eb0004da44c097802",
+      "sha256": "35c42ff182f466424a3f01e266272caf0e5b1fa55b12e10cf3cb649c4e290ac8",
       "rows": 45
     },
     "results/raw/A4-strict.jsonl": {
-      "sha256": "9169ef8aa335da64df787881fdd526386f323b81e432ac3bb0ece82d3d45f13c",
+      "sha256": "7f37fe890586edc4a9dd9af07a54700144bac73c81df06c20a39dd632e5e08c9",
       "rows": 45
     },
     "results/raw/A5.jsonl": {
-      "sha256": "0e6ac49415298763fa81179cdaa18b3ae5d9d2ee99e162aabc2540d0fe217de6",
+      "sha256": "2109dc75579332a156e06372d2cd40f52aa1e605a05a7314836387e73f40bc16",
       "rows": 45
     }
   },
-  "cachedApiResponses": 293,
+  "cachedApiResponses": 540,
   "supersededPackage": "results/legacy-2026-07-16/",
   "note": "Each raw row carries the source utterance, proposed facts, admitted facts, gate findings, and the delta that was written."
 }

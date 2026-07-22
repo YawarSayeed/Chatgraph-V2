@@ -203,6 +203,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
   const zoomGroupRef = useRef<SVGGElement>(null);
   const [layout, setLayout] = useState<{ nodes: LayoutNode[]; edges: LayoutEdge[] } | null>(null);
   const [nodePositions, setNodePositions] = useState<Map<string, Pos>>(new Map());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Recompute layout when the graph changes, warm-starting from wherever the
   // nodes currently are — including positions the user dragged them to.
@@ -270,6 +271,9 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     let isPanning = false;
     let isDragging = false;
     let dragNodeId: string | null = null;
+    let pressX = 0;
+    let pressY = 0;
+    let moved = false;
     let panStartX = 0;
     let panStartY = 0;
     let dragStartX = 0;
@@ -301,6 +305,9 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     svg.style.cursor = "grab";
 
     svg.onmousedown = (e: MouseEvent) => {
+      pressX = e.clientX;
+      pressY = e.clientY;
+      moved = false;
       const hit = hitTest(e);
       if (hit) {
         isDragging = true;
@@ -324,6 +331,7 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     };
 
     const onMouseMove = (e: MouseEvent) => {
+      if (Math.abs(e.clientX - pressX) + Math.abs(e.clientY - pressY) > 4) moved = true;
       if (isDragging && dragNodeId) {
         const pt = svgPoint(e);
         setNodePositions((prev) => {
@@ -344,6 +352,8 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     };
 
     const onMouseUp = () => {
+      // A press that never travelled is a click: select the node (or clear).
+      if (!moved) setSelectedId(dragNodeId);
       if (isDragging || isPanning) svg.style.cursor = "grab";
       isDragging = false;
       isPanning = false;
@@ -391,11 +401,44 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
     return m;
   }, [layout, nodePositions]);
 
+  const selected = selectedId ? graph.vertices[selectedId] : null;
+  const selectedEvidence = useMemo(() => {
+    if (!selected) return null;
+    for (const edgeItem of Object.values(graph.edges)) {
+      if (edgeItem.out !== selected.id) continue;
+      const target = graph.vertices[edgeItem.in];
+      if (target?.label === "ProvenanceEvidence") {
+        return {
+          traceText: String(target.properties.traceText ?? ""),
+          confidence: typeof target.properties.confidence === "string" ? target.properties.confidence : null
+        };
+      }
+    }
+    return null;
+  }, [graph, selected]);
+  const selectedRelations = useMemo(() => {
+    if (!selected) return [];
+    const relations: { text: string; trace: string | null }[] = [];
+    for (const edgeItem of Object.values(graph.edges)) {
+      if (edgeItem.out !== selected.id && edgeItem.in !== selected.id) continue;
+      const otherId = edgeItem.out === selected.id ? edgeItem.in : edgeItem.out;
+      const other = graph.vertices[otherId];
+      if (!other || other.label === "ProvenanceEvidence" || other.label === "TranscriptEpisode" || other.label === "SessionSection") continue;
+      const arrow = edgeItem.out === selected.id ? `→ ${edgeItem.label}` : `← ${edgeItem.label}`;
+      relations.push({
+        text: `${arrow} ${semanticLabel(other, display)}`,
+        trace: typeof edgeItem.properties?.traceText === "string" ? edgeItem.properties.traceText : null
+      });
+    }
+    return relations.slice(0, 8);
+  }, [display, graph, selected]);
+
   return (
     <div className="graph-shell">
       <div className="graph-topline">
         <span>{vertexList.length} vertices</span>
         <span>{edgeList.length} edges</span>
+        {selected && <span style={{ marginLeft: "auto", opacity: 0.7 }}>selected: {semanticLabel(selected, display)}</span>}
       </div>
       <div className="graph-canvas">
         <svg
@@ -475,6 +518,49 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
             })}
           </g>
         </svg>
+        {selected && (
+          <div
+            style={{
+              position: "absolute", right: 10, top: 10, width: 260, maxHeight: "80%",
+              overflowY: "auto", background: "rgba(255,255,255,0.97)",
+              border: "1px solid #e5e0d5", borderRadius: 8, padding: "10px 12px",
+              fontSize: 12, lineHeight: 1.45, boxShadow: "0 2px 10px rgba(0,0,0,0.08)"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <strong style={{ fontSize: 13 }}>{semanticLabel(selected, display)}</strong>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                style={{ border: "none", background: "none", cursor: "pointer", fontSize: 14, color: "#888" }}
+                aria-label="Close details"
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ color: "#777", marginBottom: 6 }}>{selected.label}</div>
+            {selectedEvidence?.traceText ? (
+              <blockquote style={{ margin: "0 0 8px", padding: "6px 8px", background: "#f6f3ec", borderLeft: "3px solid #b2462e", fontStyle: "italic" }}>
+                “{selectedEvidence.traceText}”
+                {selectedEvidence.confidence && (
+                  <div style={{ fontStyle: "normal", color: "#777", marginTop: 3 }}>confidence: {selectedEvidence.confidence}</div>
+                )}
+              </blockquote>
+            ) : (
+              <div style={{ color: "#a05a2c", marginBottom: 8 }}>no evidence attached</div>
+            )}
+            {selectedRelations.length > 0 && (
+              <div>
+                {selectedRelations.map((relation, index) => (
+                  <div key={index} style={{ marginBottom: 4 }}>
+                    <div>{relation.text}</div>
+                    {relation.trace && <div style={{ color: "#888", fontStyle: "italic" }}>“{relation.trace}”</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
