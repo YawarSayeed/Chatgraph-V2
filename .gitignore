@@ -27,3 +27,4 @@ results/legacy-*/rejections/
 results/legacy-*/human_audit_*.csv
 results/legacy-*/human_audit_*.xlsx
 results/legacy-*/corpus_stats.json
+data/live_audit/

@@ -1,0 +1,88 @@
+{
+  "generatedAt": "2026-07-22T11:37:48.254Z",
+  "session": "chatgraph-20260722-110534",
+  "defects": [
+    {
+      "id": "D-06-1",
+      "title": "Identity mutation: reused content-hash id overwritten with different concept",
+      "severity": "high",
+      "evidence": "5 high-severity incoherent facts; 5 mutated vertices drag prior edges to wrong endpoints",
+      "rootCause": "applyDeterministicIds skips re-hashing ids already in graph; mergeDelta is last-write-wins; a reused id with divergent content silently mutates",
+      "reproduced": true,
+      "proposedFix": "only skip re-hashing for resolver-mapped ids; a reused id whose content hash differs takes its own hash"
+    },
+    {
+      "id": "D-06-2",
+      "title": "Edge quality lags: low relationship support, citation, coherence",
+      "severity": "high",
+      "metrics": {
+        "relationshipSupported": "52.5%",
+        "edgeCitationCorrectness": "30.0%",
+        "incoherent": "30.0%"
+      },
+      "rootCause": "partly downstream of D-06-1 (mutated endpoints); partly extractor cites a span naming one endpoint, not the relationship",
+      "proposedFix": "require edge evidence to mention both endpoints or the relation verb; re-audit after D-06-1"
+    },
+    {
+      "id": "D-06-3",
+      "title": "Property padding persists on enum/boolean fields",
+      "severity": "medium",
+      "metrics": {
+        "factsWithPadding": "57.9%",
+        "paddedValues": 58
+      },
+      "rootCause": "iteration-05 anti-padding prompt curbs description padding, not enum/boolean (neverCompromise, frequency, severity, returnLikelihood)",
+      "proposedFix": "gate rule: optional enum/boolean property requires its own supporting span, else dropped"
+    },
+    {
+      "id": "D-06-4",
+      "title": "Conversation conduct residuals",
+      "severity": "medium",
+      "defects": [
+        {
+          "kind": "self-answering",
+          "count": 2,
+          "severity": "high"
+        },
+        {
+          "kind": "ack-only-reply",
+          "count": 2,
+          "severity": "high"
+        },
+        {
+          "kind": "leaked-monologue",
+          "count": 4,
+          "severity": "medium"
+        },
+        {
+          "kind": "double-question",
+          "count": 7,
+          "severity": "medium"
+        },
+        {
+          "kind": "skipped-question",
+          "count": 3,
+          "severity": "medium"
+        },
+        {
+          "kind": "unclarified-ambiguous-answer",
+          "count": 1,
+          "severity": "low"
+        },
+        {
+          "kind": "ignored-garbled-input",
+          "count": 1,
+          "severity": "low"
+        }
+      ],
+      "note": "all 7 sections A-G covered; no whole section lost"
+    },
+    {
+      "id": "D-06-5",
+      "title": "Stale deployment: live graph predates iteration-05/06 fixes",
+      "severity": "medium",
+      "evidence": "demographic duplicate resolves correctly in repo code but not in the exported graph",
+      "proposedFix": "redeploy before next trial"
+    }
+  ]
+}

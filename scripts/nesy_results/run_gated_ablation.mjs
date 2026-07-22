@@ -371,10 +371,17 @@ function scaffold(graph, turn) {
 // --- one condition --------------------------------------------------------
 
 async function runCondition(openai, condition, turns) {
-  const graph = initialGraph();
+  // One graph per session: knowledge must never leak across interviews, and
+  // entity resolution must never merge concepts from different experts.
+  let graph = initialGraph();
+  let currentSession = null;
   const rows = [];
 
   for (const turn of turns) {
+    if (turn.sessionFile !== currentSession) {
+      currentSession = turn.sessionFile;
+      graph = initialGraph();
+    }
     if (turn.filler) {
       rows.push({
         condition: condition.id, utterance_id: turn.id, source_utterance: turn.content,

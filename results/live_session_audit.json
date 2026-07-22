@@ -1,0 +1,203 @@
+{
+  "generatedAt": "2026-07-22T11:37:48.254Z",
+  "status": "MEASURED_LIVE_SESSION_AUDIT",
+  "session": "chatgraph-20260722-110534",
+  "judge": "claude (cross-family; extractor is gpt-4o-mini, so judge and extractor share no model family)",
+  "deployedPipeline": "full gate (A5 configuration) as served by the production app",
+  "corpus": {
+    "userTurns": 47,
+    "knowledgeFacts": 57,
+    "semanticEdges": 40
+  },
+  "deterministic": {
+    "vertexProvenanceCoverage": {
+      "value": "94.7%",
+      "count": "54/57",
+      "numerator": 54,
+      "denominator": 57,
+      "ci95": {
+        "low": 85.6,
+        "high": 98.2
+      }
+    },
+    "edgeProvenanceCoverage": {
+      "value": "75.0%",
+      "count": "30/40",
+      "numerator": 30,
+      "denominator": 40,
+      "ci95": {
+        "low": 59.8,
+        "high": 85.8
+      }
+    },
+    "spanRuleHeldVertices": {
+      "value": "100.0%",
+      "count": "54/54",
+      "numerator": 54,
+      "denominator": 54,
+      "ci95": {
+        "low": 93.4,
+        "high": 100
+      }
+    },
+    "spanRuleHeldEdges": {
+      "value": "100.0%",
+      "count": "30/30",
+      "numerator": 30,
+      "denominator": 30,
+      "ci95": {
+        "low": 88.6,
+        "high": 100
+      }
+    },
+    "duplicateConceptNames": {
+      "value": "3.5%",
+      "count": "2/57",
+      "numerator": 2,
+      "denominator": 57,
+      "ci95": {
+        "low": 1,
+        "high": 11.9
+      }
+    },
+    "supersededFacts": 1
+  },
+  "judged": {
+    "factsJudged": 57,
+    "evidentialFaithfulness": {
+      "value": "89.5%",
+      "count": "51/57",
+      "numerator": 51,
+      "denominator": 57,
+      "ci95": {
+        "low": 78.9,
+        "high": 95.1
+      }
+    },
+    "citationCorrectness": {
+      "value": "75.9%",
+      "count": "41/54",
+      "numerator": 41,
+      "denominator": 54,
+      "ci95": {
+        "low": 63.1,
+        "high": 85.4
+      }
+    },
+    "factsWithPaddedProperties": {
+      "value": "57.9%",
+      "count": "33/57",
+      "numerator": 33,
+      "denominator": 57,
+      "ci95": {
+        "low": 45,
+        "high": 69.8
+      }
+    },
+    "paddedPropertyValuesTotal": 58,
+    "edgesJudged": 40,
+    "edgeRelationshipSupported": {
+      "value": "52.5%",
+      "count": "21/40",
+      "numerator": 21,
+      "denominator": 40,
+      "ci95": {
+        "low": 37.5,
+        "high": 67.1
+      }
+    },
+    "edgeCitationCorrectness": {
+      "value": "30.0%",
+      "count": "9/30",
+      "numerator": 9,
+      "denominator": 30,
+      "ci95": {
+        "low": 16.7,
+        "high": 47.9
+      }
+    },
+    "edgesSemanticallyIncoherent": {
+      "value": "30.0%",
+      "count": "12/40",
+      "numerator": 12,
+      "denominator": 40,
+      "ci95": {
+        "low": 18.1,
+        "high": 45.4
+      }
+    }
+  },
+  "conversation": {
+    "defects": [
+      {
+        "kind": "self-answering",
+        "evidence": "\"Apologize first when there's any inconvenience...\" delivered after user fragment \"I think\"; also \"Start with calm acknowledgement, a clear apology\" (user replied \"you have changed the question\")",
+        "count": 2,
+        "severity": "high"
+      },
+      {
+        "kind": "ack-only-reply",
+        "evidence": "\"Nicely put.\" and \"That's clear, thank you.\" — both times user had to type \"Continue\" to restart",
+        "count": 2,
+        "severity": "high"
+      },
+      {
+        "kind": "leaked-monologue",
+        "evidence": "\"Okay, let me think about how to connect those details...\"; \"I'll quickly frame how this session will run... Got it, thank you for that\"; \"let's pick up right where that moment happened\"; transition announces \"loyalty cues\" but asks about operator habits",
+        "count": 4,
+        "severity": "medium"
+      },
+      {
+        "kind": "double-question",
+        "evidence": "\"How do you handle delayed checkouts? When do you apply late fees, and when do you waive them...\" plus six similar compound turns (msgs c5805935, f1fb1abd, 71b8b673, 60b0eda0, b353ed8b, 8e1b5ae9)",
+        "count": 7,
+        "severity": "medium"
+      },
+      {
+        "kind": "skipped-question",
+        "evidence": "second halves never revisited: repeat-vs-first-timer needs (71b8b673), how staff prevent trust-destroying moments (60b0eda0), staffing/shift-coordination consistency (b353ed8b)",
+        "count": 3,
+        "severity": "medium"
+      },
+      {
+        "kind": "unclarified-ambiguous-answer",
+        "evidence": "pacing reply \"Yeah more that\" never clarified; agent proceeded assuming depth-with-examples (which it did honor in practice)",
+        "count": 1,
+        "severity": "low"
+      },
+      {
+        "kind": "ignored-garbled-input",
+        "evidence": "user utterance \"World\" got no agent response; user had to self-recover with \"Move on\"",
+        "count": 1,
+        "severity": "low"
+      }
+    ],
+    "wins": [
+      "Recovered the cut-off cigarette story across three consecutive turns, restating context each time until the full anecdote was elicited",
+      "Re-asked the 'small details' question with a concrete reframe (room setup, timing, greetings) when the first answer missed the intent",
+      "Pushed past a too-broad check-in-time answer to concrete deciding factors and the 12-noon default",
+      "Followed up on the unanswered late-fee/waiver half after the user only answered the checkout-pressure part",
+      "Consistent section-boundary check-ins ('Anything you'd like to add before we move on?') giving the expert control of pacing",
+      "Asked scope consent and pacing preference up front; probing style (examples, depth) was consistent with the expert's stated preference",
+      "Closing turn accurately summarized all covered areas and offered to add/correct/expand before concluding"
+    ],
+    "sectionsCoveredAtoG": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G"
+    ]
+  },
+  "graphCoherence": {
+    "incoherentFactCount": 19,
+    "bySeverity": {
+      "high": 5,
+      "medium": 9,
+      "low": 5
+    },
+    "summary": "Audited 57 facts and 40 edges in /workspaces/Chatgraph-V2/data/live_audit/facts-20260722-110534.json for internal semantic coherence. Found 19 incoherent facts: 5 high, 9 medium, 5 low. The high-severity cluster centers on overwritten vertices whose current names invert their relations — a LoyaltyDriver renamed 'theft' that loyal guests are 'driven by' and that positive loyalty moments 'shape'; a ServiceFailure named 'cigarette violation' whose trace and recovery edge concern unclean toilets; a CheckInPolicy whose standardTime field stores a card/cash payment rule; a DecisionRule whose late-fee-waiver text duplicates an ExceptionRule while its trace and triggering signal concern early check-in; and two CheckInPolicy vertices asserting contradictory standard times (1 p.m. vs 3:00 PM) with the latter's times unsupported by its trace. Medium findings are mislabeled or cross-wired facts (recovery advice as a TimingRule governed by check-in policies, an annoyed-guest signal marked high-value with 0.8 return likelihood, a ServiceStandard whose text denies being a standard, resolvedBy/leadsTo edges linking unrelated incidents). Low findings are field-type abuse, near-duplicate vertices, and a role tenure attached as business tenure."
+  }
+}
