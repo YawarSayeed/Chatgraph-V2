@@ -321,6 +321,24 @@ function tokensMatch(left: string, right: string): boolean {
 }
 
 /**
+ * True when every token of the smaller name matches into the larger one:
+ * "body language" is the same concept as "body language cues", even though
+ * their Jaccard overlap (2/3) misses the threshold. Requires at least two
+ * matched tokens so a single shared word never merges two concepts.
+ */
+function subsumedName(left: Set<string>, right: Set<string>): boolean {
+  const [small, large] = left.size <= right.size ? [left, right] : [right, left];
+  if (small.size < 2) return false;
+  const unmatched = [...large];
+  for (const token of small) {
+    const index = unmatched.findIndex((other) => tokensMatch(token, other));
+    if (index < 0) return false;
+    unmatched.splice(index, 1);
+  }
+  return true;
+}
+
+/**
  * Jaccard overlap where tokens match up to one edit, so "centred" matches
  * "centered" and "signal" matches "signals" without any language resource.
  */
@@ -387,7 +405,15 @@ function resolveEntities(
     let match: Anchor | null = null;
     for (const anchor of anchorsByLabel.get(candidate.label) ?? []) {
       if (anchor.id === candidate.id) { match = null; break; }
-      if (anchor.normalized === normalized || conceptOverlap(anchor.tokens, tokens) >= 0.6) {
+      if (
+        anchor.normalized === normalized ||
+        // 0.7, not 0.6: at 0.6 four-token names sharing three tokens merge, which
+        // conflates "early check policy" with "late check policy". Genuine
+        // restatements score 1.0 under edit-tolerant matching or hit the subset
+        // rule; 0.7 keeps those and blocks single-qualifier opposites.
+        conceptOverlap(anchor.tokens, tokens) >= 0.7 ||
+        subsumedName(anchor.tokens, tokens)
+      ) {
         match = anchor;
         break;
       }

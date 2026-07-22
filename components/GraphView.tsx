@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3Force from "d3-force";
+import { keyText } from "@/lib/gate/gate";
 import type { GraphDisplayConfig } from "@/lib/domains";
 import type { GraphState, GraphVertex } from "@/lib/types";
 
@@ -25,10 +26,10 @@ function semanticLabel(vertex: GraphVertex, display?: GraphDisplayConfig): strin
   if (display?.labelOverrides?.[label]) return display.labelOverrides[label];
   const v = p.value;
   if (typeof v === "string" && v.length > 0) return v;
-  const name = p.name;
-  if (typeof name === "string" && name.length > 0) return name;
-  const title = p.title;
-  if (typeof title === "string" && title.length > 0) return title;
+  // The same naming priority the gate uses for resolution, so a DecisionRule
+  // shows its ruleText instead of the bare word "DecisionRule".
+  const key = keyText(p);
+  if (key) return key;
   const duration = p.duration;
   if (typeof duration === "string" && duration.length > 0) return duration;
   if (label === "Frequency") {
@@ -493,14 +494,14 @@ export function GraphView({ graph, display }: { graph: GraphState; display?: Gra
               const pos = posMap.get(node.id) ?? { x: node.x, y: node.y };
               const r = radius(node.label, display);
               const lbl = labelMap.get(node.id) ?? node.label;
-              const short = lbl.length > 12 ? lbl.slice(0, 11) + "\u2026" : lbl;
+              const short = lbl.length > 24 ? lbl.slice(0, 23) + "\u2026" : lbl;
               const c = color(node.label, display);
 
               return (
                 <g key={node.id} style={{ cursor: "pointer" }}>
                   <circle cx={pos.x} cy={pos.y} r={r} fill={c} stroke={c} strokeOpacity={0.25} strokeWidth={5} />
                   <circle cx={pos.x} cy={pos.y} r={r - 1} fill={c} stroke={c} strokeWidth={1.5} />
-                  <foreignObject x={pos.x - 36} y={pos.y + r + 2} width={72} height={16}>
+                  <foreignObject x={pos.x - 60} y={pos.y + r + 2} width={120} height={16}>
                     <div
                       style={{
                         background: "white", border: "1px solid #e5e0d5", borderRadius: 3,

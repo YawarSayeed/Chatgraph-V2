@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { GraphView } from "@/components/GraphView";
 import { domainList, getDomain, isDomainId } from "@/lib/domains";
-import { exportSessionJson, exportTranscriptJsonl, exportTranscriptTxt } from "@/lib/export";
+import { exportSessionJson, exportTranscriptTxt } from "@/lib/export";
 import { OpenAIRealtimeSession, type RealtimeStatus } from "@/lib/realtime";
 import { mergeDelta } from "@/lib/schema";
 import { clearSession, loadSession, saveSession } from "@/lib/storage";
@@ -98,7 +98,17 @@ export default function Home() {
       setSession({
         ...optimistic,
         graph: nextGraph,
-        messages: [...optimistic.messages, data.assistantMessage]
+        messages: [...optimistic.messages, data.assistantMessage],
+        turnRecords: [
+          ...(optimistic.turnRecords ?? []),
+          {
+            userMessageId: userMessage.id,
+            userText: trimmed,
+            delta: data.delta,
+            warnings: data.warnings ?? [],
+            createdAt: Date.now()
+          }
+        ]
       });
       setWarnings(hasGraphDelta ? [] : (data.warnings ?? []));
       if (optimistic.settings.autoSpeak) speak(data.assistantMessage.content);
@@ -153,9 +163,22 @@ export default function Home() {
       const hasGraphDelta = data.delta.vertices.length > 0 || data.delta.edges.length > 0;
       const current = sessionRef.current;
       if (!current) return;
+      const userMessage = [...current.messages].reverse().find(
+        (message) => message.role === "user" && message.content === text
+      );
       const next = {
         ...current,
-        graph: mergeDelta(current.graph, data.delta)
+        graph: mergeDelta(current.graph, data.delta),
+        turnRecords: [
+          ...(current.turnRecords ?? []),
+          {
+            userMessageId: userMessage?.id ?? "",
+            userText: text,
+            delta: data.delta,
+            warnings: data.warnings ?? [],
+            createdAt: Date.now()
+          }
+        ]
       };
       sessionRef.current = next;
       setSession(next);
@@ -270,9 +293,10 @@ export default function Home() {
 
   function exportAll() {
     if (!session) return;
-    exportTranscriptTxt(session);
-    exportTranscriptJsonl(session);
+    // The JSON is the research artifact: transcript, per-turn admitted deltas,
+    // full graph, and per-fact evidence. The txt stays for human reading.
     exportSessionJson(session);
+    exportTranscriptTxt(session);
   }
 
   if (!session) {

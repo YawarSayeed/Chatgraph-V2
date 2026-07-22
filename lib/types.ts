@@ -40,11 +40,22 @@ export interface ClientSettings {
   autoSpeak: boolean;
 }
 
+/** What extraction did with one user turn: the delta admitted and the warnings. */
+export interface TurnRecord {
+  userMessageId: string;
+  userText: string;
+  delta: GraphDelta;
+  warnings: string[];
+  createdAt: number;
+}
+
 export interface ChatSession {
   domainId: DomainId;
   messages: ChatMessage[];
   graph: GraphState;
   settings: ClientSettings;
+  /** One record per extracted user turn, in order. The export builds from these. */
+  turnRecords?: TurnRecord[];
 }
 
 export interface ChatRequest {

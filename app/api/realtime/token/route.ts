@@ -40,7 +40,16 @@ export async function GET(request: Request) {
               language: "en"
             },
             turn_detection: {
-              type: "semantic_vad"
+              type: "semantic_vad",
+              // Low eagerness: wait longer before deciding the speaker finished —
+              // experts pause mid-thought, and cutting them off loses knowledge.
+              eagerness: "low",
+              // The client is the only party that requests responses. With server
+              // auto-response on, response.created raced ahead of the transcript
+              // event and the client cancelled legitimate responses — the cause of
+              // stalls and "Cancellation failed: no active response found".
+              create_response: false,
+              interrupt_response: true
             }
           },
           output: {

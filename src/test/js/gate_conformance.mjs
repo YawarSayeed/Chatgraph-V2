@@ -18,6 +18,7 @@ import { gateContract } from "@/lib/gate/contract";
 import { runGate } from "@/lib/gate/gate";
 import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { extractGovernedDelta } from "@/lib/server/extract-governed";
+import { buildSessionExport } from "@/lib/export";
 
 const ROOT = process.cwd();
 const CONTRACT = gateContract("hospitality");
@@ -597,6 +598,71 @@ test("retry feedback forbids inventing new facts during correction", () => {
 test("the tool schema offers evidence on edges", () => {
   const edgeItems = extractionToolSchema("hospitality").properties.edges.items;
   assert.ok(edgeItems.properties.evidence, "edges must accept inline evidence");
+});
+
+
+test("a name contained in an existing name resolves onto it (trial: body language dupes)", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "signal:body-language-cues", label: "GuestSignal", properties: { name: "Body Language Cues" } }
+  );
+  const result = runGate(
+    { vertices: [knowledge("signal:new", "GuestSignal", { name: "body language" }, "read the cues and read the personality of the body language")], edges: [] },
+    graph, "hospitality",
+    { resolveEntities: true, evidenceContext: { ...CONTEXT, utterance: "it is important to read the cues and read the personality of the body language of the customer" } }
+  );
+  const signal = result.delta.vertices.find((v) => v.label === "GuestSignal");
+  assert.equal(signal.id, "signal:body-language-cues", "the shorter restatement must merge onto the existing concept");
+});
+
+test("subset merging never conflates distinct concepts sharing one word", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "rule:early", label: "TimingRule", properties: { ruleText: "early check policy applies" } }
+  );
+  const result = runGate(
+    { vertices: [knowledge("rule:late", "TimingRule", { ruleText: "late check policy applies" }, "we never charge for late checkout before noon")], edges: [] },
+    graph, "hospitality",
+    { resolveEntities: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const rule = result.delta.vertices.find((v) => v.label === "TimingRule");
+  assert.equal(rule.id, "rule:late", "early and late policies are different rules");
+});
+
+
+test("the session export carries transcript, per-turn deltas, and per-fact evidence", () => {
+  const gated = runGate(
+    {
+      vertices: [knowledge("standard:hot-towel", "ServiceStandard", { name: "Hot towel on arrival" }, "hand every guest a hot towel")],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality",
+    { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const graph = { vertices: { ...EMPTY_GRAPH.vertices }, edges: {} };
+  for (const v of gated.delta.vertices) graph.vertices[v.id] = v;
+  for (const e of gated.delta.edges) graph.edges[e.id] = e;
+
+  const out = buildSessionExport({
+    domainId: "hospitality",
+    messages: [
+      { id: "a1", role: "assistant", content: "What makes you successful?", createdAt: 1 },
+      { id: "u1", role: "user", content: UTTERANCE, createdAt: 2 }
+    ],
+    graph,
+    settings: { voiceEnabled: true, autoSpeak: true },
+    turnRecords: [{ userMessageId: "u1", userText: UTTERANCE, delta: gated.delta, warnings: [], createdAt: 3 }]
+  });
+
+  assert.equal(out.format, "chatgraph-session/v1");
+  assert.equal(out.transcript.length, 2);
+  assert.equal(out.turns.length, 1);
+  assert.equal(out.turns[0].admitted.vertices.length, gated.delta.vertices.length);
+  const fact = out.knowledge.find((k) => k.label === "ServiceStandard");
+  assert.ok(fact, "the knowledge view must contain the fact");
+  assert.equal(fact.evidence.traceText, "hand every guest a hot towel", "the export must surface the grounding quote");
+  assert.equal(out.stats.groundedKnowledgeVertices, 1);
+  assert.ok(out.messages, "harness-compatible messages array must remain at top level");
 });
 
 // --- frozen replay --------------------------------------------------------

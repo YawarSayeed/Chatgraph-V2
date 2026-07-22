@@ -47,7 +47,9 @@ export class OpenAIRealtimeSession {
   private userTranscriptSettleUntil = 0;
   private needsResponseAfterSettle = false;
 
-  private static readonly USER_TRANSCRIPT_SETTLE_MS = 700;
+  // How long after the last transcript fragment before we answer. Experts pause
+  // mid-thought; 700ms answered fragments like "All that needs to be done in a".
+  private static readonly USER_TRANSCRIPT_SETTLE_MS = 1200;
 
   constructor(private callbacks: RealtimeCallbacks) {}
 
@@ -158,7 +160,14 @@ export class OpenAIRealtimeSession {
     }
 
     if (event.type === "error") {
-      this.callbacks.onError(event.error?.message ?? "Realtime API returned an error.");
+      const message = event.error?.message ?? "Realtime API returned an error.";
+      // A cancel that raced a completed response is harmless bookkeeping noise,
+      // not something to show the interviewee.
+      if (/no active response/i.test(message)) {
+        console.warn("[chatgraph realtime]", message);
+        return;
+      }
+      this.callbacks.onError(message);
       return;
     }
 
@@ -171,16 +180,12 @@ export class OpenAIRealtimeSession {
     }
 
     if (event.type === "response.created") {
-      if (
-        this.assistantResponsesBlocked ||
-        this.responseInFlight ||
-        this.pendingAssistantTurns === 0 ||
-        Date.now() < this.userTranscriptSettleUntil
-      ) {
-        if (this.pendingAssistantTurns > 0) {
-          this.needsResponseAfterSettle = true;
-          this.scheduleResponseRetry();
-        }
+      // The server no longer auto-creates responses (create_response: false), so
+      // every response here is one this client requested. The old gating cancelled
+      // "unsolicited" responses, but the server's auto-response raced ahead of the
+      // transcript event, so it cancelled legitimate answers and stalled the
+      // interview until the expert said "continue".
+      if (this.assistantResponsesBlocked) {
         this.cancelResponse(event.response?.id);
         return;
       }
@@ -239,6 +244,7 @@ export class OpenAIRealtimeSession {
     this.needsResponseAfterSettle = true;
 
     if (this.responseInFlight) {
+      // Barge-in: the expert resumed speaking while the assistant was answering.
       this.cancelResponse();
       this.responseInFlight = false;
       this.assistantTranscript = "";

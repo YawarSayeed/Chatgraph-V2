@@ -31,3 +31,4 @@ part of the record as the final table.
 | [04](iteration-04.md) | 2026-07-21 | Entity resolution + context discipline; re-measured: iteration-03's headline EF contrast does not replicate |
 | [04-audit](iteration-04-claims-audit.md) | 2026-07-21 | Claims-vs-measurements audit: dead title, wrong denominator, missing A1-vs-A5 test |
 | [05](iteration-05.md) | 2026-07-21 | Edge grounding + per-turn framing; property padding discovered as a hallucination channel and fixed |
+| [06](iteration-06.md) | 2026-07-22 | First deployed trial: voice-loop race, fragment answering, display naming, near-dupe threshold bug; research export built. Measured run pending corpus |

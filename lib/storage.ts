@@ -26,7 +26,8 @@ export function defaultSession(domainId: DomainId = "medical"): ChatSession {
     settings: {
       voiceEnabled: true,
       autoSpeak: true
-    }
+    },
+    turnRecords: []
   };
 }
 
@@ -36,7 +37,9 @@ export async function loadSession(domainId: DomainId = "medical"): Promise<ChatS
     db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(sessionKey(domainId))
   );
   db.close();
-  return value?.domainId === domainId ? value : defaultSession(domainId);
+  if (value?.domainId !== domainId) return defaultSession(domainId);
+  // Sessions saved before turn recording existed lack the array.
+  return { ...value, turnRecords: value.turnRecords ?? [] };
 }
 
 export async function saveSession(session: ChatSession): Promise<void> {
