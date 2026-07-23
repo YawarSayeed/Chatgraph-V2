@@ -19,6 +19,7 @@ import { runGate } from "@/lib/gate/gate";
 import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { extractGovernedDelta } from "@/lib/server/extract-governed";
 import { buildSessionExport } from "@/lib/export";
+import { isFillerTurn } from "@/lib/filler";
 
 const ROOT = process.cwd();
 const CONTRACT = gateContract("hospitality");
@@ -818,6 +819,158 @@ test("the extractor is never offered the gate-authored supersession edge", () =>
   const edgeLabels = extractionToolSchema("hospitality").properties.edges.items.properties.label.enum;
   assert.ok(!edgeLabels.includes("supersededBy"));
   assert.ok(!schemaReference("hospitality").includes("supersededBy"));
+});
+
+// --- iteration 07: identity consistency, edge witnesses, filler -----------
+
+test("a reused id whose content names a different concept gets its own identity (D-06-1)", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "guestsignal:aaaa1111bbbb2222", label: "GuestSignal", properties: { name: "Loyalty program tier interest" } }
+  );
+  const result = runGate(
+    {
+      vertices: [{
+        id: "guestsignal:aaaa1111bbbb2222", label: "GuestSignal",
+        properties: { name: "Suspicion of staff theft" },
+        evidence: { traceText: "we hand every guest a hot towel" }
+      }],
+      edges: []
+    },
+    graph, "hospitality",
+    { deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const insight = result.delta.vertices.find((v) => v.label === "GuestSignal");
+  assert.notEqual(insight.id, "guestsignal:aaaa1111bbbb2222", "a different concept must not overwrite the stored one");
+  assert.match(insight.id, /^guestsignal:[0-9a-f]{16}$/);
+  assert.ok(
+    result.findings.some((f) => f.ruleId === "HR009" && f.action === "repaired" && f.message.includes("different concept")),
+    "the de-collision must be reported"
+  );
+});
+
+test("a reused id whose content matches the stored concept still merges (D-06-1 guard)", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "guestsignal:aaaa1111bbbb2222", label: "GuestSignal", properties: { name: "Loyalty program tier interest" } }
+  );
+  const result = runGate(
+    {
+      vertices: [{
+        id: "guestsignal:aaaa1111bbbb2222", label: "GuestSignal",
+        properties: { name: "loyalty program  tier interest" },
+        evidence: { traceText: "we hand every guest a hot towel" }
+      }],
+      edges: []
+    },
+    graph, "hospitality",
+    { deterministicIds: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  const insight = result.delta.vertices.find((v) => v.label === "GuestSignal");
+  assert.equal(insight.id, "guestsignal:aaaa1111bbbb2222", "the same concept restated must keep merging");
+});
+
+test("HR026: a cross-turn edge between two existing entities needs its own witness", () => {
+  assert.equal(CONTRACT.severities.get("HR026"), "hard", "HR026 severity must come from the spec");
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "standard:a", label: "ServiceStandard", properties: { name: "Hot towel" } },
+    { id: "principle:b", label: "GuestExperiencePrinciple", properties: { name: "Warmth" } }
+  );
+  const witnessless = runGate(
+    { vertices: [], edges: [{ id: "e:1", label: "standardEnforces", out: "standard:a", in: "principle:b" }] },
+    graph, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(!witnessless.delta.edges.some((e) => e.label === "standardEnforces"), "no witness, no edge");
+  assert.ok(witnessless.findings.some((f) => f.ruleId === "HR026" && f.action === "dropped"));
+  assert.ok(witnessless.retryFeedback?.includes("HR026"), "the drop must be retryable");
+
+  const witnessed = runGate(
+    {
+      vertices: [],
+      edges: [{
+        id: "e:1", label: "standardEnforces", out: "standard:a", in: "principle:b",
+        evidence: { traceText: "we hand every guest a hot towel the moment they walk in" }
+      }]
+    },
+    graph, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(witnessed.delta.edges.some((e) => e.label === "standardEnforces"), "a span-valid witness admits the edge");
+  assert.ok(!witnessed.findings.some((f) => f.ruleId === "HR026"));
+});
+
+test("HR026 exempts an edge whose endpoint is asserted in this very turn", () => {
+  const graph = graphWith(
+    { id: "person:expert", label: "Person", properties: { name: "expert" } },
+    { id: "principle:b", label: "GuestExperiencePrinciple", properties: { name: "Warmth" } }
+  );
+  const result = runGate(
+    {
+      vertices: [knowledge("standard:new", "ServiceStandard", { name: "Hot towel" }, "we hand every guest a hot towel")],
+      edges: [{ id: "e:1", label: "standardEnforces", out: "standard:new", in: "principle:b" }]
+    },
+    graph, "hospitality", { evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.ok(!result.findings.some((f) => f.ruleId === "HR026"), "a fresh endpoint is itself the turn's witness");
+  assert.ok(result.delta.edges.some((e) => e.label === "standardEnforces"));
+});
+
+test("two singleton candidates in one delta collapse to the first", () => {
+  const result = runGate(
+    {
+      vertices: [
+        knowledge("policy:a", "CheckInPolicy", { standardTime: "3pm" }, "we hand every guest a hot towel"),
+        knowledge("policy:b", "CheckInPolicy", { standardTime: "2pm" }, "we never charge for late checkout")
+      ],
+      edges: []
+    },
+    EMPTY_GRAPH, "hospitality",
+    { temporalContradictions: true, evidenceContext: { ...CONTEXT, utterance: UTTERANCE } }
+  );
+  assert.equal(result.delta.vertices.filter((v) => v.label === "CheckInPolicy").length, 1, "one singleton per delta");
+  assert.ok(result.findings.some((f) => f.ruleId === "HR009" && f.subjectId === "policy:b"));
+});
+
+test("filler turns are recognized and skip extraction entirely", async () => {
+  for (const filler of ["Continue", "Okay, sounds great. Let's go", "No let's move on", "yes", "move on"]) {
+    assert.ok(isFillerTurn(filler), `"${filler}" must be classified as filler`);
+  }
+  for (const substantive of ["The staff is the bottleneck", "No, early check-in is never free", "I think trust matters most"]) {
+    assert.ok(!isFillerTurn(substantive), `"${substantive}" must NOT be classified as filler`);
+  }
+  const stub = stubOpenAI({ vertices: [], edges: [] });
+  const result = await extractGovernedDelta(stub.client, "Continue", {
+    domainId: "hospitality",
+    messages: [{ id: "m1", role: "user", content: "Continue", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  });
+  assert.equal(stub.calls.length, 0, "no extractor call on a filler turn");
+  assert.equal(result.delta.vertices.length, 0, "not even an episode is recorded for navigation");
+});
+
+test("episode ids derive from the message id, not a vertex count", async () => {
+  const stub = stubOpenAI({ vertices: [], edges: [] });
+  const messageId = "0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f";
+  const result = await extractGovernedDelta(stub.client, "We greet every guest by name at the door.", {
+    domainId: "hospitality",
+    messages: [{ id: messageId, role: "user", content: "We greet every guest by name at the door.", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  });
+  const episode = result.delta.vertices.find((v) => v.label === "TranscriptEpisode");
+  assert.ok(episode, "a substantive turn records its episode");
+  assert.equal(episode.id, `ep:session:hospitality:default:m${messageId.replace(/-/g, "").slice(0, 10)}`);
+});
+
+test("assertion-only property guidance is derived from the schema's type declarations", () => {
+  const text = provenanceInstructions("hospitality");
+  assert.ok(text.includes("ASSERTION-ONLY"), "the padding guard must be present");
+  const listed = text.match(/ASSERTION-ONLY[^:]*: ([^.]+)\./)?.[1] ?? "";
+  for (const prop of listed.split(", ")) {
+    const declared = [...CONTRACT.vertexSpecs.values()].some(
+      (spec) => spec.propertyTypes?.get(prop) === "boolean" || spec.propertyTypes?.get(prop) === "integer"
+    );
+    assert.ok(declared, `"${prop}" is listed but not a declared boolean/integer property`);
+  }
 });
 
 // --- report ---------------------------------------------------------------

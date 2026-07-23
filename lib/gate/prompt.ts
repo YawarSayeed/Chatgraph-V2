@@ -44,7 +44,9 @@ export function provenanceInstructions(domainId: string): string {
     'Set evidence.traceText to the expert\'s own words from the latest utterance — the specific span that licenses this fact, not a summary of the topic and not the whole turn.',
     confidence ? `Set evidence.confidence to one of: ${confidence}. Use "inferred" only for a fact synthesised across turns that no single quote states.` : "",
     banned ? `These traceText values are rejected: ${banned}.` : "",
-    "A relationship between two knowledge entities is itself a claim: give each such edge an evidence object too, quoting the span that states the relationship, not just its endpoints.",
+    "A relationship between two knowledge entities is itself a claim: give each such edge an evidence object whose traceText is the span that ASSERTS THE RELATIONSHIP — the sentence linking both concepts — never a span that merely names one endpoint. An edge that connects two previously-known entities is REJECTED unless its evidence quotes the current utterance asserting that link.",
+    assertionOnlyProperties(contract),
+    "If the expert is merely agreeing with or echoing something the interviewer suggested, extract only what the expert themselves adds beyond the echo — interviewer-originated content is not the expert's knowledge.",
     "Do not emit evidence vertices or provenance edges yourself; they are attached for you from the evidence object.",
     "If the utterance does not support a fact, omit the fact rather than grounding it in something the expert did not say."
   ]
@@ -106,6 +108,25 @@ export function extractionToolSchema(domainId: string): Record<string, unknown> 
 /** True for edges only the gate may write. */
 export function gateAuthored(contract: GateContract, edgeLabel: string): boolean {
   return contract.provenanceEdgeLabels.has(edgeLabel) || edgeLabel === SUPERSEDED_BY;
+}
+
+/**
+ * Boolean and numeric properties are judgments ("never compromise", a frequency,
+ * a likelihood). The live audit found these to be the dominant padding channel:
+ * 58 fabricated values, mostly booleans stamped true. The list is derived from
+ * the schema's own type declarations, so it cannot drift.
+ */
+function assertionOnlyProperties(contract: GateContract): string {
+  const names = new Set<string>();
+  for (const label of contract.knowledgeLabels) {
+    const spec = contract.vertexSpecs.get(label);
+    if (!spec) continue;
+    for (const [prop, type] of spec.propertyTypes) {
+      if ((type === "boolean" || type === "integer") && !spec.requiredProperties.has(prop)) names.add(prop);
+    }
+  }
+  if (names.size === 0) return "";
+  return `ASSERTION-ONLY properties — set these ONLY when the expert explicitly states that judgment in this utterance, otherwise OMIT the property entirely (never guess a boolean or a number): ${[...names].sort().join(", ")}.`;
 }
 
 const SUMMARY_MAX_VERTICES = 80;

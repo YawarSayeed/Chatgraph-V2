@@ -28,6 +28,7 @@ import { gateContract } from "@/lib/gate/contract";
 import { runGate } from "@/lib/gate/gate";
 import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { getDomain } from "@/lib/domains";
+import { isFillerTurn } from "@/lib/filler";
 
 const ROOT = process.cwd();
 const RESULTS = path.join(ROOT, "results");
@@ -68,8 +69,6 @@ const CONDITIONS = [
   }
 ];
 
-const FILLER =
-  /^(okay|ok|sounds great|let'?s go|yeah[, ]*)?(continue|move on|next question|no[, ]*move on|let'?s move on|go on|that would be it|no|yes|sorry,? you can just move on|i want to continue|you want to continue\??|yeah continue please|yeah,? let'?s continue|no,? i think this is it)[.! ]*$/i;
 
 fs.mkdirSync(CACHE, { recursive: true });
 fs.mkdirSync(RAW, { recursive: true });
@@ -87,15 +86,6 @@ function loadEnv() {
 }
 
 const sha = (value) => crypto.createHash("sha256").update(value).digest("hex");
-const words = (value) => String(value ?? "").trim().split(/\s+/).filter(Boolean);
-
-function isFiller(text) {
-  const value = String(text ?? "").trim().replace(/\s+/g, " ");
-  if (!value) return true;
-  if (/^(okay,? sounds great\.? let'?s go|sounds great\.? let'?s go)$/i.test(value)) return true;
-  if (words(value).length <= 3 && /^(ok|okay|yes|yeah|no|continue|move on|next)$/i.test(value)) return true;
-  return FILLER.test(value);
-}
 
 function loadTurns() {
   const turns = [];
@@ -118,7 +108,7 @@ function loadTurns() {
           sessionFile: path.relative(ROOT, path.join(full, name)),
           content,
           previousAssistant,
-          filler: isFiller(content)
+          filler: isFillerTurn(content)
         });
       }
     }

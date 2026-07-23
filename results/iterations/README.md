@@ -34,3 +34,4 @@ part of the record as the final table.
 | [06](iteration-06.md) | 2026-07-22 | First deployed trial: voice-loop race, fragment answering, display naming, near-dupe threshold bug; research export built. Measured run pending corpus |
 | [06-outcome](iteration-06-outcome.md) | 2026-07-22 | Live-graph audit of first fixed-product session: grounding held (span 54/54, 30/30), but identity-mutation bug (reused hash-id overwritten) corrupts edges; ablation deferred on OpenAI quota |
 | [06-defects](iteration-06-defects.json) | 2026-07-22 | Machine-readable defect inventory D-06-1..5 with root causes and proposed fixes |
+| [07](iteration-07.md) | 2026-07-23 | Every D-06 defect converted to a deployed mechanism (identity consistency, HR026 edge witness, assertion-only properties, conduct rules, turnkey audit); claims registry authored; corpus measurement pending |

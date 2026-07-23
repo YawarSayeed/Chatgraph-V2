@@ -13,6 +13,7 @@
     "test:results": "node scripts/nesy_results/validate_results.mjs",
     "ablation": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/run_gated_ablation.mjs",
     "results:build": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/build_results_package.mjs",
+    "audit:derive": "node --import ./scripts/ts-alias-hooks.mjs scripts/nesy_results/derive_live_audit.mjs",
     "test:paper": "node scripts/nesy_results/verify_paper_claims.mjs"
   },
   "dependencies": {

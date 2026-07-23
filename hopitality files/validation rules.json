@@ -586,6 +586,15 @@
       "description": "Every ProvenanceEvidence.sourceEpisode value must reference a TranscriptEpisode vertex that exists in the session graph. Orphaned sourceEpisode references indicate a write-order failure or a malformed delta.",
       "error_message": "WARNING: ProvenanceEvidence '{vertex_id}' references sourceEpisode='{episode_id}' which does not exist as a TranscriptEpisode vertex in this session. This provenance node is orphaned — repair by linking it to the correct episode or re-extracting the delta.",
       "check": "for each ProvenanceEvidence vertex v in session: assert v.properties.sourceEpisode in (set of all TranscriptEpisode IDs in session)"
+    },
+    {
+      "rule_id": "HR026",
+      "name": "cross_turn_relationship_requires_witness",
+      "scope": "delta",
+      "severity": "hard",
+      "description": "A semantic edge between two knowledge vertices that BOTH already exist in the graph and are NOT re-emitted in the current delta asserts a relationship the current utterance did not visibly discuss. Such a cross-turn relationship must carry its own evidence whose traceText is a verbatim span of the current utterance; otherwise it is rejected for retry. Edges with at least one endpoint proposed in the current delta are exempt (the endpoint's own evidence witnesses the turn).",
+      "error_message": "Cross-turn edge '{edge_id}' connects two previously-captured concepts without witness evidence from the current utterance.",
+      "check": "for each admitted knowledge-to-knowledge edge e: if e.out not in delta.vertices and e.in not in delta.vertices: assert e.evidence.traceText is a span of the current utterance"
     }
   ],
   "rule_summary": {
@@ -601,7 +610,8 @@
       "HR011",
       "HR012",
       "HR014",
-      "HR015"
+      "HR015",
+      "HR026"
     ],
     "delta_soft": [
       "HR006",
@@ -622,6 +632,6 @@
       "HR023",
       "HR024"
     ],
-    "total_rules": 25
+    "total_rules": 26
   }
 }

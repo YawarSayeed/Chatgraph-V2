@@ -22,7 +22,18 @@ export type VertexSpec = {
   label: string;
   properties: Set<string>;
   requiredProperties: Set<string>;
+  /** Property name -> declared type ("string" | "boolean" | "integer" | "other"). */
+  propertyTypes: Map<string, string>;
 };
+
+function declaredType(value: unknown): string {
+  if (value && typeof value === "object") {
+    if ("string" in (value as object)) return "string";
+    if ("boolean" in (value as object)) return "boolean";
+    if ("integer" in (value as object)) return "integer";
+  }
+  return "other";
+}
 
 export type EdgeSpec = {
   label: string;
@@ -108,6 +119,9 @@ function buildContract(domainId: string): GateContract {
         properties: new Set((entry["@value"].properties ?? []).map((prop) => prop.key)),
         requiredProperties: new Set(
           (entry["@value"].properties ?? []).filter((prop) => prop.required).map((prop) => prop.key)
+        ),
+        propertyTypes: new Map(
+          (entry["@value"].properties ?? []).map((prop) => [prop.key, declaredType(prop.value)])
         )
       }
     ])

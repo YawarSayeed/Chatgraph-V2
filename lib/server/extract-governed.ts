@@ -20,6 +20,7 @@ import { gateContract } from "@/lib/gate/contract";
 import { runGate, type GateFinding } from "@/lib/gate/gate";
 import { extractionToolSchema, knownEntitiesSummary, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { getDomain } from "@/lib/domains";
+import { isFillerTurn } from "@/lib/filler";
 import type { ChatRequest, GraphDelta, GraphState } from "@/lib/types";
 
 const DEFAULT_EXTRACTOR_MODEL = "gpt-4o-mini";
@@ -32,10 +33,23 @@ export async function extractGovernedDelta(
 ): Promise<{ delta: GraphDelta; warnings: string[] }> {
   const domainId = body.domainId ?? "hospitality";
   reportDriftOnce(domainId);
+
+  // A filler turn ("Continue", "Move on", a bare acknowledgment) carries no
+  // knowledge. Running the extractor on it costs tokens and, worse, invites
+  // re-emission of prior facts: the first live session's identity mutations all
+  // happened on filler turns. Skip extraction entirely; not even an episode is
+  // recorded, since a navigation utterance is not evidence of anything.
+  if (isFillerTurn(latestText)) {
+    return { delta: { vertices: [], edges: [] }, warnings: [] };
+  }
+
   const previousQuestion = [...body.messages].reverse().find(
     (message) => message.role === "assistant"
   )?.content ?? "";
-  const scaffold = episodeScaffold(domainId, body.graph, latestText, previousQuestion);
+  const latestUser = [...body.messages].reverse().find(
+    (message) => message.role === "user" && message.content === latestText
+  );
+  const scaffold = episodeScaffold(domainId, body.graph, latestText, previousQuestion, latestUser?.id);
 
   let best: { delta: GraphDelta; warnings: string[]; score: number } | null = null;
   let feedback = "";
@@ -61,15 +75,33 @@ export async function extractGovernedDelta(
       resolveEntities: true
     });
 
+    // An admitted-but-unprovenanced fact is worth less than a grounded one: the
+    // score subtracts heavily for each soft evidence gap, so a smaller fully
+    // grounded attempt beats a larger flagged one.
+    const evidenceGaps = result.findings.filter(
+      (finding) => finding.severity === "soft" && finding.ruleId === "HR006"
+    ).length;
     const candidate = {
       delta: result.delta,
       warnings: warningsFrom(result.findings),
-      score: result.delta.vertices.length + result.delta.edges.length
+      score: result.delta.vertices.length + result.delta.edges.length - 10 * evidenceGaps
     };
     if (!best || candidate.score > best.score) best = candidate;
 
-    if (!result.retryFeedback) break;
-    feedback = `${result.retryFeedback}\n\nSchema:\n${schemaReference(domainId)}`;
+    if (result.retryFeedback) {
+      feedback = `${result.retryFeedback}\n\nSchema:\n${schemaReference(domainId)}`;
+      continue;
+    }
+    // Soft findings never block admission, but they are still worth one retry:
+    // the flagged run is kept as `best`, so a failed retry costs nothing.
+    if (evidenceGaps > 0 && attempt < MAX_ATTEMPTS) {
+      feedback =
+        `${evidenceGaps} admitted item(s) lacked an evidence object. Re-emit the same delta, ` +
+        `attaching evidence.traceText (the expert's exact words from the latest utterance) ` +
+        `to every knowledge vertex and every knowledge-to-knowledge edge.`;
+      continue;
+    }
+    break;
   }
 
   if (!best) return { delta: { vertices: [], edges: [] }, warnings: ["Graph extraction failed for this turn."] };
@@ -122,15 +154,19 @@ function episodeScaffold(
   domainId: string,
   graph: GraphState,
   latestText: string,
-  previousQuestion: string
+  previousQuestion: string,
+  messageId?: string
 ): Scaffold {
   const sessionId = Object.values(graph.vertices).find((vertex) => vertex.label === "KnowledgeSession")?.id
     ?? "session:hospitality:default";
   const section = classifySection(domainId, graph, previousQuestion);
   const sectionId = `section:${sessionId}:${section.order}`;
-  const sequence = String(
-    Object.values(graph.vertices).filter((vertex) => vertex.label === "TranscriptEpisode").length + 1
-  ).padStart(3, "0");
+  // The episode id derives from the message id, not from a count: two voice
+  // turns extracted concurrently once counted the same graph snapshot and minted
+  // the same episode id, overwriting one turn's episode with the other's.
+  const sequence = messageId
+    ? `m${messageId.replace(/-/g, "").slice(0, 10)}`
+    : String(Object.values(graph.vertices).filter((vertex) => vertex.label === "TranscriptEpisode").length + 1).padStart(3, "0");
   const episodeId = `ep:${sessionId}:${sequence}`;
 
   return {

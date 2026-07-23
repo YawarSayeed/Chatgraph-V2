@@ -167,6 +167,7 @@ export function runGate(
   );
 
   const seenCandidateIds = new Set<string>();
+  const deltaSingletons = new Set<string>();
   for (const candidate of [...candidates, ...materialized.vertices]) {
     if (seenCandidateIds.has(candidate.id)) continue;
     seenCandidateIds.add(candidate.id);
@@ -191,12 +192,22 @@ export function runGate(
     if (governed && !admitEvidenceQuality(candidate.label, properties, contract, findings, candidate.id, options)) continue;
     if (governed && !admitTextQuality(candidate.label, properties, contract, findings, candidate.id, options)) continue;
     if (governed && !admitSingleton(candidate, properties, graph, contract, findings, options, supersessions)) continue;
+    // A singleton label may appear once per delta: the live session admitted two
+    // CheckInPolicy vertices from one turn because only the graph was checked.
+    if (governed && contract.singletonLabels.has(candidate.label)) {
+      if (deltaSingletons.has(candidate.label)) {
+        findings.push(finding("HR009", severityOf(contract, "HR009", "hard", options), `${candidate.label} appears more than once in this delta; ${candidate.id} dropped`, candidate.id, "dropped"));
+        continue;
+      }
+      deltaSingletons.add(candidate.label);
+    }
     admittedVertices.push({ id: candidate.id, label: candidate.label, properties });
     labels.set(candidate.id, candidate.label);
   }
 
   const admittedEdges: GraphEdge[] = [];
   const seenEdgeIds = new Set<string>();
+  const deltaVertexIds = new Set(candidates.map((candidate) => candidate.id));
   for (const item of [...parsedEdges, ...materialized.edges]) {
     const spec = contract.edgeSpecs.get(item.label);
     if (!spec) {
@@ -218,6 +229,29 @@ export function runGate(
     seenEdgeIds.add(id);
     // Edge properties are held to the schema exactly as vertex properties are.
     const properties = pick(item.properties, spec.properties);
+
+    // HR026: an edge between two concepts that both live only in the graph —
+    // neither re-emitted this turn — asserts a relationship the current utterance
+    // did not visibly discuss. The live audit found this to be the dominant
+    // incoherence surface ("theft resolvedBy cigarette response"). Such an edge
+    // must carry its own span-valid witness from the current utterance.
+    if (
+      governed &&
+      contract.knowledgeLabels.has(labels.get(item.out) ?? "") &&
+      contract.knowledgeLabels.has(labels.get(item.in) ?? "") &&
+      !deltaVertexIds.has(item.out) &&
+      !deltaVertexIds.has(item.in)
+    ) {
+      const witness = item.evidence ? asString(item.evidence.traceText) : "";
+      const problem = witness
+        ? edgeTraceProblem(witness, contract, options)
+        : "is missing entirely";
+      if (problem) {
+        const severity = severityOf(contract, "HR026", "hard", options);
+        findings.push(finding("HR026", severity, `cross-turn edge ${id} witness evidence ${problem}`, id, severity === "hard" ? "dropped" : "flagged"));
+        if (severity === "hard") continue;
+      }
+    }
     // A relationship between knowledge vertices is a fact; its inline evidence is
     // validated with the same span rule and stored on the edge itself. Failure is
     // advisory: the edge is admitted ungrounded and flagged, mirroring the spec's
@@ -244,7 +278,31 @@ export function runGate(
   if (governed && options.deterministicIds) {
     for (const vertex of admittedVertices) {
       const existing = graph.vertices[vertex.id];
-      if (existing && existing.label === vertex.label) resolvedIds.add(vertex.id);
+      if (!existing || existing.label !== vertex.label) continue;
+      // Iteration-05 protected every reused id from re-hashing, which let a
+      // reused id be silently overwritten with a DIFFERENT concept ("loyalty
+      // program" became "theft" in the first live session, dragging every prior
+      // edge to the wrong endpoint). Protection now requires identity
+      // consistency: the reused id keeps its id only if its content still names
+      // the same concept; otherwise it de-collides into its own content hash and
+      // the stored concept is left untouched.
+      if (contract.singletonLabels.has(vertex.label)) {
+        // Singletons have their own change mechanism (supersession).
+        resolvedIds.add(vertex.id);
+        continue;
+      }
+      const declared = contract.vertexSpecs.get(vertex.label)?.properties ?? new Set<string>();
+      const existingKey = keyText(pick(existing.properties, declared));
+      const candidateKey = keyText(vertex.properties);
+      if (!existingKey || !candidateKey || sameConceptName(existingKey, candidateKey)) {
+        resolvedIds.add(vertex.id);
+      } else {
+        findings.push(finding(
+          "HR009", "advisory",
+          `${vertex.id} was reused for a different concept ("${candidateKey.slice(0, 40)}" vs stored "${existingKey.slice(0, 40)}"); assigned its own identity`,
+          vertex.id, "repaired"
+        ));
+      }
     }
   }
 
@@ -356,6 +414,17 @@ function conceptOverlap(left: Set<string>, right: Set<string>): number {
   return shared / (left.size + right.size - shared);
 }
 
+/** Same-concept test shared by resolution and reused-id protection. */
+function sameConceptName(left: string, right: string): boolean {
+  const a = normalizeText(left);
+  const b = normalizeText(right);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const ta = conceptTokens(a);
+  const tb = conceptTokens(b);
+  return conceptOverlap(ta, tb) >= 0.7 || subsumedName(ta, tb);
+}
+
 /**
  * Map candidate ids onto existing graph vertices that hold the same concept.
  * Two vertices are the same concept when they share a label and their key text
@@ -397,7 +466,11 @@ function resolveEntities(
   const rewrites = new Map<string, string>();
   for (const candidate of candidates) {
     if (!contract.knowledgeLabels.has(candidate.label)) continue;
-    const text = keyText(candidate.properties);
+    // Key on the properties that will actually be admitted. Resolution once keyed
+    // on a raw undeclared `name` that pick() then discarded, so an exact-name twin
+    // slipped through (the live session's duplicate "demographic" constraint).
+    const declaredProps = contract.vertexSpecs.get(candidate.label)?.properties;
+    const text = keyText(declaredProps ? pick(candidate.properties, declaredProps) : candidate.properties);
     const normalized = normalizeText(text);
     if (!normalized) continue;
     const tokens = conceptTokens(normalized);
