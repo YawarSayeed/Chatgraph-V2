@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { graphSummary } from "@/lib/schema";
 import { runGate } from "@/lib/gate/gate";
 import { schemaReference } from "@/lib/gate/prompt";
-import type { ChatRequest, GraphDelta } from "@/lib/types";
+import type { ChatRequest, GraphDelta, TurnGateReport } from "@/lib/types";
 import { getDomain } from "@/lib/domains";
 import { extractGovernedDelta } from "./extract-governed";
 
@@ -12,7 +12,7 @@ export async function extractGraphDelta(
   openai: OpenAI,
   latestText: string,
   body: ChatRequest
-): Promise<{ delta: GraphDelta; warnings: string[] }> {
+): Promise<{ delta: GraphDelta; warnings: string[]; gate?: TurnGateReport }> {
   if (body.domainId === "hospitality") {
     return extractGovernedDelta(openai, latestText, body);
   }

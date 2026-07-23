@@ -1,26 +1,117 @@
 import { getDomain } from "./domains";
 import { gateContract } from "./gate/contract";
 import { keyText, SUPERSEDED_BY } from "./gate/gate";
-import type { ChatSession, GraphVertex, JsonValue } from "./types";
+import { deriveAuditInput } from "./audit";
+import type { ChatSession, GateAttemptReport, GraphVertex, JsonValue, TurnRecord } from "./types";
 
-export function exportTranscriptTxt(session: ChatSession): void {
+/**
+ * One click, the complete analysis bundle — every input the research pipeline
+ * needs from a session, under one shared timestamp:
+ *
+ *   chatgraph-<stamp>.json             the session export (harness corpus format:
+ *                                      transcript, per-turn admitted deltas with
+ *                                      gate reports, full graph, knowledge view)
+ *   chatgraph-<stamp>-transcript.txt   the conversation, human-readable
+ *   chatgraph-<stamp>-audit.json       audit input: every fact and semantic edge
+ *                                      with its trace and utterance attribution
+ *   chatgraph-<stamp>-gatelog.json     what went right/wrong: every attempt,
+ *                                      every finding, rejections, retries
+ *
+ * Downloads are staggered so the browser treats them as one user gesture.
+ */
+export function exportSessionBundle(session: ChatSession): void {
+  const base = `chatgraph-${stamp()}`;
+  const built = buildSessionExport(session);
+
   const userLabel = getDomain(session.domainId).userLabel;
-  const lines = session.messages.map((message) => {
-    const speaker = message.role === "assistant" ? "agent" : userLabel;
-    return `${speaker}: ${message.content}`;
+  const transcript = session.messages
+    .map((message) => `${message.role === "assistant" ? "agent" : userLabel}: ${message.content}`)
+    .join("\n\n");
+
+  const files: [string, string, string][] = [
+    [`${base}.json`, JSON.stringify(built, null, 2), "application/json"],
+    [`${base}-transcript.txt`, transcript, "text/plain"],
+    [`${base}-audit.json`, JSON.stringify(deriveAuditInput(built, base), null, 2), "application/json"],
+    [`${base}-gatelog.json`, JSON.stringify(buildGateLog(session, built.build), null, 2), "application/json"]
+  ];
+  files.forEach(([name, text, mime], index) => {
+    setTimeout(() => downloadText(name, text, mime), index * 300);
   });
-  downloadText(`chatgraph-${stamp()}.txt`, lines.join("\n\n"), "text/plain");
 }
 
 /**
- * The research export: everything the pipeline knew about this session in one
- * self-describing JSON — the transcript, what extraction admitted per dialogue
- * turn, the full graph, and a knowledge view giving each fact its evidence and
- * relationships. Top-level `domainId` + `messages` keep the shape the evaluation
- * harness already reads, so the same file is both corpus and analysis artifact.
+ * The gate's account of the session: per turn, every extraction attempt with
+ * its findings (including hard rejections that never reached the graph), plus
+ * an aggregate summary. This is the "what went wrong" file — the session
+ * export shows what was admitted; this shows what it cost to admit it.
  */
-export function exportSessionJson(session: ChatSession): void {
-  downloadText(`chatgraph-${stamp()}.json`, JSON.stringify(buildSessionExport(session), null, 2), "application/json");
+export function buildGateLog(session: ChatSession, build: { commit: string; branch: string | null }) {
+  const turnRecords = session.turnRecords ?? [];
+
+  const findingCounts = new Map<string, number>();
+  let totalAttempts = 0;
+  let turnsWithRetries = 0;
+  let fillerSkipped = 0;
+  let proposedVertices = 0;
+  let proposedEdges = 0;
+  let admittedVertices = 0;
+  let admittedEdges = 0;
+
+  for (const record of turnRecords) {
+    const gate = record.gate;
+    if (!gate) continue;
+    if (gate.skippedAsFiller) {
+      fillerSkipped += 1;
+      continue;
+    }
+    totalAttempts += gate.attempts.length;
+    if (gate.attempts.length > 1) turnsWithRetries += 1;
+    const chosen = gate.attempts.find((a: GateAttemptReport) => a.attempt === gate.chosenAttempt);
+    if (chosen) {
+      proposedVertices += chosen.proposedVertices;
+      proposedEdges += chosen.proposedEdges;
+      admittedVertices += chosen.admittedVertices;
+      admittedEdges += chosen.admittedEdges;
+    }
+    for (const attempt of gate.attempts) {
+      for (const finding of attempt.findings) {
+        const key = `${finding.ruleId}|${finding.severity}|${finding.action}`;
+        findingCounts.set(key, (findingCounts.get(key) ?? 0) + 1);
+      }
+    }
+  }
+
+  return {
+    format: "chatgraph-gatelog/v1",
+    exportedAt: new Date().toISOString(),
+    domainId: session.domainId,
+    build,
+    summary: {
+      recordedTurns: turnRecords.length,
+      turnsSkippedAsFiller: fillerSkipped,
+      turnsWithoutGateReport: turnRecords.filter((record: TurnRecord) => !record.gate).length,
+      totalAttempts,
+      turnsWithRetries,
+      chosenAttemptTotals: {
+        proposedVertices,
+        proposedEdges,
+        admittedVertices,
+        admittedEdges
+      },
+      findings: [...findingCounts.entries()]
+        .map(([key, count]) => {
+          const [ruleId, severity, action] = key.split("|");
+          return { ruleId, severity, action, count };
+        })
+        .sort((a, b) => b.count - a.count)
+    },
+    turns: turnRecords.map((record, index) => ({
+      turn: index + 1,
+      userMessageId: record.userMessageId,
+      userText: record.userText,
+      gate: record.gate ?? null
+    }))
+  };
 }
 
 export function buildSessionExport(session: ChatSession) {
@@ -95,6 +186,13 @@ export function buildSessionExport(session: ChatSession) {
     domainLabel: domain.label,
     userLabel: domain.userLabel,
 
+    // Which build produced this session. Vercel inlines the commit sha at
+    // build time; "dev" means a local run.
+    build: {
+      commit: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "dev",
+      branch: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF ?? null
+    },
+
     // Verbatim conversation, in order (the shape the evaluation harness reads).
     messages: session.messages,
     transcript: session.messages.map((message, index) => ({
@@ -114,6 +212,9 @@ export function buildSessionExport(session: ChatSession) {
         edges: record.delta.edges
       },
       warnings: record.warnings,
+      // The gate's full account of the turn: every attempt, every finding,
+      // including hard rejections that never reached the graph.
+      gate: record.gate ?? null,
       at: new Date(record.createdAt).toISOString()
     })),
 

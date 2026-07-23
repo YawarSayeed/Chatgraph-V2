@@ -18,7 +18,8 @@ import { gateContract } from "@/lib/gate/contract";
 import { runGate } from "@/lib/gate/gate";
 import { extractionToolSchema, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { extractGovernedDelta } from "@/lib/server/extract-governed";
-import { buildSessionExport } from "@/lib/export";
+import { buildGateLog, buildSessionExport } from "@/lib/export";
+import { deriveAuditInput } from "@/lib/audit";
 import { isFillerTurn } from "@/lib/filler";
 
 const ROOT = process.cwd();
@@ -959,6 +960,91 @@ test("episode ids derive from the message id, not a vertex count", async () => {
   const episode = result.delta.vertices.find((v) => v.label === "TranscriptEpisode");
   assert.ok(episode, "a substantive turn records its episode");
   assert.equal(episode.id, `ep:session:hospitality:default:m${messageId.replace(/-/g, "").slice(0, 10)}`);
+});
+
+test("the gate report tells the whole story: attempts, findings, and the retry that fixed it", async () => {
+  const stub = stubOpenAI([
+    {
+      vertices: [{ id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "greet every guest by name" } }],
+      edges: [{ id: "e:bad", label: "standardEnforces", out: "standard:a", in: "principle:missing" }]
+    },
+    {
+      vertices: [
+        { id: "standard:a", label: "ServiceStandard", properties: { name: "Warm welcome" }, evidence: { traceText: "greet every guest by name" } },
+        { id: "principle:warmth", label: "GuestExperiencePrinciple", properties: { name: "Warmth" }, evidence: { traceText: "greet every guest by name" } }
+      ],
+      edges: [{ id: "e:good", label: "standardEnforces", out: "standard:a", in: "principle:warmth" }]
+    }
+  ]);
+  const result = await extractGovernedDelta(stub.client, "We greet every guest by name.", {
+    domainId: "hospitality",
+    messages: [{ id: "m1", role: "user", content: "We greet every guest by name.", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  });
+
+  assert.equal(result.gate.attempts.length, 2, "both attempts must be reported");
+  assert.equal(result.gate.chosenAttempt, 2, "the corrected attempt must be the chosen one");
+  const first = result.gate.attempts[0];
+  assert.ok(first.findings.some((f) => f.ruleId === "HR005" && f.action === "dropped"), "the rejection must be visible in the report");
+  assert.ok(first.retryFeedback, "the correction sent back must be recorded");
+  assert.equal(first.proposedVertices, 1, "proposal counts must exclude the deterministic scaffold");
+  const second = result.gate.attempts[1];
+  assert.ok(second.admittedVertices > second.proposedVertices, "admitted includes gate-materialized evidence vertices");
+});
+
+test("a filler turn is reported as skipped, not as an empty extraction", async () => {
+  const stub = stubOpenAI({ vertices: [], edges: [] });
+  const result = await extractGovernedDelta(stub.client, "Continue", {
+    domainId: "hospitality",
+    messages: [{ id: "m1", role: "user", content: "Continue", createdAt: 0 }],
+    graph: EMPTY_GRAPH
+  });
+  assert.equal(result.gate.skippedAsFiller, true);
+  assert.equal(result.gate.chosenAttempt, 0);
+  assert.equal(result.gate.attempts.length, 0);
+});
+
+test("the export bundle carries the gate report, the gate log aggregates it, and the audit input derives from it", async () => {
+  const stub = stubOpenAI({
+    vertices: [{
+      id: "standard:hot-towel", label: "ServiceStandard",
+      properties: { name: "Hot towel on arrival" },
+      evidence: { traceText: "hand every guest a hot towel", confidence: "high" }
+    }],
+    edges: []
+  });
+  const message = { id: "0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f", role: "user", content: "We hand every guest a hot towel the moment they walk in.", createdAt: 2 };
+  const body = { domainId: "hospitality", messages: [message], graph: EMPTY_GRAPH };
+  const result = await extractGovernedDelta(stub.client, message.content, body);
+
+  const graph = { vertices: { ...EMPTY_GRAPH.vertices }, edges: {} };
+  for (const v of result.delta.vertices) graph.vertices[v.id] = v;
+  for (const e of result.delta.edges) graph.edges[e.id] = e;
+  const session = {
+    domainId: "hospitality",
+    messages: [{ id: "a1", role: "assistant", content: "What makes you special?", createdAt: 1 }, message],
+    graph,
+    settings: { voiceEnabled: false, autoSpeak: false },
+    turnRecords: [{ userMessageId: message.id, userText: message.content, delta: result.delta, warnings: result.warnings, gate: result.gate, createdAt: 3 }]
+  };
+
+  const built = buildSessionExport(session);
+  assert.ok(built.build, "the export must say which build produced it");
+  assert.equal(built.turns[0].gate.chosenAttempt, 1, "the per-turn gate report must be in the export");
+
+  const log = buildGateLog(session, built.build);
+  assert.equal(log.format, "chatgraph-gatelog/v1");
+  assert.equal(log.summary.totalAttempts, 1);
+  assert.equal(log.summary.chosenAttemptTotals.proposedVertices, 1);
+  assert.ok(log.summary.chosenAttemptTotals.admittedVertices >= 2, "admitted counts include materialized evidence");
+  assert.equal(log.turns[0].gate.attempts.length, 1);
+
+  const audit = deriveAuditInput(built, "test-session");
+  assert.equal(audit.facts.length, 1);
+  assert.equal(audit.facts[0].trace, "hand every guest a hot towel");
+  assert.equal(audit.facts[0].uttIdx, 1, "attribution must go through the admitting turn record");
+  assert.equal(audit.spanPreCheck.ok, 1);
+  assert.equal(audit.spanPreCheck.fail, 0);
 });
 
 test("assertion-only property guidance is derived from the schema's type declarations", () => {

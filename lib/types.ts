@@ -40,12 +40,44 @@ export interface ClientSettings {
   autoSpeak: boolean;
 }
 
+/** One gate finding, as reported to the client. Mirrors lib/gate GateFinding. */
+export interface TurnGateFinding {
+  ruleId: string;
+  severity: string;
+  message: string;
+  subjectId?: string | null;
+  action: string;
+}
+
+/** One extraction attempt as the gate saw it. */
+export interface GateAttemptReport {
+  attempt: number;
+  proposedVertices: number;
+  proposedEdges: number;
+  admittedVertices: number;
+  admittedEdges: number;
+  score: number;
+  findings: TurnGateFinding[];
+  /** The correction echoed back to the extractor, when this attempt triggered a retry. */
+  retryFeedback?: string;
+}
+
+/** The gate's full account of one turn — every attempt, every finding. */
+export interface TurnGateReport {
+  attempts: GateAttemptReport[];
+  /** 1-based attempt whose delta was admitted; 0 when nothing was extracted. */
+  chosenAttempt: number;
+  skippedAsFiller?: boolean;
+}
+
 /** What extraction did with one user turn: the delta admitted and the warnings. */
 export interface TurnRecord {
   userMessageId: string;
   userText: string;
   delta: GraphDelta;
   warnings: string[];
+  /** Full gate report for the turn, including rejected attempts. */
+  gate?: TurnGateReport;
   createdAt: number;
 }
 
@@ -68,4 +100,5 @@ export interface ChatResponse {
   assistantMessage: ChatMessage;
   delta: GraphDelta;
   warnings: string[];
+  gate?: TurnGateReport;
 }

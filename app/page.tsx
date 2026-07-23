@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { GraphView } from "@/components/GraphView";
 import { domainList, getDomain, isDomainId } from "@/lib/domains";
-import { exportSessionJson, exportTranscriptTxt } from "@/lib/export";
+import { exportSessionBundle } from "@/lib/export";
 import { OpenAIRealtimeSession, type RealtimeStatus } from "@/lib/realtime";
 import { mergeDelta } from "@/lib/schema";
 import { clearSession, loadSession, saveSession } from "@/lib/storage";
@@ -106,6 +106,7 @@ export default function Home() {
             userText: trimmed,
             delta: data.delta,
             warnings: data.warnings ?? [],
+            gate: data.gate,
             createdAt: Date.now()
           }
         ]
@@ -159,7 +160,7 @@ export default function Home() {
         })
       });
       if (!response.ok) throw new Error(await response.text());
-      const data = (await response.json()) as Pick<ChatResponse, "delta" | "warnings">;
+      const data = (await response.json()) as Pick<ChatResponse, "delta" | "warnings" | "gate">;
       const hasGraphDelta = data.delta.vertices.length > 0 || data.delta.edges.length > 0;
       const current = sessionRef.current;
       if (!current) return;
@@ -176,6 +177,7 @@ export default function Home() {
             userText: text,
             delta: data.delta,
             warnings: data.warnings ?? [],
+            gate: data.gate,
             createdAt: Date.now()
           }
         ]
@@ -293,10 +295,9 @@ export default function Home() {
 
   function exportAll() {
     if (!session) return;
-    // The JSON is the research artifact: transcript, per-turn admitted deltas,
-    // full graph, and per-fact evidence. The txt stays for human reading.
-    exportSessionJson(session);
-    exportTranscriptTxt(session);
+    // One click, four files under one timestamp: session export, transcript,
+    // audit input, gate log — the complete input set for analysis.
+    exportSessionBundle(session);
   }
 
   if (!session) {
@@ -370,8 +371,8 @@ export default function Home() {
                 type="button"
                 className="icon-button"
                 onClick={exportAll}
-                title="Download transcript and graph"
-                aria-label="Download transcript and graph"
+                title="Download analysis bundle (session, transcript, audit, gate log)"
+                aria-label="Download analysis bundle"
               >
                 <Download size={18} />
               </button>

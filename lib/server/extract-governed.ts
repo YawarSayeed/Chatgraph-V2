@@ -21,7 +21,7 @@ import { runGate, type GateFinding } from "@/lib/gate/gate";
 import { extractionToolSchema, knownEntitiesSummary, provenanceInstructions, schemaReference } from "@/lib/gate/prompt";
 import { getDomain } from "@/lib/domains";
 import { isFillerTurn } from "@/lib/filler";
-import type { ChatRequest, GraphDelta, GraphState } from "@/lib/types";
+import type { ChatRequest, GateAttemptReport, GraphDelta, GraphState, TurnGateReport } from "@/lib/types";
 
 const DEFAULT_EXTRACTOR_MODEL = "gpt-4o-mini";
 const MAX_ATTEMPTS = 3;
@@ -30,7 +30,7 @@ export async function extractGovernedDelta(
   openai: OpenAI,
   latestText: string,
   body: ChatRequest
-): Promise<{ delta: GraphDelta; warnings: string[] }> {
+): Promise<{ delta: GraphDelta; warnings: string[]; gate: TurnGateReport }> {
   const domainId = body.domainId ?? "hospitality";
   reportDriftOnce(domainId);
 
@@ -40,7 +40,11 @@ export async function extractGovernedDelta(
   // happened on filler turns. Skip extraction entirely; not even an episode is
   // recorded, since a navigation utterance is not evidence of anything.
   if (isFillerTurn(latestText)) {
-    return { delta: { vertices: [], edges: [] }, warnings: [] };
+    return {
+      delta: { vertices: [], edges: [] },
+      warnings: [],
+      gate: { attempts: [], chosenAttempt: 0, skippedAsFiller: true }
+    };
   }
 
   const previousQuestion = [...body.messages].reverse().find(
@@ -51,8 +55,9 @@ export async function extractGovernedDelta(
   );
   const scaffold = episodeScaffold(domainId, body.graph, latestText, previousQuestion, latestUser?.id);
 
-  let best: { delta: GraphDelta; warnings: string[]; score: number } | null = null;
+  let best: { delta: GraphDelta; warnings: string[]; score: number; attempt: number } | null = null;
   let feedback = "";
+  const attempts: GateAttemptReport[] = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     let raw: unknown;
@@ -63,6 +68,10 @@ export async function extractGovernedDelta(
     }
     if (raw === null) {
       feedback = "The previous attempt produced no tool call. Emit the delta using the emit_graph_delta function.";
+      attempts.push({
+        attempt, proposedVertices: 0, proposedEdges: 0, admittedVertices: 0, admittedEdges: 0,
+        score: 0, findings: [], retryFeedback: feedback
+      });
       continue;
     }
 
@@ -84,12 +93,27 @@ export async function extractGovernedDelta(
     const candidate = {
       delta: result.delta,
       warnings: warningsFrom(result.findings),
-      score: result.delta.vertices.length + result.delta.edges.length - 10 * evidenceGaps
+      score: result.delta.vertices.length + result.delta.edges.length - 10 * evidenceGaps,
+      attempt
     };
     if (!best || candidate.score > best.score) best = candidate;
 
+    const proposed = merged as { vertices: unknown[]; edges: unknown[] };
+    const report: GateAttemptReport = {
+      attempt,
+      // Proposal counts exclude the deterministic scaffold: they measure the model.
+      proposedVertices: proposed.vertices.length - scaffold.vertices.length,
+      proposedEdges: proposed.edges.length - scaffold.edges.length,
+      admittedVertices: result.delta.vertices.length,
+      admittedEdges: result.delta.edges.length,
+      score: candidate.score,
+      findings: result.findings
+    };
+    attempts.push(report);
+
     if (result.retryFeedback) {
       feedback = `${result.retryFeedback}\n\nSchema:\n${schemaReference(domainId)}`;
+      report.retryFeedback = result.retryFeedback;
       continue;
     }
     // Soft findings never block admission, but they are still worth one retry:
@@ -99,13 +123,24 @@ export async function extractGovernedDelta(
         `${evidenceGaps} admitted item(s) lacked an evidence object. Re-emit the same delta, ` +
         `attaching evidence.traceText (the expert's exact words from the latest utterance) ` +
         `to every knowledge vertex and every knowledge-to-knowledge edge.`;
+      report.retryFeedback = feedback;
       continue;
     }
     break;
   }
 
-  if (!best) return { delta: { vertices: [], edges: [] }, warnings: ["Graph extraction failed for this turn."] };
-  return { delta: best.delta, warnings: best.warnings };
+  if (!best) {
+    return {
+      delta: { vertices: [], edges: [] },
+      warnings: ["Graph extraction failed for this turn."],
+      gate: { attempts, chosenAttempt: 0 }
+    };
+  }
+  return {
+    delta: best.delta,
+    warnings: best.warnings,
+    gate: { attempts, chosenAttempt: best.attempt }
+  };
 }
 
 const driftReported = new Set<string>();

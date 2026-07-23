@@ -74,6 +74,19 @@ smaller fully-grounded attempt beats a larger flagged one, and a delta that is
 clean except for missing evidence gets one soft retry (the flagged attempt is
 kept, so a failed retry costs nothing).
 
+### One-click analysis bundle (`lib/export.ts`, added 2026-07-23 after the initial commit)
+
+The download button now produces the complete input set for analysis under one
+timestamp: the session export, the human-readable transcript, the audit input
+(derived in the browser by the same `lib/audit.ts` the CLI uses), and a **gate
+log**. The gate log is new evidence the pipeline previously discarded: every
+extraction attempt per turn with its full findings — hard rejections that never
+reached the graph, retry feedback echoed to the extractor, HR026 drops,
+identity de-collisions, filler skips — plus an aggregate summary (findings by
+rule/severity/action, retry counts, proposed-vs-admitted totals). The export
+also records which build (commit sha) produced it, so a stale deployment like
+D-06-5 is self-identifying in the data.
+
 ### Turnkey audit (`scripts/nesy_results/derive_live_audit.mjs`)
 
 `npm run audit:derive <export.json>` now derives the live-audit input

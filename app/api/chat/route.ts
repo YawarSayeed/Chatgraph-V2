@@ -53,9 +53,11 @@ export async function POST(request: Request) {
 
   const warnings: string[] = [];
   let delta: GraphDelta = { vertices: [], edges: [] };
+  let gate;
   if (extractorResult.status === "fulfilled") {
     delta = extractorResult.value.delta;
     warnings.push(...extractorResult.value.warnings);
+    gate = extractorResult.value.gate;
   } else {
     warnings.push("Graph extraction failed for this turn.");
   }
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     createdAt: Date.now()
   };
 
-  return NextResponse.json({ assistantMessage, delta, warnings });
+  return NextResponse.json({ assistantMessage, delta, warnings, gate });
 }
 
 async function runAgent(openai: OpenAI, messages: ChatMessage[], systemPrompt: string): Promise<string> {
